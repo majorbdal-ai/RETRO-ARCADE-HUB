@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RETRO ARCADE HUB</title>
+    <title>RETRO ARCADE HUB — Ultimate HTML5 Gaming Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -27,26 +27,24 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Startup Mode Selector Modal -->
-    <div id="modeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-        <div class="bg-[#161B26] border-2 border-pink-500 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl">
-            <div class="w-16 h-16 bg-pink-600 rounded-2xl mx-auto flex items-center justify-center text-2xl text-white shadow-lg">
+    <!-- Startup Device Mode Selector Popup -->
+    <div id="modeModal" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;padding:16px;">
+        <div style="background:#161B26;border:2px solid #FF3B7C;border-radius:24px;padding:32px;max-width:420px;width:100%;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.9);">
+            <div style="width:64px;height:64px;background:#FF3B7C;border-radius:16px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;">
                 <i class="fa-solid fa-gamepad"></i>
             </div>
-            <div class="space-y-2">
-                <h2 class="font-arcade text-lg text-white">SELECT DEVICE</h2>
-                <p class="text-gray-400 text-sm">Choose your control mode to start playing.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-4 pt-2">
-                <button onclick="selectMode('pc')" class="bg-gray-800 hover:bg-gray-700 border-2 border-cyan-400 text-white rounded-2xl p-5 flex flex-col items-center space-y-2 cursor-pointer transition">
-                    <i class="fa-solid fa-desktop text-3xl text-cyan-400"></i>
-                    <span class="font-bold text-lg">PC MODE</span>
-                    <span class="text-xs text-gray-400">Keyboard</span>
+            <h2 class="font-arcade" style="font-size:18px;color:#fff;margin-bottom:10px;">SELECT YOUR DEVICE</h2>
+            <p style="font-size:14px;color:#8891A3;margin-bottom:24px;">Choose PC Mode (Keyboard) or Phone Mode (Touch Buttons) to start playing.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <button onclick="selectDeviceMode('pc')" style="background:#1f2937;border:2px solid #22d3ee;color:#fff;padding:20px 16px;border-radius:16px;cursor:pointer;font-weight:bold;font-size:16px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:0.2s;">
+                    <i class="fa-solid fa-desktop" style="font-size:24px;color:#22d3ee;"></i>
+                    <span>PC MODE</span>
+                    <span style="font-size:10px;color:#9ca3af;font-weight:normal;">Keyboard Controls</span>
                 </button>
-                <button onclick="selectMode('phone')" class="bg-gray-800 hover:bg-gray-700 border-2 border-pink-500 text-white rounded-2xl p-5 flex flex-col items-center space-y-2 cursor-pointer transition">
-                    <i class="fa-solid fa-mobile-screen-button text-3xl text-pink-500"></i>
-                    <span class="font-bold text-lg">PHONE MODE</span>
-                    <span class="text-xs text-gray-400">Touch Buttons</span>
+                <button onclick="selectDeviceMode('phone')" style="background:#1f2937;border:2px solid #ff3b7c;color:#fff;padding:20px 16px;border-radius:16px;cursor:pointer;font-weight:bold;font-size:16px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:0.2s;">
+                    <i class="fa-solid fa-mobile-screen-button" style="font-size:24px;color:#ff3b7c;"></i>
+                    <span>PHONE MODE</span>
+                    <span style="font-size:10px;color:#9ca3af;font-weight:normal;">Touch Buttons</span>
                 </button>
             </div>
         </div>
@@ -129,12 +127,12 @@
         <!-- Active Game Arena -->
         <div id="gameView" class="hidden flex-col items-center space-y-4">
             <div class="w-full max-w-[800px] flex items-center justify-between bg-[#161B26] p-3 rounded-xl border border-[#232A38]">
-                <button onclick="returnToHub()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-xs font-bold">← Hub</button>
+                <button onclick="returnToHub()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer">← Hub</button>
                 <div class="text-center">
                     <h3 id="gameTitleDisplay" class="text-lg font-bold uppercase text-white">Game</h3>
                     <p class="text-xs text-gray-400">Score: <span id="scoreDisplay" class="text-pink-500 font-bold">0</span></p>
                 </div>
-                <button onclick="restartActiveGame()" class="bg-pink-600 text-white px-4 py-2 rounded-lg text-xs font-bold">Restart</button>
+                <button onclick="restartActiveGame()" class="bg-pink-600 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer">Restart</button>
             </div>
 
             <div class="relative bg-black rounded-2xl overflow-hidden border-2 border-pink-500 shadow-2xl">
@@ -142,7 +140,7 @@
                 <div id="gameOverOverlay" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center space-y-3">
                     <h2 class="font-arcade text-2xl text-pink-500 animate-pulse">GAME OVER</h2>
                     <p class="text-gray-300 text-sm">Final Score: <span id="finalScore" class="text-white font-bold">0</span></p>
-                    <button onclick="restartActiveGame()" class="bg-pink-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs">Play Again</button>
+                    <button onclick="restartActiveGame()" class="bg-pink-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer">Play Again</button>
                 </div>
             </div>
 
@@ -167,7 +165,7 @@
         <p>RETRO ARCADE HUB © 2026 · Created by BCF Shamim</p>
     </footer>
 
-    <!-- Vanilla JS Game Controller & Engines -->
+    <!-- Game Logic Script -->
     <script>
         let currentMode = 'pc';
         let currentGame = null;
@@ -185,7 +183,7 @@
             document.getElementById('modeModal').style.display = 'flex';
         }
 
-        function selectMode(mode) {
+        function selectDeviceMode(mode) {
             currentMode = mode;
             document.getElementById('modeLabel').innerText = mode.toUpperCase();
             document.getElementById('modeModal').style.display = 'none';
@@ -214,7 +212,6 @@
             document.getElementById('gameOverOverlay').style.display = 'none';
             document.getElementById('scoreDisplay').innerText = '0';
             
-            // Show/hide touch controls based on mode
             const touchElem = document.getElementById('touchControls');
             if (currentMode === 'phone') {
                 touchElem.style.display = 'grid';
