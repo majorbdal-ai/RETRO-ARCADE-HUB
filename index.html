@@ -1,248 +1,163 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RETRO ARCADE HUB — Ultimate HTML5 Gaming Portal</title>
-    <!-- Tailwind CSS -->
+    <title>RETRO ARCADE HUB</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet">
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0B0E14;
-            --surface: #161B26;
-            --brand: #FF3B7C;
-            --cyan: #22D3EE;
-        }
-        body {
-            background-color: var(--bg);
-            color: #E9EDF5;
-            font-family: 'Inter', sans-serif;
-            background-image: 
-                radial-gradient(circle at 20% 10%, #1a1030 0%, transparent 40%),
-                radial-gradient(circle at 80% 90%, #061a22 0%, transparent 40%);
-            background-attachment: fixed;
-            touch-action: manipulation;
-        }
+        body { background: #0B0E14; color: #E9EDF5; font-family: 'Rajdhani', sans-serif; }
         .font-arcade { font-family: 'Press Start 2P', monospace; }
-        .font-display { font-family: 'Rajdhani', sans-serif; }
-        .arcade-card {
-            background: var(--surface);
-            border: 1px solid #232A38;
-            transition: all 0.3s ease;
-        }
-        .arcade-card:hover {
-            border-color: var(--brand);
-            transform: translateY(-6px);
-            box-shadow: 0 15px 30px rgba(255, 59, 124, 0.2);
-        }
         .control-btn {
-            background: rgba(22, 27, 38, 0.9);
-            border: 2px solid #374151;
+            background: #161B26;
+            border: 2px solid #FF3B7C;
             color: white;
             font-size: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 16px;
+            border-radius: 14px;
             user-select: none;
-            -webkit-user-select: none;
             cursor: pointer;
-            transition: background 0.1s;
         }
-        .control-btn:active {
-            background: #FF3B7C;
-            border-color: #FF3B7C;
-        }
+        .control-btn:active { background: #FF3B7C; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col" x-data="arcadeApp()">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Mode Selector Modal Popup (PC vs Phone) -->
-    <div x-show="showModeModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-        <div class="bg-[#161B26] border-2 border-pink-500/60 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl">
-            <div class="w-16 h-16 bg-gradient-to-tr from-pink-600 to-purple-600 rounded-2xl mx-auto flex items-center justify-center text-2xl text-white shadow-lg">
+    <!-- Startup Mode Selector Modal -->
+    <div id="modeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div class="bg-[#161B26] border-2 border-pink-500 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl">
+            <div class="w-16 h-16 bg-pink-600 rounded-2xl mx-auto flex items-center justify-center text-2xl text-white shadow-lg">
                 <i class="fa-solid fa-gamepad"></i>
             </div>
             <div class="space-y-2">
-                <h2 class="font-arcade text-lg sm:text-xl text-white tracking-wider">SELECT DEVICE</h2>
-                <p class="text-gray-400 text-xs sm:text-sm">Choose how you want to play to set up your controls automatically.</p>
+                <h2 class="font-arcade text-lg text-white">SELECT DEVICE</h2>
+                <p class="text-gray-400 text-sm">Choose your control mode to start playing.</p>
             </div>
             <div class="grid grid-cols-2 gap-4 pt-2">
-                <button @click="setDeviceMode('pc')" class="bg-gray-800 hover:bg-gray-700 border-2 border-cyan-500/50 hover:border-cyan-400 text-white rounded-2xl p-5 flex flex-col items-center space-y-3 transition group cursor-pointer shadow-lg">
-                    <i class="fa-solid fa-desktop text-3xl text-cyan-400 group-hover:scale-110 transition"></i>
-                    <span class="font-display font-bold text-base tracking-wide">PC MODE</span>
-                    <span class="text-[10px] text-gray-400">Keyboard Controls</span>
+                <button onclick="selectMode('pc')" class="bg-gray-800 hover:bg-gray-700 border-2 border-cyan-400 text-white rounded-2xl p-5 flex flex-col items-center space-y-2 cursor-pointer transition">
+                    <i class="fa-solid fa-desktop text-3xl text-cyan-400"></i>
+                    <span class="font-bold text-lg">PC MODE</span>
+                    <span class="text-xs text-gray-400">Keyboard</span>
                 </button>
-                <button @click="setDeviceMode('phone')" class="bg-gray-800 hover:bg-gray-700 border-2 border-pink-500/50 hover:border-pink-400 text-white rounded-2xl p-5 flex flex-col items-center space-y-3 transition group cursor-pointer shadow-lg">
-                    <i class="fa-solid fa-mobile-screen-button text-3xl text-pink-500 group-hover:scale-110 transition"></i>
-                    <span class="font-display font-bold text-base tracking-wide">PHONE MODE</span>
-                    <span class="text-[10px] text-gray-400">Touch Buttons</span>
+                <button onclick="selectMode('phone')" class="bg-gray-800 hover:bg-gray-700 border-2 border-pink-500 text-white rounded-2xl p-5 flex flex-col items-center space-y-2 cursor-pointer transition">
+                    <i class="fa-solid fa-mobile-screen-button text-3xl text-pink-500"></i>
+                    <span class="font-bold text-lg">PHONE MODE</span>
+                    <span class="text-xs text-gray-400">Touch Buttons</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Top Navigation Header -->
-    <header class="bg-[#0B0E14]/90 border-b border-[#232A38] sticky top-0 z-40 backdrop-blur px-4 sm:px-6 py-4">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-3 cursor-pointer" @click="activeGame = null">
-                <div class="bg-gradient-to-tr from-pink-600 to-purple-600 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-lg sm:text-xl shadow-lg">
-                    <i class="fa-solid fa-gamepad"></i>
-                </div>
-                <div>
-                    <h1 class="font-arcade text-xs sm:text-base tracking-wider text-white">RETRO<span class="text-pink-500">ARCADE</span></h1>
-                    <p class="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-400 font-bold" x-text="deviceMode === 'phone' ? 'Mobile Touch Hub' : 'PC Keyboard Hub'"></p>
-                </div>
+    <!-- Header -->
+    <header class="bg-[#0B0E14] border-b border-[#232A38] p-4 flex items-center justify-between sticky top-0 z-40">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="returnToHub()">
+            <div class="bg-pink-600 text-white w-10 h-10 rounded-xl flex items-center justify-center text-lg">
+                <i class="fa-solid fa-gamepad"></i>
             </div>
-            <div class="flex items-center space-x-3">
-                <button @click="showModeModal = true" class="text-[11px] font-bold text-gray-300 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-xl border border-gray-700 transition">
-                    <i class="fa-solid fa-sliders mr-1 text-pink-500"></i> Mode: <span class="uppercase text-pink-400" x-text="deviceMode"></span>
-                </button>
-                <span class="text-xs font-bold text-cyan-400 bg-cyan-950/50 px-3 py-1.5 rounded-full border border-cyan-800 shadow">
-                    <i class="fa-solid fa-trophy mr-1 text-yellow-400"></i> <span x-text="highScore">0</span>
-                </span>
-            </div>
+            <h1 class="font-arcade text-xs text-white">RETRO<span class="text-pink-500">ARCADE</span></h1>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="openModal()" class="text-xs font-bold text-gray-300 bg-gray-800 px-3 py-1.5 rounded-xl border border-gray-700">
+                Mode: <span id="modeLabel" class="uppercase text-pink-400">PC</span>
+            </button>
+            <span class="text-xs font-bold text-cyan-400 bg-cyan-950 px-3 py-1.5 rounded-full border border-cyan-800">
+                High: <span id="highScoreDisplay">0</span>
+            </span>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex-1 w-full flex flex-col justify-center">
-
-        <!-- Game Selector Grid -->
-        <div x-show="!activeGame" class="space-y-8">
-            <div class="text-center max-w-2xl mx-auto space-y-3">
-                <h2 class="font-display text-3xl sm:text-5xl font-bold tracking-tight text-white">Select Your Retro Game</h2>
-                <p class="text-gray-400 text-sm sm:text-base">Choose from action, arcade, skill, and sports games built with HTML5 Canvas.</p>
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4 py-8 flex-1 w-full flex flex-col justify-center">
+        
+        <!-- Game Selector Hub -->
+        <div id="hubView" class="space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl sm:text-4xl font-bold text-white">Select a Retro Game</h2>
+                <p class="text-gray-400 text-sm">Choose your game and test your skills right in the browser.</p>
             </div>
-
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
-                <!-- Game 1: Space Shooter -->
-                <div @click="launchGame('shooter')" class="arcade-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                <div onclick="startGame('shooter')" class="bg-[#161B26] border border-[#232A38] hover:border-pink-500 rounded-2xl p-5 cursor-pointer transition flex flex-col justify-between">
                     <div>
-                        <div class="h-36 w-full rounded-xl bg-gradient-to-br from-purple-900/40 to-pink-900/40 flex items-center justify-center mb-4 border border-purple-800/50 group-hover:border-pink-500 transition">
-                            <i class="fa-solid fa-rocket text-5xl text-pink-500 group-hover:scale-110 transition duration-300"></i>
+                        <div class="h-32 bg-purple-950/40 rounded-xl flex items-center justify-center mb-4 border border-purple-800">
+                            <i class="fa-solid fa-rocket text-4xl text-pink-500"></i>
                         </div>
-                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-pink-950 text-pink-400 border border-pink-800">ACTION</span>
-                        <h3 class="font-display text-xl font-bold mt-2.5 text-white group-hover:text-pink-400 transition">Cyber Space Combat</h3>
-                        <p class="text-gray-400 text-xs mt-1.5">Destroy hostile alien armadas.</p>
+                        <h3 class="text-xl font-bold text-white">Space Shooter</h3>
+                        <p class="text-gray-400 text-xs mt-1">Destroy hostile alien armadas.</p>
                     </div>
-                    <button class="mt-5 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow flex items-center justify-center space-x-2">
-                        <span>Play Now</span>
-                        <i class="fa-solid fa-play text-[10px]"></i>
-                    </button>
+                    <button class="mt-4 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-xl text-xs">Play Now</button>
                 </div>
 
-                <!-- Game 2: Neon Snake -->
-                <div @click="launchGame('snake')" class="arcade-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                <div onclick="startGame('snake')" class="bg-[#161B26] border border-[#232A38] hover:border-cyan-400 rounded-2xl p-5 cursor-pointer transition flex flex-col justify-between">
                     <div>
-                        <div class="h-36 w-full rounded-xl bg-gradient-to-br from-cyan-900/40 to-blue-900/40 flex items-center justify-center mb-4 border border-cyan-800/50 group-hover:border-cyan-400 transition">
-                            <i class="fa-solid fa-worm text-5xl text-cyan-400 group-hover:scale-110 transition duration-300"></i>
+                        <div class="h-32 bg-cyan-950/40 rounded-xl flex items-center justify-center mb-4 border border-cyan-800">
+                            <i class="fa-solid fa-worm text-4xl text-cyan-400"></i>
                         </div>
-                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">CLASSIC</span>
-                        <h3 class="font-display text-xl font-bold mt-2.5 text-white group-hover:text-cyan-400 transition">Cyber Neon Snake</h3>
-                        <p class="text-gray-400 text-xs mt-1.5">Timeless snake with glowing neon graphics.</p>
+                        <h3 class="text-xl font-bold text-white">Neon Snake</h3>
+                        <p class="text-gray-400 text-xs mt-1">Timeless classic with glowing neon.</p>
                     </div>
-                    <button class="mt-5 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow flex items-center justify-center space-x-2">
-                        <span>Play Now</span>
-                        <i class="fa-solid fa-play text-[10px]"></i>
-                    </button>
+                    <button class="mt-4 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2.5 rounded-xl text-xs">Play Now</button>
                 </div>
 
-                <!-- Game 3: Brick Breaker -->
-                <div @click="launchGame('breaker')" class="arcade-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                <div onclick="startGame('breaker')" class="bg-[#161B26] border border-[#232A38] hover:border-amber-400 rounded-2xl p-5 cursor-pointer transition flex flex-col justify-between">
                     <div>
-                        <div class="h-36 w-full rounded-xl bg-gradient-to-br from-amber-900/40 to-red-900/40 flex items-center justify-center mb-4 border border-amber-800/50 group-hover:border-amber-400 transition">
-                            <i class="fa-solid fa-table-tennis-paddle-ball text-5xl text-amber-400 group-hover:scale-110 transition duration-300"></i>
+                        <div class="h-32 bg-amber-950/40 rounded-xl flex items-center justify-center mb-4 border border-amber-800">
+                            <i class="fa-solid fa-table-tennis-paddle-ball text-4xl text-amber-400"></i>
                         </div>
-                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800">SKILL</span>
-                        <h3 class="font-display text-xl font-bold mt-2.5 text-white group-hover:text-amber-400 transition">Brick Breaker 2026</h3>
-                        <p class="text-gray-400 text-xs mt-1.5">Bounce energy balls and smash blocks.</p>
+                        <h3 class="text-xl font-bold text-white">Brick Breaker</h3>
+                        <p class="text-gray-400 text-xs mt-1">Smash glowing blocks with energy balls.</p>
                     </div>
-                    <button class="mt-5 w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow flex items-center justify-center space-x-2">
-                        <span>Play Now</span>
-                        <i class="fa-solid fa-play text-[10px]"></i>
-                    </button>
+                    <button class="mt-4 w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl text-xs">Play Now</button>
                 </div>
 
-                <!-- Game 4: Cyber Pong -->
-                <div @click="launchGame('pong')" class="arcade-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                <div onclick="startGame('pong')" class="bg-[#161B26] border border-[#232A38] hover:border-emerald-400 rounded-2xl p-5 cursor-pointer transition flex flex-col justify-between">
                     <div>
-                        <div class="h-36 w-full rounded-xl bg-gradient-to-br from-emerald-900/40 to-teal-900/40 flex items-center justify-center mb-4 border border-emerald-800/50 group-hover:border-emerald-400 transition">
-                            <i class="fa-solid fa-futbol text-5xl text-emerald-400 group-hover:scale-110 transition duration-300"></i>
+                        <div class="h-32 bg-emerald-950/40 rounded-xl flex items-center justify-center mb-4 border border-emerald-800">
+                            <i class="fa-solid fa-futbol text-4xl text-emerald-400"></i>
                         </div>
-                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">VS AI</span>
-                        <h3 class="font-display text-xl font-bold mt-2.5 text-white group-hover:text-emerald-400 transition">Cyber Neon Pong</h3>
-                        <p class="text-gray-400 text-xs mt-1.5">Table tennis duel against smart AI.</p>
+                        <h3 class="text-xl font-bold text-white">Cyber Pong</h3>
+                        <p class="text-gray-400 text-xs mt-1">Table tennis duel against smart AI.</p>
                     </div>
-                    <button class="mt-5 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow flex items-center justify-center space-x-2">
-                        <span>Play Now</span>
-                        <i class="fa-solid fa-play text-[10px]"></i>
-                    </button>
+                    <button class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs">Play Now</button>
                 </div>
             </div>
         </div>
 
-        <!-- Active Game Screen -->
-        <div x-show="activeGame" x-cloak class="flex flex-col items-center justify-center space-y-4">
-            <div class="w-full max-w-[800px] flex items-center justify-between bg-[#161B26] p-3 sm:p-4 rounded-2xl border border-[#232A38] shadow">
-                <button @click="stopGame()" class="bg-gray-800 hover:bg-gray-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center space-x-2 cursor-pointer">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span>Hub</span>
-                </button>
+        <!-- Active Game Arena -->
+        <div id="gameView" class="hidden flex-col items-center space-y-4">
+            <div class="w-full max-w-[800px] flex items-center justify-between bg-[#161B26] p-3 rounded-xl border border-[#232A38]">
+                <button onclick="returnToHub()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-xs font-bold">← Hub</button>
                 <div class="text-center">
-                    <h3 class="font-display text-base sm:text-lg font-bold text-white uppercase tracking-wider" x-text="gameTitle()"></h3>
-                    <p class="text-xs text-gray-400">Score: <span class="text-pink-500 font-bold" x-text="currentScore">0</span></p>
+                    <h3 id="gameTitleDisplay" class="text-lg font-bold uppercase text-white">Game</h3>
+                    <p class="text-xs text-gray-400">Score: <span id="scoreDisplay" class="text-pink-500 font-bold">0</span></p>
                 </div>
-                <button @click="restartGame()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center space-x-2 cursor-pointer">
-                    <i class="fa-solid fa-rotate-right"></i>
-                    <span>Restart</span>
-                </button>
+                <button onclick="restartActiveGame()" class="bg-pink-600 text-white px-4 py-2 rounded-lg text-xs font-bold">Restart</button>
             </div>
 
-            <!-- Canvas Container -->
-            <div class="relative bg-black rounded-2xl overflow-hidden border-2 border-pink-500/50 shadow-2xl">
-                <canvas id="gameCanvas" width="800" height="500" class="block w-full max-w-[800px] h-[300px] sm:h-[450px] object-contain"></canvas>
-                
-                <!-- Game Over Overlay -->
-                <div x-show="gameOver" x-cloak class="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center space-y-4">
-                    <h2 class="font-arcade text-2xl sm:text-3xl text-pink-500 animate-pulse">GAME OVER</h2>
-                    <p class="text-gray-300 text-sm sm:text-base">Final Score: <span class="text-white font-bold" x-text="currentScore"></span></p>
-                    <button @click="restartGame()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold px-6 sm:px-8 py-3 rounded-xl transition shadow-lg cursor-pointer text-sm">
-                        Play Again
-                    </button>
+            <div class="relative bg-black rounded-2xl overflow-hidden border-2 border-pink-500 shadow-2xl">
+                <canvas id="gameCanvas" width="800" height="450" class="block w-full max-w-[800px] h-[300px] sm:h-[420px] object-contain"></canvas>
+                <div id="gameOverOverlay" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center space-y-3">
+                    <h2 class="font-arcade text-2xl text-pink-500 animate-pulse">GAME OVER</h2>
+                    <p class="text-gray-300 text-sm">Final Score: <span id="finalScore" class="text-white font-bold">0</span></p>
+                    <button onclick="restartActiveGame()" class="bg-pink-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs">Play Again</button>
                 </div>
             </div>
 
-            <!-- On-Screen Touch Controller (Only visible when Phone Mode is selected) -->
-            <div x-show="deviceMode === 'phone'" class="w-full max-w-[800px] grid grid-cols-3 gap-3 p-3 bg-[#161B26] rounded-2xl border border-[#232A38] select-none">
+            <!-- On-Screen Touch Controls (Shown ONLY in Phone Mode) -->
+            <div id="touchControls" class="hidden w-full max-w-[800px] grid grid-cols-3 gap-3 p-3 bg-[#161B26] rounded-2xl border border-[#232A38]">
                 <div class="flex items-center justify-center space-x-2 col-span-2">
-                    <button @touchstart.prevent="handleControl('left', true)" @touchend.prevent="handleControl('left', false)" @mousedown="handleControl('left', true)" @mouseup="handleControl('left', false)" class="control-btn w-20 h-14">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
-                    <button @touchstart.prevent="handleControl('right', true)" @touchend.prevent="handleControl('right', false)" @mousedown="handleControl('right', true)" @mouseup="handleControl('right', false)" class="control-btn w-20 h-14">
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </button>
+                    <button ontouchstart="pressKey('left', true)" ontouchend="pressKey('left', false)" onmousedown="pressKey('left', true)" onmouseup="pressKey('left', false)" class="control-btn w-20 h-14"><i class="fa-solid fa-arrow-left"></i></button>
+                    <button ontouchstart="pressKey('right', true)" ontouchend="pressKey('right', false)" onmousedown="pressKey('right', true)" onmouseup="pressKey('right', false)" class="control-btn w-20 h-14"><i class="fa-solid fa-arrow-right"></i></button>
                 </div>
                 <div class="flex items-center justify-end space-x-2">
-                    <button @touchstart.prevent="handleControl('up', true)" @touchend.prevent="handleControl('up', false)" @mousedown="handleControl('up', true)" @mouseup="handleControl('up', false)" class="control-btn w-16 h-14" x-show="activeGame === 'snake' || activeGame === 'pong'">
-                        <i class="fa-solid fa-arrow-up"></i>
-                    </button>
-                    <button @touchstart.prevent="handleControl('action', true)" @touchend.prevent="handleControl('action', false)" @mousedown="handleControl('action', true)" @mouseup="handleControl('action', false)" class="control-btn w-24 h-14 bg-pink-600 border-pink-500 text-xs font-bold">
-                        FIRE / GO
-                    </button>
-                    <button @touchstart.prevent="handleControl('down', true)" @touchend.prevent="handleControl('down', false)" @mousedown="handleControl('down', true)" @mouseup="handleControl('down', false)" class="control-btn w-16 h-14" x-show="activeGame === 'snake' || activeGame === 'pong'">
-                        <i class="fa-solid fa-arrow-down"></i>
-                    </button>
+                    <button ontouchstart="pressKey('up', true)" ontouchend="pressKey('up', false)" onmousedown="pressKey('up', true)" onmouseup="pressKey('up', false)" class="control-btn w-16 h-14" id="btnUp"><i class="fa-solid fa-arrow-up"></i></button>
+                    <button ontouchstart="pressKey('action', true)" ontouchend="pressKey('action', false)" onmousedown="pressKey('action', true)" onmouseup="pressKey('action', false)" class="control-btn w-20 h-14 bg-pink-600 text-xs font-bold">FIRE</button>
+                    <button ontouchstart="pressKey('down', true)" ontouchend="pressKey('down', false)" onmousedown="pressKey('down', true)" onmouseup="pressKey('down', false)" class="control-btn w-16 h-14" id="btnDown"><i class="fa-solid fa-arrow-down"></i></button>
                 </div>
             </div>
-            
-            <p class="text-[11px] text-gray-400 text-center" x-text="deviceMode === 'phone' ? 'Phone Mode: Using On-Screen Touch Controls' : 'PC Mode: Using Keyboard Arrow Keys & Spacebar'"></p>
         </div>
 
     </main>
@@ -252,9 +167,326 @@
         <p>RETRO ARCADE HUB © 2026 · Created by BCF Shamim</p>
     </footer>
 
-    <!-- Game Logic Script -->
-    <script src="game.js"></script>
+    <!-- Vanilla JS Game Controller & Engines -->
+    <script>
+        let currentMode = 'pc';
+        let currentGame = null;
+        let score = 0;
+        let highScore = localStorage.getItem('arcade_highscore') || 0;
+        let gameInterval = null;
+        let isGameOver = false;
+        let canvas, ctx;
+        let keys = {};
+        let touchState = { left: false, right: false, up: false, down: false, action: false };
+
+        document.getElementById('highScoreDisplay').innerText = highScore;
+
+        function openModal() {
+            document.getElementById('modeModal').style.display = 'flex';
+        }
+
+        function selectMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeLabel').innerText = mode.toUpperCase();
+            document.getElementById('modeModal').style.display = 'none';
+        }
+
+        function returnToHub() {
+            if (gameInterval) clearInterval(gameInterval);
+            document.getElementById('gameView').style.display = 'none';
+            document.getElementById('hubView').style.display = 'block';
+            document.getElementById('gameOverOverlay').style.display = 'none';
+        }
+
+        function pressKey(action, state) {
+            touchState[action] = state;
+        }
+
+        window.onkeydown = (e) => { keys[e.code] = true; };
+        window.onkeyup = (e) => { keys[e.code] = false; };
+
+        function startGame(type) {
+            currentGame = type;
+            score = 0;
+            isGameOver = false;
+            document.getElementById('hubView').style.display = 'none';
+            document.getElementById('gameView').style.display = 'flex';
+            document.getElementById('gameOverOverlay').style.display = 'none';
+            document.getElementById('scoreDisplay').innerText = '0';
+            
+            // Show/hide touch controls based on mode
+            const touchElem = document.getElementById('touchControls');
+            if (currentMode === 'phone') {
+                touchElem.style.display = 'grid';
+                if (type === 'snake' || type === 'pong') {
+                    document.getElementById('btnUp').style.display = 'flex';
+                    document.getElementById('btnDown').style.display = 'flex';
+                } else {
+                    document.getElementById('btnUp').style.display = 'none';
+                    document.getElementById('btnDown').style.display = 'none';
+                }
+            } else {
+                touchElem.style.display = 'none';
+            }
+
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+
+            if (gameInterval) clearInterval(gameInterval);
+
+            if (type === 'shooter') runShooter();
+            else if (type === 'snake') runSnake();
+            else if (type === 'breaker') runBreaker();
+            else if (type === 'pong') runPong();
+        }
+
+        function restartActiveGame() {
+            startGame(currentGame);
+        }
+
+        function triggerGameOver(finalScore) {
+            isGameOver = true;
+            if (gameInterval) clearInterval(gameInterval);
+            document.getElementById('finalScore').innerText = finalScore;
+            document.getElementById('gameOverOverlay').style.display = 'flex';
+            if (finalScore > highScore) {
+                highScore = finalScore;
+                localStorage.setItem('arcade_highscore', highScore);
+                document.getElementById('highScoreDisplay').innerText = highScore;
+            }
+        }
+
+        // --- SPACE SHOOTER ---
+        function runShooter() {
+            let ship = { x: 375, y: 380, w: 50, h: 25, speed: 7 };
+            let bullets = [];
+            let enemies = [];
+            let frame = 0;
+
+            gameInterval = setInterval(() => {
+                if (isGameOver) return;
+                frame++;
+
+                if ((keys['ArrowLeft'] || touchState.left) && ship.x > 0) ship.x -= ship.speed;
+                if ((keys['ArrowRight'] || touchState.right) && ship.x < 800 - ship.w) ship.x += ship.speed;
+                if ((keys['Space'] || touchState.action) && frame % 12 === 0) {
+                    bullets.push({ x: ship.x + ship.w / 2 - 3, y: ship.y, w: 6, h: 12, speed: 9 });
+                }
+
+                if (frame % 35 === 0) {
+                    enemies.push({ x: Math.random() * 750, y: -30, w: 35, h: 25, speed: 3 + Math.random() * 2 });
+                }
+
+                bullets.forEach(b => b.y -= b.speed);
+                bullets = bullets.filter(b => b.y > 0);
+
+                enemies.forEach(e => e.y += e.speed);
+
+                bullets.forEach((b, bi) => {
+                    enemies.forEach((e, ei) => {
+                        if (b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
+                            bullets.splice(bi, 1);
+                            enemies.splice(ei, 1);
+                            score += 10;
+                            document.getElementById('scoreDisplay').innerText = score;
+                        }
+                    });
+                });
+
+                enemies.forEach(e => {
+                    if (e.y > 450 || (e.x < ship.x + ship.w && e.x + e.w > ship.x && e.y < ship.y + ship.h && e.y + e.h > ship.y)) {
+                        triggerGameOver(score);
+                    }
+                });
+                enemies = enemies.filter(e => e.y <= 450);
+
+                ctx.fillStyle = '#0B0E14';
+                ctx.fillRect(0, 0, 800, 450);
+
+                ctx.fillStyle = '#FF3B7C';
+                ctx.fillRect(ship.x, ship.y + 8, ship.w, 17);
+                ctx.fillRect(ship.x + 20, ship.y, 10, 12);
+
+                ctx.fillStyle = '#22D3EE';
+                bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+
+                ctx.fillStyle = '#A855F7';
+                enemies.forEach(e => ctx.fillRect(e.x, e.y, e.w, e.h));
+            }, 1000 / 60);
+        }
+
+        // --- NEON SNAKE ---
+        function runSnake() {
+            let snake = [{ x: 160, y: 160 }, { x: 140, y: 160 }, { x: 120, y: 160 }];
+            let food = { x: 300, y: 200 };
+            let dx = 20, dy = 0;
+            let changed = false;
+
+            const spawnFood = () => {
+                food.x = Math.floor(Math.random() * 38) * 20;
+                food.y = Math.floor(Math.random() * 20) * 20;
+            };
+
+            gameInterval = setInterval(() => {
+                if (isGameOver) return;
+
+                if (!changed) {
+                    if ((keys['ArrowLeft'] || touchState.left) && dx === 0) { dx = -20; dy = 0; changed = true; }
+                    else if ((keys['ArrowRight'] || touchState.right) && dx === 0) { dx = 20; dy = 0; changed = true; }
+                    else if ((keys['ArrowUp'] || touchState.up) && dy === 0) { dx = 0; dy = -20; changed = true; }
+                    else if ((keys['ArrowDown'] || touchState.down) && dy === 0) { dx = 0; dy = 20; changed = true; }
+                }
+                changed = false;
+
+                let head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+                if (head.x < 0 || head.x >= 800 || head.y < 0 || head.y >= 450) {
+                    triggerGameOver(score);
+                    return;
+                }
+
+                for (let i = 0; i < snake.length; i++) {
+                    if (head.x === snake[i].x && head.y === snake[i].y) {
+                        triggerGameOver(score);
+                        return;
+                    }
+                }
+
+                snake.unshift(head);
+                if (head.x === food.x && head.y === food.y) {
+                    score += 20;
+                    document.getElementById('scoreDisplay').innerText = score;
+                    spawnFood();
+                } else {
+                    snake.pop();
+                }
+
+                ctx.fillStyle = '#0B0E14';
+                ctx.fillRect(0, 0, 800, 450);
+
+                ctx.fillStyle = '#FF3B7C';
+                ctx.fillRect(food.x, food.y, 18, 18);
+
+                snake.forEach((part, idx) => {
+                    ctx.fillStyle = idx === 0 ? '#22D3EE' : '#3B82F6';
+                    ctx.fillRect(part.x, part.y, 18, 18);
+                });
+            }, 100);
+        }
+
+        // --- BRICK BREAKER ---
+        function runBreaker() {
+            let x = 400, y = 250, dx = 4, dy = -4;
+            let paddleX = 350, paddleW = 100, paddleH = 12;
+            let bricks = [];
+            for (let c = 0; c < 10; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < 4; r++) {
+                    bricks[c][r] = { x: c * 75 + 35, y: r * 25 + 35, status: 1 };
+                }
+            }
+
+            gameInterval = setInterval(() => {
+                if (isGameOver) return;
+
+                ctx.fillStyle = '#0B0E14';
+                ctx.fillRect(0, 0, 800, 450);
+
+                for (let c = 0; c < 10; c++) {
+                    for (let r = 0; r < 4; r++) {
+                        let b = bricks[c][r];
+                        if (b.status === 1) {
+                            ctx.fillStyle = r % 2 === 0 ? '#FF3B7C' : '#22D3EE';
+                            ctx.fillRect(b.x, b.y, 70, 20);
+                            if (x > b.x && x < b.x + 70 && y > b.y && y < b.y + 20) {
+                                dy = -dy;
+                                b.status = 0;
+                                score += 15;
+                                document.getElementById('scoreDisplay').innerText = score;
+                            }
+                        }
+                    }
+                }
+
+                ctx.fillStyle = '#F59E0B';
+                ctx.fillRect(paddleX, 450 - paddleH - 10, paddleW, paddleH);
+
+                ctx.beginPath();
+                ctx.arc(x, y, 9, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fill();
+                ctx.closePath();
+
+                if (x + dx > 800 - 9 || x + dx < 9) dx = -dx;
+                if (y + dy < 9) dy = -dy;
+                else if (y + dy > 450 - 20) {
+                    if (x > paddleX && x < paddleX + paddleW) dy = -dy;
+                    else triggerGameOver(score);
+                }
+
+                x += dx;
+                y += dy;
+
+                if ((keys['ArrowRight'] || touchState.right) && paddleX < 800 - paddleW) paddleX += 8;
+                if ((keys['ArrowLeft'] || touchState.left) && paddleX > 0) paddleX -= 8;
+            }, 1000 / 60);
+        }
+
+        // --- CYBER PONG ---
+        function runPong() {
+            let ball = { x: 400, y: 225, dx: 5, dy: 3, r: 9 };
+            let player = { x: 20, y: 180, w: 12, h: 80 };
+            let ai = { x: 768, y: 180, w: 12, h: 80 };
+
+            gameInterval = setInterval(() => {
+                if (isGameOver) return;
+
+                if ((keys['ArrowUp'] || touchState.up) && player.y > 10) player.y -= 7;
+                if ((keys['ArrowDown'] || touchState.down) && player.y < 450 - player.h - 10) player.y += 7;
+
+                if (ai.y + ai.h / 2 < ball.y) ai.y += 5;
+                if (ai.y + ai.h / 2 > ball.y) ai.y -= 5;
+
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+
+                if (ball.y - ball.r < 0 || ball.y + ball.r > 450) ball.dy = -ball.dy;
+
+                if (ball.x - ball.r < player.x + player.w && ball.y > player.y && ball.y < player.y + player.h) {
+                    ball.dx = -ball.dx;
+                    score += 10;
+                    document.getElementById('scoreDisplay').innerText = score;
+                }
+                if (ball.x + ball.r > ai.x && ball.y > ai.y && ball.y < ai.y + ai.h) {
+                    ball.dx = -ball.dx;
+                }
+
+                if (ball.x < 0) triggerGameOver(score);
+                if (ball.x > 800) { ball.x = 400; ball.y = 225; ball.dx = -ball.dx; }
+
+                ctx.fillStyle = '#0B0E14';
+                ctx.fillRect(0, 0, 800, 450);
+
+                ctx.strokeStyle = '#232A38';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([8, 12]);
+                ctx.beginPath();
+                ctx.moveTo(400, 0); ctx.lineTo(400, 450);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#22D3EE';
+                ctx.fillRect(player.x, player.y, player.w, player.h);
+                ctx.fillStyle = '#FF3B7C';
+                ctx.fillRect(ai.x, ai.y, ai.w, ai.h);
+
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fill();
+                ctx.closePath();
+            }, 1000 / 60);
+        }
+    </script>
 </body>
 </html>
-
-<!-- Force redeploy timestamp: 1788079197.8331282 -->
