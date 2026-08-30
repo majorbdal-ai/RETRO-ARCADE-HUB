@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETRO ARCADE HUB — Ultimate HTML5 Gaming Portal</title>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root {
+            --bg: #0B0E14;
+            --surface: #161B26;
+            --brand: #FF3B7C;
+            --cyan: #22D3EE;
+            --neon-glow: 0 0 20px rgba(255, 59, 124, 0.4);
+        }
+        body {
+            background-color: var(--bg);
+            color: #E9EDF5;
+            font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(circle at 50% 0%, #1a1030 0%, transparent 60%);
+            background-attachment: fixed;
+        }
+        .font-arcade { font-family: 'Press Start 2P', monospace; }
+        .font-display { font-family: 'Rajdhani', sans-serif; }
+        .arcade-card {
+            background: var(--surface);
+            border: 1px solid #232A38;
+            transition: all 0.3s ease;
+        }
+        .arcade-card:hover {
+            border-color: var(--brand);
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(255, 59, 124, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col" x-data="arcadeApp()">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-[#0B0E14]/90 border-b border-[#232A38] sticky top-0 z-40 backdrop-blur px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" @click="activeGame = null">
+                <div class="bg-gradient-to-tr from-pink-600 to-purple-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <div>
+                    <h1 class="font-arcade text-sm sm:text-base tracking-wider text-white">RETRO<span class="text-pink-500">ARCADE</span></h1>
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">HTML5 PWA Gaming Hub</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-xs font-bold text-cyan-400 bg-cyan-950/50 px-3 py-1.5 rounded-full border border-cyan-800">
+                    <i class="fa-solid fa-trophy mr-1 text-yellow-400"></i> High Score: <span x-text="highScore">0</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+
+        <!-- Game Selector Grid (Shown when no game is active) -->
+        <div x-show="!activeGame" class="space-y-8">
+            <div class="text-center max-w-2xl mx-auto space-y-3">
+                <h2 class="font-display text-3xl sm:text-5xl font-bold tracking-tight text-white">Choose Your Battleground</h2>
+                <p class="text-gray-400 text-sm sm:text-base">Select a legendary retro-styled HTML5 arcade game below and play instantly directly inside your browser.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
+                <!-- Game 1: Space Shooter -->
+                <div @click="launchGame('shooter')" class="arcade-card rounded-2xl p-6 cursor-pointer flex flex-col justify-between group">
+                    <div>
+                        <div class="h-44 w-full rounded-xl bg-gradient-to-br from-purple-900/40 to-pink-900/40 flex items-center justify-center mb-5 border border-purple-800/50 group-hover:border-pink-500 transition">
+                            <i class="fa-solid fa-rocket text-6xl text-pink-500 group-hover:scale-110 transition duration-300"></i>
+                        </div>
+                        <span class="text-[11px] font-bold px-3 py-1 rounded-full bg-pink-950 text-pink-400 border border-pink-800">ACTION / SHOOTER</span>
+                        <h3 class="font-display text-2xl font-bold mt-3 text-white group-hover:text-pink-400 transition">Cyber Space Combat</h3>
+                        <p class="text-gray-400 text-sm mt-2">Pilot your starfighter through asteroid fields and destroy hostile alien armadas in this fast-paced shooter.</p>
+                    </div>
+                    <button class="mt-6 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center space-x-2">
+                        <span>Play Now</span>
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Game 2: Neon Snake -->
+                <div @click="launchGame('snake')" class="arcade-card rounded-2xl p-6 cursor-pointer flex flex-col justify-between group">
+                    <div>
+                        <div class="h-44 w-full rounded-xl bg-gradient-to-br from-cyan-900/40 to-blue-900/40 flex items-center justify-center mb-5 border border-cyan-800/50 group-hover:border-cyan-400 transition">
+                            <i class="fa-solid fa-worm text-6xl text-cyan-400 group-hover:scale-110 transition duration-300"></i>
+                        </div>
+                        <span class="text-[11px] font-bold px-3 py-1 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">CLASSIC ARCADE</span>
+                        <h3 class="font-display text-2xl font-bold mt-3 text-white group-hover:text-cyan-400 transition">Cyber Neon Snake</h3>
+                        <p class="text-gray-400 text-sm mt-2">The timeless classic reimagined with glowing neon graphics, power pellets, and smooth grid movement.</p>
+                    </div>
+                    <button class="mt-6 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center space-x-2">
+                        <span>Play Now</span>
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Game 3: Brick Breaker -->
+                <div @click="launchGame('breaker')" class="arcade-card rounded-2xl p-6 cursor-pointer flex flex-col justify-between group">
+                    <div>
+                        <div class="h-44 w-full rounded-xl bg-gradient-to-br from-amber-900/40 to-red-900/40 flex items-center justify-center mb-5 border border-amber-800/50 group-hover:border-amber-400 transition">
+                            <i class="fa-solid fa-table-tennis-paddle-ball text-6xl text-amber-400 group-hover:scale-110 transition duration-300"></i>
+                        </div>
+                        <span class="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800">ARCADE / SKILL</span>
+                        <h3 class="font-display text-2xl font-bold mt-3 text-white group-hover:text-amber-400 transition">Brick Breaker 2026</h3>
+                        <p class="text-gray-400 text-sm mt-2">Bounce the energy ball, smash glowing bricks, and unlock power-ups across challenging stages.</p>
+                    </div>
+                    <button class="mt-6 w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center space-x-2">
+                        <span>Play Now</span>
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Game Screen -->
+        <div x-show="activeGame" x-cloak class="flex flex-col items-center justify-center space-y-6">
+            <div class="w-full flex items-center justify-between bg-[#161B26] p-4 rounded-2xl border border-[#232A38]">
+                <button @click="stopGame()" class="bg-gray-800 hover:bg-gray-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition flex items-center space-x-2">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Hub</span>
+                </button>
+                <div class="text-center">
+                    <h3 class="font-display text-xl font-bold text-white uppercase tracking-wider" x-text="gameTitle()"></h3>
+                    <p class="text-xs text-gray-400">Score: <span class="text-pink-500 font-bold" x-text="currentScore">0</span></p>
+                </div>
+                <button @click="restartGame()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition flex items-center space-x-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Restart</span>
+                </button>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="relative bg-black rounded-2xl overflow-hidden border-2 border-pink-500/50 shadow-2xl">
+                <canvas id="gameCanvas" width="800" height="500" class="block max-w-full h-auto"></canvas>
+                
+                <!-- Game Over Overlay -->
+                <div x-show="gameOver" x-cloak class="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center space-y-4">
+                    <h2 class="font-arcade text-3xl text-pink-500 animate-pulse">GAME OVER</h2>
+                    <p class="text-gray-300 text-lg">Final Score: <span class="text-white font-bold" x-text="currentScore"></span></p>
+                    <button @click="restartGame()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg">
+                        Play Again
+                    </button>
+                </div>
+            </div>
+            
+            <p class="text-xs text-gray-400 text-center">Use Arrow Keys / Touch Controls to play.</p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-[#232A38] mt-20 py-8 bg-[#0B0E14] text-center text-xs text-gray-500">
+        <p>RETRO ARCADE HUB © 2026 · Built by BCF Shamim</p>
+    </footer>
+
+    <!-- Game Logic Script -->
+    <script src="game.js"></script>
+</body>
+</html>
