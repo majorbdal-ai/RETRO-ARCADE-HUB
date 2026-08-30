@@ -1,6 +1,8 @@
 
 function arcadeApp() {
     return {
+        showModeModal: true,
+        deviceMode: 'pc', // 'pc' or 'phone'
         activeGame: null,
         currentScore: 0,
         highScore: localStorage.getItem('arcade_highscore') || 0,
@@ -9,6 +11,11 @@ function arcadeApp() {
         canvas: null,
         ctx: null,
         controls: { left: false, right: false, up: false, down: false, action: false },
+
+        setDeviceMode(mode) {
+            this.deviceMode = mode;
+            this.showModeModal = false;
+        },
 
         launchGame(type) {
             this.activeGame = type;
@@ -151,12 +158,11 @@ function arcadeApp() {
             this.gameInterval = setInterval(() => {
                 if (this.gameOver) return;
                 
-                // Touch control check
                 if (!changingDirection) {
-                    if (this.controls.left && dx === 0) { dx = -20; dy = 0; changingDirection = true; }
-                    else if (this.controls.right && dx === 0) { dx = 20; dy = 0; changingDirection = true; }
-                    else if (this.controls.up && dy === 0) { dx = 0; dy = -20; changingDirection = true; }
-                    else if (this.controls.down && dy === 0) { dx = 0; dy = 20; changingDirection = true; }
+                    if ((this.controls.left) && dx === 0) { dx = -20; dy = 0; changingDirection = true; }
+                    else if ((this.controls.right) && dx === 0) { dx = 20; dy = 0; changingDirection = true; }
+                    else if ((this.controls.up) && dy === 0) { dx = 0; dy = -20; changingDirection = true; }
+                    else if ((this.controls.down) && dy === 0) { dx = 0; dy = 20; changingDirection = true; }
                 }
 
                 changingDirection = false;

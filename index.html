@@ -63,6 +63,31 @@
 </head>
 <body class="min-h-screen flex flex-col" x-data="arcadeApp()">
 
+    <!-- Mode Selector Modal Popup (PC vs Phone) -->
+    <div x-show="showModeModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div class="bg-[#161B26] border-2 border-pink-500/60 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl">
+            <div class="w-16 h-16 bg-gradient-to-tr from-pink-600 to-purple-600 rounded-2xl mx-auto flex items-center justify-center text-2xl text-white shadow-lg">
+                <i class="fa-solid fa-gamepad"></i>
+            </div>
+            <div class="space-y-2">
+                <h2 class="font-arcade text-lg sm:text-xl text-white tracking-wider">SELECT DEVICE</h2>
+                <p class="text-gray-400 text-xs sm:text-sm">Choose how you want to play to set up your controls automatically.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4 pt-2">
+                <button @click="setDeviceMode('pc')" class="bg-gray-800 hover:bg-gray-700 border-2 border-cyan-500/50 hover:border-cyan-400 text-white rounded-2xl p-5 flex flex-col items-center space-y-3 transition group cursor-pointer shadow-lg">
+                    <i class="fa-solid fa-desktop text-3xl text-cyan-400 group-hover:scale-110 transition"></i>
+                    <span class="font-display font-bold text-base tracking-wide">PC MODE</span>
+                    <span class="text-[10px] text-gray-400">Keyboard Controls</span>
+                </button>
+                <button @click="setDeviceMode('phone')" class="bg-gray-800 hover:bg-gray-700 border-2 border-pink-500/50 hover:border-pink-400 text-white rounded-2xl p-5 flex flex-col items-center space-y-3 transition group cursor-pointer shadow-lg">
+                    <i class="fa-solid fa-mobile-screen-button text-3xl text-pink-500 group-hover:scale-110 transition"></i>
+                    <span class="font-display font-bold text-base tracking-wide">PHONE MODE</span>
+                    <span class="text-[10px] text-gray-400">Touch Buttons</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Top Navigation Header -->
     <header class="bg-[#0B0E14]/90 border-b border-[#232A38] sticky top-0 z-40 backdrop-blur px-4 sm:px-6 py-4">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
@@ -72,12 +97,15 @@
                 </div>
                 <div>
                     <h1 class="font-arcade text-xs sm:text-base tracking-wider text-white">RETRO<span class="text-pink-500">ARCADE</span></h1>
-                    <p class="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-400 font-bold">Mobile & PC Gaming Hub</p>
+                    <p class="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-400 font-bold" x-text="deviceMode === 'phone' ? 'Mobile Touch Hub' : 'PC Keyboard Hub'"></p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <span class="text-xs font-bold text-cyan-400 bg-cyan-950/50 px-3 sm:px-4 py-2 rounded-full border border-cyan-800 shadow">
-                    <i class="fa-solid fa-trophy mr-1.5 text-yellow-400"></i> High: <span x-text="highScore">0</span>
+                <button @click="showModeModal = true" class="text-[11px] font-bold text-gray-300 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-xl border border-gray-700 transition">
+                    <i class="fa-solid fa-sliders mr-1 text-pink-500"></i> Mode: <span class="uppercase text-pink-400" x-text="deviceMode"></span>
+                </button>
+                <span class="text-xs font-bold text-cyan-400 bg-cyan-950/50 px-3 py-1.5 rounded-full border border-cyan-800 shadow">
+                    <i class="fa-solid fa-trophy mr-1 text-yellow-400"></i> <span x-text="highScore">0</span>
                 </span>
             </div>
         </div>
@@ -89,8 +117,8 @@
         <!-- Game Selector Grid -->
         <div x-show="!activeGame" class="space-y-8">
             <div class="text-center max-w-2xl mx-auto space-y-3">
-                <h2 class="font-display text-3xl sm:text-5xl font-bold tracking-tight text-white">Play Anywhere — Mobile & PC</h2>
-                <p class="text-gray-400 text-sm sm:text-base">Optimized for both desktop keyboards and smartphone touch controls. Select a game below and start playing!</p>
+                <h2 class="font-display text-3xl sm:text-5xl font-bold tracking-tight text-white">Select Your Retro Game</h2>
+                <p class="text-gray-400 text-sm sm:text-base">Choose from action, arcade, skill, and sports games built with HTML5 Canvas.</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
@@ -102,7 +130,7 @@
                         </div>
                         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-pink-950 text-pink-400 border border-pink-800">ACTION</span>
                         <h3 class="font-display text-xl font-bold mt-2.5 text-white group-hover:text-pink-400 transition">Cyber Space Combat</h3>
-                        <p class="text-gray-400 text-xs mt-1.5">Destroy alien armadas with touch or keyboard.</p>
+                        <p class="text-gray-400 text-xs mt-1.5">Destroy hostile alien armadas.</p>
                     </div>
                     <button class="mt-5 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow flex items-center justify-center space-x-2">
                         <span>Play Now</span>
@@ -118,7 +146,7 @@
                         </div>
                         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">CLASSIC</span>
                         <h3 class="font-display text-xl font-bold mt-2.5 text-white group-hover:text-cyan-400 transition">Cyber Neon Snake</h3>
-                        <p class="text-gray-400 text-xs mt-1.5">Timeless snake with mobile swipe/tap controls.</p>
+                        <p class="text-gray-400 text-xs mt-1.5">Timeless snake with glowing neon graphics.</p>
                     </div>
                     <button class="mt-5 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow flex items-center justify-center space-x-2">
                         <span>Play Now</span>
@@ -134,7 +162,7 @@
                         </div>
                         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800">SKILL</span>
                         <h3 class="font-display text-xl font-bold mt-2.5 text-white group-hover:text-amber-400 transition">Brick Breaker 2026</h3>
-                        <p class="text-gray-400 text-xs mt-1.5">Smash glowing blocks with touch pad control.</p>
+                        <p class="text-gray-400 text-xs mt-1.5">Bounce energy balls and smash blocks.</p>
                     </div>
                     <button class="mt-5 w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow flex items-center justify-center space-x-2">
                         <span>Play Now</span>
@@ -150,7 +178,7 @@
                         </div>
                         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">VS AI</span>
                         <h3 class="font-display text-xl font-bold mt-2.5 text-white group-hover:text-emerald-400 transition">Cyber Neon Pong</h3>
-                        <p class="text-gray-400 text-xs mt-1.5">Table tennis duel against smart AI opponent.</p>
+                        <p class="text-gray-400 text-xs mt-1.5">Table tennis duel against smart AI.</p>
                     </div>
                     <button class="mt-5 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow flex items-center justify-center space-x-2">
                         <span>Play Now</span>
@@ -160,7 +188,7 @@
             </div>
         </div>
 
-        <!-- Active Game Screen with On-Screen Mobile Controls -->
+        <!-- Active Game Screen -->
         <div x-show="activeGame" x-cloak class="flex flex-col items-center justify-center space-y-4">
             <div class="w-full max-w-[800px] flex items-center justify-between bg-[#161B26] p-3 sm:p-4 rounded-2xl border border-[#232A38] shadow">
                 <button @click="stopGame()" class="bg-gray-800 hover:bg-gray-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center space-x-2 cursor-pointer">
@@ -191,8 +219,8 @@
                 </div>
             </div>
 
-            <!-- On-Screen Touch Controller for Mobile Phones -->
-            <div class="w-full max-w-[800px] grid grid-cols-3 gap-3 p-3 bg-[#161B26] rounded-2xl border border-[#232A38] select-none">
+            <!-- On-Screen Touch Controller (Only visible when Phone Mode is selected) -->
+            <div x-show="deviceMode === 'phone'" class="w-full max-w-[800px] grid grid-cols-3 gap-3 p-3 bg-[#161B26] rounded-2xl border border-[#232A38] select-none">
                 <div class="flex items-center justify-center space-x-2 col-span-2">
                     <button @touchstart.prevent="handleControl('left', true)" @touchend.prevent="handleControl('left', false)" @mousedown="handleControl('left', true)" @mouseup="handleControl('left', false)" class="control-btn w-20 h-14">
                         <i class="fa-solid fa-arrow-left"></i>
@@ -214,7 +242,7 @@
                 </div>
             </div>
             
-            <p class="text-[11px] text-gray-400 text-center">PC: Use Arrow Keys & Spacebar | Mobile: Use On-Screen Touch Buttons</p>
+            <p class="text-[11px] text-gray-400 text-center" x-text="deviceMode === 'phone' ? 'Phone Mode: Using On-Screen Touch Controls' : 'PC Mode: Using Keyboard Arrow Keys & Spacebar'"></p>
         </div>
 
     </main>
