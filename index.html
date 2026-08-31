@@ -250,28 +250,28 @@
             document.getElementById('scoreDisplay').innerText = '0';
             
             const touchElem = document.getElementById('touchControls');
-            const btnUp = document.getElementById('btnUp');
-            const btnDown = document.getElementById('btnDown');
-            const btnFire = document.getElementById('btnFire');
+            const touchLR = document.getElementById('touchLeftRight');
+            const touchUD = document.getElementById('touchUpDown');
+            const touchFire = document.getElementById('touchFire');
 
             if (currentMode === 'phone') {
-                touchElem.style.display = 'grid';
+                touchElem.style.display = 'flex';
                 if (type === 'shooter') {
-                    btnUp.style.display = 'none';
-                    btnDown.style.display = 'none';
-                    btnFire.style.display = 'flex';
+                    touchLR.style.display = 'flex';
+                    touchUD.style.display = 'none';
+                    touchFire.style.display = 'block';
                 } else if (type === 'snake') {
-                    btnUp.style.display = 'flex';
-                    btnDown.style.display = 'flex';
-                    btnFire.style.display = 'none';
+                    touchLR.style.display = 'none';
+                    touchUD.style.display = 'flex';
+                    touchFire.style.display = 'none';
                 } else if (type === 'breaker') {
-                    btnUp.style.display = 'none';
-                    btnDown.style.display = 'none';
-                    btnFire.style.display = 'none';
+                    touchLR.style.display = 'flex';
+                    touchUD.style.display = 'none';
+                    touchFire.style.display = 'none';
                 } else if (type === 'pong') {
-                    btnUp.style.display = 'flex';
-                    btnDown.style.display = 'flex';
-                    btnFire.style.display = 'none';
+                    touchLR.style.display = 'none';
+                    touchUD.style.display = 'flex';
+                    touchFire.style.display = 'none';
                 }
             } else {
                 touchElem.style.display = 'none';
