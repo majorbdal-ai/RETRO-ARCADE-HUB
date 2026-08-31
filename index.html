@@ -144,16 +144,27 @@
                 </div>
             </div>
 
-            <!-- On-Screen Touch Controls (Shown ONLY in Phone Mode) -->
-            <div id="touchControls" class="hidden w-full max-w-[800px] grid grid-cols-3 gap-3 p-3 bg-[#161B26] rounded-2xl border border-[#232A38]">
-                <div class="flex items-center justify-center space-x-2 col-span-2">
-                    <button ontouchstart="pressKey('left', true)" ontouchend="pressKey('left', false)" onmousedown="pressKey('left', true)" onmouseup="pressKey('left', false)" class="control-btn w-20 h-14"><i class="fa-solid fa-arrow-left"></i></button>
-                    <button ontouchstart="pressKey('right', true)" ontouchend="pressKey('right', false)" onmousedown="pressKey('right', true)" onmouseup="pressKey('right', false)" class="control-btn w-20 h-14"><i class="fa-solid fa-arrow-right"></i></button>
+            <!-- On-Screen Touch Controls (Dynamic per game in Phone Mode) -->
+            <div id="touchControls" class="hidden w-full max-w-[800px] p-3 bg-[#161B26] rounded-2xl border border-[#232A38] flex-col items-center space-y-2">
+                <!-- For Shooter & Breaker (Left, Right, Fire) -->
+                <div id="controlsShooterBreaker" class="w-full flex items-center justify-between">
+                    <div class="flex space-x-3">
+                        <button ontouchstart="pressKey('left', true)" ontouchend="pressKey('left', false)" onmousedown="pressKey('left', true)" onmouseup="pressKey('left', false)" class="control-btn w-24 h-16"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button ontouchstart="pressKey('right', true)" ontouchend="pressKey('right', false)" onmousedown="pressKey('right', true)" onmouseup="pressKey('right', false)" class="control-btn w-24 h-16"><i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <div>
+                        <button ontouchstart="pressKey('action', true)" ontouchend="pressKey('action', false)" onmousedown="pressKey('action', true)" onmouseup="pressKey('action', false)" class="control-btn w-28 h-16 bg-pink-600 border-pink-500 text-xs font-bold">FIRE</button>
+                    </div>
                 </div>
-                <div class="flex items-center justify-end space-x-2">
-                    <button ontouchstart="pressKey('up', true)" ontouchend="pressKey('up', false)" onmousedown="pressKey('up', true)" onmouseup="pressKey('up', false)" class="control-btn w-16 h-14" id="btnUp"><i class="fa-solid fa-arrow-up"></i></button>
-                    <button ontouchstart="pressKey('action', true)" ontouchend="pressKey('action', false)" onmousedown="pressKey('action', true)" onmouseup="pressKey('action', false)" class="control-btn w-20 h-14 bg-pink-600 text-xs font-bold">FIRE</button>
-                    <button ontouchstart="pressKey('down', true)" ontouchend="pressKey('down', false)" onmousedown="pressKey('down', true)" onmouseup="pressKey('down', false)" class="control-btn w-16 h-14" id="btnDown"><i class="fa-solid fa-arrow-down"></i></button>
+
+                <!-- For Snake & Pong (Full 4-Way D-Pad: Up, Down, Left, Right) -->
+                <div id="controlsSnakePong" class="hidden w-full flex flex-col items-center space-y-2">
+                    <button ontouchstart="pressKey('up', true)" ontouchend="pressKey('up', false)" onmousedown="pressKey('up', true)" onmouseup="pressKey('up', false)" class="control-btn w-20 h-14"><i class="fa-solid fa-arrow-up"></i></button>
+                    <div class="flex space-x-12">
+                        <button ontouchstart="pressKey('left', true)" ontouchend="pressKey('left', false)" onmousedown="pressKey('left', true)" onmouseup="pressKey('left', false)" class="control-btn w-20 h-14"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button ontouchstart="pressKey('right', true)" ontouchend="pressKey('right', false)" onmousedown="pressKey('right', true)" onmouseup="pressKey('right', false)" class="control-btn w-20 h-14"><i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <button ontouchstart="pressKey('down', true)" ontouchend="pressKey('down', false)" onmousedown="pressKey('down', true)" onmouseup="pressKey('down', false)" class="control-btn w-20 h-14"><i class="fa-solid fa-arrow-down"></i></button>
                 </div>
             </div>
         </div>
@@ -213,14 +224,17 @@
             document.getElementById('scoreDisplay').innerText = '0';
             
             const touchElem = document.getElementById('touchControls');
+            const sbElem = document.getElementById('controlsShooterBreaker');
+            const spElem = document.getElementById('controlsSnakePong');
+
             if (currentMode === 'phone') {
-                touchElem.style.display = 'grid';
+                touchElem.style.display = 'flex';
                 if (type === 'snake' || type === 'pong') {
-                    document.getElementById('btnUp').style.display = 'flex';
-                    document.getElementById('btnDown').style.display = 'flex';
+                    sbElem.style.display = 'none';
+                    spElem.style.display = 'flex';
                 } else {
-                    document.getElementById('btnUp').style.display = 'none';
-                    document.getElementById('btnDown').style.display = 'none';
+                    sbElem.style.display = 'flex';
+                    spElem.style.display = 'none';
                 }
             } else {
                 touchElem.style.display = 'none';
