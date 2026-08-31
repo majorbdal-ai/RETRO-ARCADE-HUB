@@ -250,19 +250,29 @@
             document.getElementById('scoreDisplay').innerText = '0';
             
             const touchElem = document.getElementById('touchControls');
-            const tShooter = document.getElementById('touchShooter');
-            const tSnake = document.getElementById('touchSnake');
-            const tBreaker = document.getElementById('touchBreaker');
-            const tPong = document.getElementById('touchPong');
-
-            [tShooter, tSnake, tBreaker, tPong].forEach(el => el.style.display = 'none');
+            const btnUp = document.getElementById('btnUp');
+            const btnDown = document.getElementById('btnDown');
+            const btnFire = document.getElementById('btnFire');
 
             if (currentMode === 'phone') {
-                touchElem.style.display = 'flex';
-                if (type === 'shooter') tShooter.style.display = 'flex';
-                else if (type === 'snake') tSnake.style.display = 'flex';
-                else if (type === 'breaker') tBreaker.style.display = 'flex';
-                else if (type === 'pong') tPong.style.display = 'flex';
+                touchElem.style.display = 'grid';
+                if (type === 'shooter') {
+                    btnUp.style.display = 'none';
+                    btnDown.style.display = 'none';
+                    btnFire.style.display = 'flex';
+                } else if (type === 'snake') {
+                    btnUp.style.display = 'flex';
+                    btnDown.style.display = 'flex';
+                    btnFire.style.display = 'none';
+                } else if (type === 'breaker') {
+                    btnUp.style.display = 'none';
+                    btnDown.style.display = 'none';
+                    btnFire.style.display = 'none';
+                } else if (type === 'pong') {
+                    btnUp.style.display = 'flex';
+                    btnDown.style.display = 'flex';
+                    btnFire.style.display = 'none';
+                }
             } else {
                 touchElem.style.display = 'none';
             }
