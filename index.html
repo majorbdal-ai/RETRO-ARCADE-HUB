@@ -10,19 +10,31 @@
     <style>
         body { background: #0B0E14; color: #E9EDF5; font-family: 'Rajdhani', sans-serif; }
         .font-arcade { font-family: 'Press Start 2P', monospace; }
+
         .control-btn {
-            background: #161B26;
-            border: 2px solid #FF3B7C;
-            color: white;
-            font-size: 20px;
+            background: rgba(22, 27, 38, 0.95);
+            border: 2px solid #232A38;
+            color: #E9EDF5;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 14px;
+            border-radius: 16px;
             user-select: none;
+            -webkit-user-select: none;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transition: all 0.08s ease;
         }
-        .control-btn:active { background: #FF3B7C; }
+        .control-btn:active {
+            background: #FF3B7C;
+            border-color: #FF3B7C;
+            color: #fff;
+            transform: scale(0.95);
+            box-shadow: 0 0 15px rgba(255, 59, 124, 0.6);
+        }
+
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
