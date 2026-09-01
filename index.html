@@ -21,6 +21,26 @@
             border: 2px solid #FF3B7C;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
+        .control-btn {
+            background: #1F2937;
+            border: 2px solid #FF3B7C;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 10px rgba(255, 59, 124, 0.2);
+        }
+        .control-btn:active {
+            transform: scale(0.95);
+            background: #FF3B7C;
+            box-shadow: 0 0 15px #FF3B7C;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -223,8 +243,18 @@
             touchState[action] = state;
         }
 
-        window.onkeydown = (e) => { keys[e.code] = true; };
-        window.onkeyup = (e) => { keys[e.code] = false; };
+        window.onkeydown = (e) => {
+            keys[e.code] = true;
+            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                e.preventDefault();
+            }
+        };
+        window.onkeyup = (e) => {
+            keys[e.code] = false;
+            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                e.preventDefault();
+            }
+        };
 
         function startGame(type) {
             currentGame = type;
@@ -236,29 +266,17 @@
             document.getElementById('scoreDisplay').innerText = '0';
             
             const touchElem = document.getElementById('touchControls');
-            const touchLR = document.getElementById('touchLeftRight');
-            const touchUD = document.getElementById('touchUpDown');
-            const touchFire = document.getElementById('touchFire');
+            const touchShooter = document.getElementById('touchShooter');
+            const touchSnake = document.getElementById('touchSnake');
+            const touchBreaker = document.getElementById('touchBreaker');
+            const touchPong = document.getElementById('touchPong');
 
             if (currentMode === 'phone') {
                 touchElem.style.display = 'flex';
-                if (type === 'shooter') {
-                    touchLR.style.display = 'flex';
-                    touchUD.style.display = 'none';
-                    touchFire.style.display = 'block';
-                } else if (type === 'snake') {
-                    touchLR.style.display = 'none';
-                    touchUD.style.display = 'flex';
-                    touchFire.style.display = 'none';
-                } else if (type === 'breaker') {
-                    touchLR.style.display = 'flex';
-                    touchUD.style.display = 'none';
-                    touchFire.style.display = 'none';
-                } else if (type === 'pong') {
-                    touchLR.style.display = 'none';
-                    touchUD.style.display = 'flex';
-                    touchFire.style.display = 'none';
-                }
+                touchShooter.style.display = type === 'shooter' ? 'flex' : 'none';
+                touchSnake.style.display = type === 'snake' ? 'flex' : 'none';
+                touchBreaker.style.display = type === 'breaker' ? 'flex' : 'none';
+                touchPong.style.display = type === 'pong' ? 'flex' : 'none';
             } else {
                 touchElem.style.display = 'none';
             }
