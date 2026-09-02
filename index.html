@@ -7,62 +7,103 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Press+Start+2P&display=swap" rel="stylesheet">
-        <style>
-        body { background: #0B0E14; color: #E9EDF5; font-family: 'Rajdhani', sans-serif; margin: 0; padding-bottom: 50px; }
+    <style>
+        body { 
+            background: #0B0E14; 
+            color: #E9EDF5; 
+            font-family: 'Rajdhani', sans-serif; 
+            margin: 0; 
+            padding-bottom: 50px; 
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
         .font-arcade { font-family: 'Press Start 2P', monospace; }
+        
+        /* Premium CRT Screen Overlay Effect */
+        .crt-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+        .crt-container::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            background-size: 100% 4px, 6px 100%;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0.85;
+            border-radius: 16px;
+        }
+        
         canvas {
             display: block !important;
             background: #000 !important;
             width: 100% !important;
             max-width: 800px !important;
-            height: 380px !important;
+            height: auto !important;
+            aspect-ratio: 16/9 !important;
             margin: 0 auto !important;
-            border-radius: 12px;
-            border: 2px solid #FF3B7C;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border-radius: 16px;
+            border: 3px solid #FF3B7C;
+            box-shadow: 0 0 30px rgba(255, 59, 124, 0.35);
+            image-rendering: pixelated;
         }
-        .control-btn {
+
+        /* Tactile Gamepad Styles */
+        .gamepad-container {
+            background: linear-gradient(180deg, #161B26 0%, #0D111A 100%);
+            border: 2px solid #232A38;
+            box-shadow: inset 0 2px 10px rgba(255,255,255,0.05), 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .dpad-btn {
             background: #1F2937;
-            border: 2px solid #FF3B7C;
-            border-radius: 12px;
-            color: #fff;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.1s ease;
-            box-shadow: 0 4px 10px rgba(255, 59, 124, 0.2);
+            border: 2px solid #374151;
+            color: #9CA3AF;
+            transition: all 0.05s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-        .control-btn:active {
-            transform: scale(0.95);
-            background: #FF3B7C;
-            box-shadow: 0 0 15px #FF3B7C;
+        .dpad-btn:active {
+            background: #22D3EE;
+            border-color: #67E8F9;
+            color: #000;
+            transform: scale(0.92);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.8);
+        }
+
+        .action-btn {
+            transition: all 0.05s ease;
+        }
+        .action-btn:active {
+            transform: scale(0.9);
         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <!-- Startup Device Mode Selector Popup -->
-    <div id="modeModal" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;padding:16px;">
-        <div style="background:#161B26;border:2px solid #FF3B7C;border-radius:24px;padding:32px;max-width:420px;width:100%;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.9);">
-            <div style="width:64px;height:64px;background:#FF3B7C;border-radius:16px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;">
+    <div id="modeModal" style="position:fixed;inset:0;z-index:99999;background:rgba(5,7,11,0.96);display:flex;align-items:center;justify-content:center;padding:16px;">
+        <div style="background:#161B26;border:3px solid #FF3B7C;border-radius:24px;padding:32px;max-width:440px;width:100%;text-align:center;box-shadow:0 0 40px rgba(255, 59, 124, 0.3);">
+            <div style="width:72px;height:72px;background:linear-gradient(135deg, #FF3B7C 0%, #D81B60 100%);border-radius:20px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;box-shadow:0 0 20px rgba(255, 59, 124, 0.5);">
                 <i class="fa-solid fa-gamepad"></i>
             </div>
-            <h2 class="font-arcade" style="font-size:18px;color:#fff;margin-bottom:10px;">SELECT YOUR DEVICE</h2>
-            <p style="font-size:14px;color:#8891A3;margin-bottom:24px;">Choose PC Mode (Keyboard) or Phone Mode (Touch Buttons) to start playing.</p>
+            <h2 class="font-arcade text-white" style="font-size:18px;margin-bottom:12px;letter-spacing:1px;">SELECT YOUR DEVICE</h2>
+            <p style="font-size:14px;color:#8891A3;margin-bottom:28px;line-height:1.5;">Welcome to MAJOR's Arcade Hub! Choose PC Mode (Keyboard controls) or Phone Mode (Smooth touch gamepad) to start playing.</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <button onclick="selectDeviceMode('pc')" style="background:#1f2937;border:2px solid #22d3ee;color:#fff;padding:20px 16px;border-radius:16px;cursor:pointer;font-weight:bold;font-size:16px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:0.2s;">
-                    <i class="fa-solid fa-desktop" style="font-size:24px;color:#22d3ee;"></i>
+                <button onclick="selectDeviceMode('pc')" style="background:#1f2937;border:2px solid #22d3ee;color:#fff;padding:22px 16px;border-radius:18px;cursor:pointer;font-weight:bold;font-size:16px;display:flex;flex-direction:column;align-items:center;gap:10px;transition:0.2s;box-shadow:0 4px 15px rgba(34, 211, 238, 0.15);">
+                    <i class="fa-solid fa-desktop" style="font-size:26px;color:#22d3ee;"></i>
                     <span>PC MODE</span>
                     <span style="font-size:10px;color:#9ca3af;font-weight:normal;">Keyboard Controls</span>
                 </button>
-                <button onclick="selectDeviceMode('phone')" style="background:#1f2937;border:2px solid #ff3b7c;color:#fff;padding:20px 16px;border-radius:16px;cursor:pointer;font-weight:bold;font-size:16px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:0.2s;">
-                    <i class="fa-solid fa-mobile-screen-button" style="font-size:24px;color:#ff3b7c;"></i>
+                <button onclick="selectDeviceMode('phone')" style="background:#1f2937;border:2px solid #ff3b7c;color:#fff;padding:22px 16px;border-radius:18px;cursor:pointer;font-weight:bold;font-size:16px;display:flex;flex-direction:column;align-items:center;gap:10px;transition:0.2s;box-shadow:0 4px 15px rgba(255, 59, 124, 0.15);">
+                    <i class="fa-solid fa-mobile-screen-button" style="font-size:26px;color:#ff3b7c;"></i>
                     <span>PHONE MODE</span>
-                    <span style="font-size:10px;color:#9ca3af;font-weight:normal;">Touch Buttons</span>
+                    <span style="font-size:10px;color:#9ca3af;font-weight:normal;">Touch Controls</span>
                 </button>
             </div>
         </div>
@@ -71,17 +112,17 @@
     <!-- Header -->
     <header class="bg-[#0B0E14] border-b border-[#232A38] p-4 flex items-center justify-between sticky top-0 z-40">
         <div class="flex items-center space-x-3 cursor-pointer" onclick="returnToHub()">
-            <div class="bg-pink-600 text-white w-10 h-10 rounded-xl flex items-center justify-center text-lg">
+            <div class="bg-gradient-to-br from-pink-500 to-pink-700 text-white w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-[0_0_15px_rgba(255,59,124,0.4)]">
                 <i class="fa-solid fa-gamepad"></i>
             </div>
             <h1 class="font-arcade text-xs text-white">RETRO<span class="text-pink-500">ARCADE</span></h1>
         </div>
         <div class="flex items-center space-x-3">
-            <button onclick="openModal()" class="text-xs font-bold text-gray-300 bg-gray-800 px-3 py-1.5 rounded-xl border border-gray-700">
-                Mode: <span id="modeLabel" class="uppercase text-pink-400">PC</span>
+            <button onclick="openModal()" class="text-xs font-bold text-gray-300 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-xl border border-gray-700 transition">
+                Mode: <span id="modeLabel" class="uppercase text-pink-400 font-extrabold">PC</span>
             </button>
-            <span class="text-xs font-bold text-cyan-400 bg-cyan-950 px-3 py-1.5 rounded-full border border-cyan-800">
-                High: <span id="highScoreDisplay">0</span>
+            <span class="text-xs font-bold text-cyan-400 bg-cyan-950 px-3 py-2 rounded-full border border-cyan-800 shadow-[0_0_10px_rgba(34,211,238,0.15)]">
+                High: <span id="highScoreDisplay" class="font-arcade">0</span>
             </span>
         </div>
     </header>
@@ -92,134 +133,259 @@
         <!-- Game Selector Hub -->
         <div id="hubView" class="space-y-6">
             <div class="text-center space-y-2">
-                <h2 class="text-3xl sm:text-4xl font-bold text-white">Select a Retro Game</h2>
-                <p class="text-gray-400 text-sm">Choose your game and test your skills right in the browser.</p>
+                <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-tight">Select a Retro Game</h2>
+                <p class="text-gray-400 text-sm sm:text-base">Choose your vintage challenger and claim the high score. Optimised for buttery 60fps.</p>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
-                <div onclick="startGame('shooter')" class="bg-[#161B26] border border-[#232A38] hover:border-pink-500 rounded-2xl p-5 cursor-pointer transition flex flex-col justify-between">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+                <!-- Game 1: Space Shooter -->
+                <div onclick="startGame('shooter')" class="bg-[#161B26] border border-[#232A38] hover:border-pink-500 rounded-2xl p-5 cursor-pointer transition transform hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(255,59,124,0.1)] flex flex-col justify-between">
                     <div>
-                        <div class="h-32 bg-purple-950/40 rounded-xl flex items-center justify-center mb-4 border border-purple-800">
-                            <i class="fa-solid fa-rocket text-4xl text-pink-500"></i>
+                        <div class="h-32 bg-purple-950/20 rounded-xl flex items-center justify-center mb-4 border border-purple-900">
+                            <i class="fa-solid fa-rocket text-4xl text-pink-500 filter drop-shadow-[0_0_10px_#FF3B7C]"></i>
                         </div>
                         <h3 class="text-xl font-bold text-white">Space Shooter</h3>
-                        <p class="text-gray-400 text-xs mt-1">Destroy hostile alien armadas.</p>
+                        <p class="text-gray-400 text-xs mt-1">Blast alien armadas. Features starfields, particles & screen shakes.</p>
                     </div>
-                    <button class="mt-4 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-xl text-xs">Play Now</button>
+                    <button class="mt-5 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-md">Play Now</button>
                 </div>
 
-                <div onclick="startGame('snake')" class="bg-[#161B26] border border-[#232A38] hover:border-cyan-400 rounded-2xl p-5 cursor-pointer transition flex flex-col justify-between">
+                <!-- Game 2: Neon Snake -->
+                <div onclick="startGame('snake')" class="bg-[#161B26] border border-[#232A38] hover:border-cyan-400 rounded-2xl p-5 cursor-pointer transition transform hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(34,211,238,0.1)] flex flex-col justify-between">
                     <div>
-                        <div class="h-32 bg-cyan-950/40 rounded-xl flex items-center justify-center mb-4 border border-cyan-800">
-                            <i class="fa-solid fa-worm text-4xl text-cyan-400"></i>
+                        <div class="h-32 bg-cyan-950/20 rounded-xl flex items-center justify-center mb-4 border border-cyan-950">
+                            <i class="fa-solid fa-worm text-4xl text-cyan-400 filter drop-shadow-[0_0_10px_#22D3EE]"></i>
                         </div>
                         <h3 class="text-xl font-bold text-white">Neon Snake</h3>
-                        <p class="text-gray-400 text-xs mt-1">Timeless classic with glowing neon.</p>
+                        <p class="text-gray-400 text-xs mt-1">Glowing vintage snake with buffered inputs and visual food-bursts.</p>
                     </div>
-                    <button class="mt-4 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2.5 rounded-xl text-xs">Play Now</button>
+                    <button class="mt-5 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-md">Play Now</button>
                 </div>
 
-                <div onclick="startGame('breaker')" class="bg-[#161B26] border border-[#232A38] hover:border-amber-400 rounded-2xl p-5 cursor-pointer transition flex flex-col justify-between">
+                <!-- Game 3: Brick Breaker -->
+                <div onclick="startGame('breaker')" class="bg-[#161B26] border border-[#232A38] hover:border-amber-400 rounded-2xl p-5 cursor-pointer transition transform hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(245,158,11,0.1)] flex flex-col justify-between">
                     <div>
-                        <div class="h-32 bg-amber-950/40 rounded-xl flex items-center justify-center mb-4 border border-amber-800">
-                            <i class="fa-solid fa-table-tennis-paddle-ball text-4xl text-amber-400"></i>
+                        <div class="h-32 bg-amber-950/20 rounded-xl flex items-center justify-center mb-4 border border-amber-900">
+                            <i class="fa-solid fa-table-tennis-paddle-ball text-4xl text-amber-400 filter drop-shadow-[0_0_10px_#F59E0B]"></i>
                         </div>
                         <h3 class="text-xl font-bold text-white">Brick Breaker</h3>
-                        <p class="text-gray-400 text-xs mt-1">Smash glowing blocks with energy balls.</p>
+                        <p class="text-gray-400 text-xs mt-1">Paddle-ball block smasher with dynamic reflection, manual launch & trails.</p>
                     </div>
-                    <button class="mt-4 w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl text-xs">Play Now</button>
+                    <button class="mt-5 w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-md">Play Now</button>
                 </div>
 
-                <div onclick="startGame('pong')" class="bg-[#161B26] border border-[#232A38] hover:border-emerald-400 rounded-2xl p-5 cursor-pointer transition flex flex-col justify-between">
+                <!-- Game 4: Cyber Pong -->
+                <div onclick="startGame('pong')" class="bg-[#161B26] border border-[#232A38] hover:border-emerald-400 rounded-2xl p-5 cursor-pointer transition transform hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(16,185,129,0.1)] flex flex-col justify-between">
                     <div>
-                        <div class="h-32 bg-emerald-950/40 rounded-xl flex items-center justify-center mb-4 border border-emerald-800">
-                            <i class="fa-solid fa-futbol text-4xl text-emerald-400"></i>
+                        <div class="h-32 bg-emerald-950/20 rounded-xl flex items-center justify-center mb-4 border border-emerald-900">
+                            <i class="fa-solid fa-futbol text-4xl text-emerald-400 filter drop-shadow-[0_0_10px_#10B981]"></i>
                         </div>
                         <h3 class="text-xl font-bold text-white">Cyber Pong</h3>
-                        <p class="text-gray-400 text-xs mt-1">Table tennis duel against smart AI.</p>
+                        <p class="text-gray-400 text-xs mt-1">Speed-increasing retro pong against a natural tracking opponent.</p>
                     </div>
-                    <button class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs">Play Now</button>
+                    <button class="mt-5 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-md">Play Now</button>
+                </div>
+
+                <!-- Game 5: Neon Flappy (NEW!) -->
+                <div onclick="startGame('flappy')" class="bg-[#161B26] border border-[#232A38] hover:border-fuchsia-500 rounded-2xl p-5 cursor-pointer transition transform hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(217,70,239,0.1)] flex flex-col justify-between">
+                    <div>
+                        <div class="h-32 bg-fuchsia-950/20 rounded-xl flex items-center justify-center mb-4 border border-fuchsia-900">
+                            <i class="fa-solid fa-dove text-4xl text-fuchsia-500 filter drop-shadow-[0_0_10px_#D946EF]"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Neon Flappy</h3>
+                        <p class="text-gray-400 text-xs mt-1">Flap a neon ship through glowing cyber obstacles. Engine particle exhausts!</p>
+                    </div>
+                    <button class="mt-5 w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-md">Play Now</button>
+                </div>
+
+                <!-- Game 6: Cyber Racer (NEW!) -->
+                <div onclick="startGame('racer')" class="bg-[#161B26] border border-[#232A38] hover:border-indigo-500 rounded-2xl p-5 cursor-pointer transition transform hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(99,102,241,0.1)] flex flex-col justify-between">
+                    <div>
+                        <div class="h-32 bg-indigo-950/20 rounded-xl flex items-center justify-center mb-4 border border-indigo-900">
+                            <i class="fa-solid fa-car-side text-4xl text-indigo-400 filter drop-shadow-[0_0_10px_#818CF8]"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Cyber Racer</h3>
+                        <p class="text-gray-400 text-xs mt-1">Dodge highway cars, collect gold stars, and hold Nitro (Shift/B) to score 2x!</p>
+                    </div>
+                    <button class="mt-5 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-md">Play Now</button>
                 </div>
             </div>
         </div>
 
         <!-- Active Game Arena -->
-        <div id="gameView" class="hidden flex-col items-center space-y-3 px-2 w-full">
+        <div id="gameView" class="hidden flex-col items-center space-y-4 px-2 w-full">
             <div class="w-full max-w-[800px] flex items-center justify-between bg-[#161B26] p-3 rounded-xl border border-[#232A38]">
-                <button onclick="returnToHub()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer">← Hub</button>
+                <button onclick="returnToHub()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition">← Hub</button>
                 <div class="text-center">
-                    <h3 id="gameTitleDisplay" class="text-lg font-bold uppercase text-white">Game</h3>
-                    <p class="text-xs text-gray-400">Score: <span id="scoreDisplay" class="text-pink-500 font-bold">0</span></p>
+                    <h3 id="gameTitleDisplay" class="text-base sm:text-lg font-bold uppercase text-white tracking-widest font-arcade text-pink-500">Game</h3>
+                    <p class="text-xs text-gray-400">Score: <span id="scoreDisplay" class="text-cyan-400 font-bold font-arcade">0</span></p>
                 </div>
-                <button onclick="restartActiveGame()" class="bg-pink-600 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer">Restart</button>
+                <button onclick="restartActiveGame()" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition">Restart</button>
             </div>
 
-            <div class="relative bg-black rounded-2xl overflow-hidden border-2 border-pink-500 shadow-2xl">
-                <canvas id="gameCanvas" width="800" height="450" class="block w-full max-w-[800px] h-[300px] sm:h-[420px] object-contain"></canvas>
-                <div id="gameOverOverlay" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center space-y-3">
-                    <h2 class="font-arcade text-2xl text-pink-500 animate-pulse">GAME OVER</h2>
-                    <p class="text-gray-300 text-sm">Final Score: <span id="finalScore" class="text-white font-bold">0</span></p>
-                    <button onclick="restartActiveGame()" class="bg-pink-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer">Play Again</button>
-                </div>
-            </div>
-
-            <!-- On-Screen Touch Controls (Dynamic per game in Phone Mode) -->
-                        <!-- On-Screen Touch Controls (Strictly Game-Specific) -->
-            <div id="touchControls" class="hidden w-full max-w-[800px] p-3 bg-[#161B26] rounded-2xl border border-[#232A38] flex-col items-center">
+            <!-- Canvas Container with CRT overlay -->
+            <div class="w-full max-w-[800px] crt-container">
+                <canvas id="gameCanvas" width="800" height="450" class="block w-full object-contain"></canvas>
                 
-                <!-- 1. Space Shooter: Left, Right, Fire -->
-                <div id="touchShooter" class="hidden w-full flex items-center justify-between">
-                    <div class="flex space-x-3">
-                        <button ontouchstart="pressKey('left', true)" ontouchend="pressKey('left', false)" onmousedown="pressKey('left', true)" onmouseup="pressKey('left', false)" class="control-btn w-28 h-16"><i class="fa-solid fa-arrow-left"></i> Left</button>
-                        <button ontouchstart="pressKey('right', true)" ontouchend="pressKey('right', false)" onmousedown="pressKey('right', true)" onmouseup="pressKey('right', false)" class="control-btn w-28 h-16">Right <i class="fa-solid fa-arrow-right"></i></button>
-                    </div>
-                    <div>
-                        <button ontouchstart="pressKey('action', true)" ontouchend="pressKey('action', false)" onmousedown="pressKey('action', true)" onmouseup="pressKey('action', false)" class="control-btn w-32 h-16 bg-pink-600 border-pink-500 font-bold">FIRE 🚀</button>
-                    </div>
+                <!-- Game Over Overlay -->
+                <div id="gameOverOverlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center space-y-4 z-20">
+                    <h2 class="font-arcade text-3xl sm:text-4xl text-pink-500 animate-pulse tracking-widest">GAME OVER</h2>
+                    <p class="text-gray-300 text-sm sm:text-base">Final Score: <span id="finalScore" class="text-cyan-400 font-arcade text-lg">0</span></p>
+                    <button onclick="restartActiveGame()" class="bg-pink-600 hover:bg-pink-700 text-white font-arcade text-xs px-6 py-3 rounded-xl cursor-pointer transition transform hover:scale-105 shadow-[0_0_15px_#FF3B7C]">Play Again</button>
                 </div>
-
-                <!-- 2. Neon Snake: Full D-Pad (Up, Down, Left, Right) -->
-                <div id="touchSnake" class="hidden w-full flex flex-col items-center space-y-2">
-                    <button ontouchstart="pressKey('up', true)" ontouchend="pressKey('up', false)" onmousedown="pressKey('up', true)" onmouseup="pressKey('up', false)" class="control-btn w-28 h-14"><i class="fa-solid fa-arrow-up"></i> UP</button>
-                    <div class="flex space-x-16">
-                        <button ontouchstart="pressKey('left', true)" ontouchend="pressKey('left', false)" onmousedown="pressKey('left', true)" onmouseup="pressKey('left', false)" class="control-btn w-28 h-14"><i class="fa-solid fa-arrow-left"></i> LEFT</button>
-                        <button ontouchstart="pressKey('right', true)" ontouchend="pressKey('right', false)" onmousedown="pressKey('right', true)" onmouseup="pressKey('right', false)" class="control-btn w-28 h-14">RIGHT <i class="fa-solid fa-arrow-right"></i></button>
-                    </div>
-                    <button ontouchstart="pressKey('down', true)" ontouchend="pressKey('down', false)" onmousedown="pressKey('down', true)" onmouseup="pressKey('down', false)" class="control-btn w-28 h-14"><i class="fa-solid fa-arrow-down"></i> DOWN</button>
+                
+                <!-- Instructions overlay on first launch -->
+                <div id="tutorialOverlay" class="absolute bottom-4 left-4 right-4 bg-black/85 p-3 rounded-lg border border-gray-800 text-xs text-gray-400 text-center pointer-events-none z-20 transition duration-500 opacity-100">
+                    <span id="tutorialText">Use Arrow Keys / Space to play.</span>
                 </div>
-
-                <!-- 3. Brick Breaker: Left, Right only -->
-                <div id="touchBreaker" class="hidden w-full flex items-center justify-center space-x-8">
-                    <button ontouchstart="pressKey('left', true)" ontouchend="pressKey('left', false)" onmousedown="pressKey('left', true)" onmouseup="pressKey('left', false)" class="control-btn w-36 h-16 text-lg"><i class="fa-solid fa-arrow-left mr-2"></i> PADDLE LEFT</button>
-                    <button ontouchstart="pressKey('right', true)" ontouchend="pressKey('right', false)" onmousedown="pressKey('right', true)" onmouseup="pressKey('right', false)" class="control-btn w-36 h-16 text-lg">PADDLE RIGHT <i class="fa-solid fa-arrow-right ml-2"></i></button>
-                </div>
-
-                <!-- 4. Cyber Pong: Up, Down only -->
-                <div id="touchPong" class="hidden w-full flex items-center justify-center space-x-8">
-                    <button ontouchstart="pressKey('up', true)" ontouchend="pressKey('up', false)" onmousedown="pressKey('up', true)" onmouseup="pressKey('up', false)" class="control-btn w-36 h-16 text-lg"><i class="fa-solid fa-arrow-up mr-2"></i> MOVE UP</button>
-                    <button ontouchstart="pressKey('down', true)" ontouchend="pressKey('down', false)" onmousedown="pressKey('down', true)" onmouseup="pressKey('down', false)" class="control-btn w-36 h-16 text-lg">MOVE DOWN <i class="fa-solid fa-arrow-down ml-2"></i></button>
-                </div>
-
             </div>
+
+            <!-- On-Screen Virtual Handheld Gamepad (Phone Mode only) -->
+            <div id="touchControls" class="hidden w-full max-w-[800px] p-4 bg-[#11141C] rounded-2xl border-2 border-[#232A38] justify-between items-center select-none shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] gamepad-container touch-none">
+                <!-- Left: Beautifully Positioned Retro D-Pad -->
+                <div class="relative w-36 h-36 flex items-center justify-center select-none">
+                    <!-- Background circle of D-pad -->
+                    <div class="absolute w-32 h-32 rounded-full bg-[#171D29] border border-[#2D374B] shadow-inner"></div>
+                    
+                    <!-- UP Button -->
+                    <button id="btn-up" 
+                            ontouchstart="handleTouch('up', true, event)" 
+                            ontouchend="handleTouch('up', false, event)" 
+                            ontouchcancel="handleTouch('up', false, event)"
+                            onmousedown="handleTouch('up', true, event)" 
+                            onmouseup="handleTouch('up', false, event)"
+                            onmouseleave="handleTouch('up', false, event)"
+                            class="absolute top-0 w-12 h-12 bg-gray-800 border-t-2 border-x border-[#374151] rounded-t-xl flex items-center justify-center text-gray-400 active:text-white transition duration-75 dpad-btn shadow-md outline-none">
+                        <i class="fa-solid fa-caret-up text-xl"></i>
+                    </button>
+                    
+                    <!-- LEFT Button -->
+                    <button id="btn-left" 
+                            ontouchstart="handleTouch('left', true, event)" 
+                            ontouchend="handleTouch('left', false, event)" 
+                            ontouchcancel="handleTouch('left', false, event)"
+                            onmousedown="handleTouch('left', true, event)" 
+                            onmouseup="handleTouch('left', false, event)"
+                            onmouseleave="handleTouch('left', false, event)"
+                            class="absolute left-0 w-12 h-12 bg-gray-800 border-l-2 border-y border-[#374151] rounded-l-xl flex items-center justify-center text-gray-400 active:text-white transition duration-75 dpad-btn shadow-md outline-none">
+                        <i class="fa-solid fa-caret-left text-xl"></i>
+                    </button>
+
+                    <!-- CENTER Core (Static decorative circle) -->
+                    <div class="absolute w-12 h-12 bg-gray-900 border border-gray-700 rounded-md z-10 shadow-inner flex items-center justify-center">
+                        <div class="w-3 h-3 rounded-full bg-gray-700"></div>
+                    </div>
+
+                    <!-- RIGHT Button -->
+                    <button id="btn-right" 
+                            ontouchstart="handleTouch('right', true, event)" 
+                            ontouchend="handleTouch('right', false, event)" 
+                            ontouchcancel="handleTouch('right', false, event)"
+                            onmousedown="handleTouch('right', true, event)" 
+                            onmouseup="handleTouch('right', false, event)"
+                            onmouseleave="handleTouch('right', false, event)"
+                            class="absolute right-0 w-12 h-12 bg-gray-800 border-r-2 border-y border-[#374151] rounded-r-xl flex items-center justify-center text-gray-400 active:text-white transition duration-75 dpad-btn shadow-md outline-none">
+                        <i class="fa-solid fa-caret-right text-xl"></i>
+                    </button>
+                    
+                    <!-- DOWN Button -->
+                    <button id="btn-down" 
+                            ontouchstart="handleTouch('down', true, event)" 
+                            ontouchend="handleTouch('down', false, event)" 
+                            ontouchcancel="handleTouch('down', false, event)"
+                            onmousedown="handleTouch('down', true, event)" 
+                            onmouseup="handleTouch('down', false, event)"
+                            onmouseleave="handleTouch('down', false, event)"
+                            class="absolute bottom-0 w-12 h-12 bg-gray-800 border-b-2 border-x border-[#374151] rounded-b-xl flex items-center justify-center text-gray-400 active:text-white transition duration-75 dpad-btn shadow-md outline-none">
+                        <i class="fa-solid fa-caret-down text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Right: Retro Handheld Action Buttons (A and B) -->
+                <div class="flex items-center space-x-5 pr-2 select-none">
+                    <!-- Button B (Cyan / Main Booster) -->
+                    <div class="flex flex-col items-center">
+                        <button id="btn-actionB"
+                                ontouchstart="handleTouch('actionB', true, event)" 
+                                ontouchend="handleTouch('actionB', false, event)" 
+                                ontouchcancel="handleTouch('actionB', false, event)"
+                                onmousedown="handleTouch('actionB', true, event)" 
+                                onmouseup="handleTouch('actionB', false, event)"
+                                onmouseleave="handleTouch('actionB', false, event)"
+                                class="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 active:from-cyan-500 active:to-cyan-700 border-2 border-cyan-300 shadow-[0_4px_10px_rgba(34,211,238,0.4)] active:shadow-[0_0_15px_#22D3EE] active:scale-95 transform transition duration-75 flex items-center justify-center text-white font-bold text-lg select-none outline-none action-btn">
+                            B
+                        </button>
+                        <span class="text-[10px] text-gray-500 font-extrabold mt-1.5 uppercase tracking-wide">Boost</span>
+                    </div>
+                    
+                    <!-- Button A (Pink / Main Fire-Flap) -->
+                    <div class="flex flex-col items-center">
+                        <button id="btn-action"
+                                ontouchstart="handleTouch('action', true, event)" 
+                                ontouchend="handleTouch('action', false, event)" 
+                                ontouchcancel="handleTouch('action', false, event)"
+                                onmousedown="handleTouch('action', true, event)" 
+                                onmouseup="handleTouch('action', false, event)"
+                                onmouseleave="handleTouch('action', false, event)"
+                                class="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-pink-700 active:from-pink-600 active:to-pink-800 border-2 border-pink-400 shadow-[0_4px_12px_rgba(255,59,124,0.4)] active:shadow-[0_0_20px_#FF3B7C] active:scale-95 transform transition duration-75 flex items-center justify-center text-white font-bold text-xl select-none outline-none action-btn">
+                            A
+                        </button>
+                        <span class="text-[10px] text-gray-500 font-extrabold mt-1.5 uppercase tracking-wide">Action</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </main>
 
     <!-- Footer -->
     <footer class="border-t border-[#232A38] mt-10 py-6 bg-[#0B0E14] text-center text-xs text-gray-500">
-        <p>RETRO ARCADE HUB © 2026 · Created by BCF Shamim</p>
+        <p>MAJOR ARCADE HUB © 2026 · Created with Love</p>
     </footer>
 
     <!-- Game Logic Script -->
     <script>
+        // High-level system states
         let currentMode = 'pc';
         let currentGame = null;
         let score = 0;
         let highScore = localStorage.getItem('arcade_highscore') || 0;
-        let gameInterval = null;
         let isGameOver = false;
         let canvas, ctx;
-        let keys = {};
-        let touchState = { left: false, right: false, up: false, down: false, action: false };
+        
+        // requestAnimationFrame references
+        let gameRequest = null;
+        let lastTime = 0;
+        let accumulator = 0;
+        const timeStep = 1000 / 60; // 16.67ms (perfect 60fps physics step)
 
+        // Unified Buffered Input States
+        let touchState = { left: false, right: false, up: false, down: false, action: false, actionB: false };
+        let wasActionPressed = false; // For single-tap jump triggers (like Flappy)
+        
+        // Juiciness Variables
+        let shakeAmount = 0;
+        let particles = [];
+        
+        // Game-Specific Variables
+        let shooterState = {};
+        let snakeState = {};
+        let breakerState = {};
+        let pongState = {};
+        let flappyState = {};
+        let racerState = {};
+
+        // Instructions dictionary
+        const tutorials = {
+            'shooter': "PC: LEFT / RIGHT Arrows to move, SPACE to Shoot. Mobile: D-Pad to move, A to Shoot.",
+            'snake': "PC: ARROW Keys to Turn. Mobile: D-Pad to Turn.",
+            'breaker': "PC: LEFT / RIGHT Arrows to move, SPACE to Launch. Mobile: D-Pad to move, A to Launch.",
+            'pong': "PC: UP / DOWN Arrows to move. Mobile: D-Pad UP / DOWN to move paddle.",
+            'flappy': "PC: SPACE to Flap ship. Mobile: Tap canvas or Press A to Flap.",
+            'racer': "PC: LEFT / RIGHT Arrows to steer, Hold SHIFT for Nitro (2x Score!). Mobile: D-Pad to steer, Hold B for Nitro."
+        };
+
+        // Initialize High Score
         document.getElementById('highScoreDisplay').innerText = highScore;
 
         function openModal() {
@@ -230,314 +396,1400 @@
             currentMode = mode;
             document.getElementById('modeLabel').innerText = mode.toUpperCase();
             document.getElementById('modeModal').style.display = 'none';
+            
+            // Apply mode styling to active games if they are running
+            const touchElem = document.getElementById('touchControls');
+            if (currentGame) {
+                touchElem.style.display = mode === 'phone' ? 'flex' : 'none';
+            }
         }
 
         function returnToHub() {
-            if (gameInterval) clearInterval(gameInterval);
+            if (gameRequest) cancelAnimationFrame(gameRequest);
+            gameRequest = null;
             document.getElementById('gameView').style.display = 'none';
             document.getElementById('hubView').style.display = 'block';
             document.getElementById('gameOverOverlay').style.display = 'none';
+            currentGame = null;
         }
 
-        function pressKey(action, state) {
-            touchState[action] = state;
+        // Haptic rumble for mobile devices
+        function triggerHaptic(duration) {
+            if (navigator.vibrate) {
+                try { navigator.vibrate(duration); } catch(e){}
+            }
         }
+
+        // Screen shake trigger
+        function triggerShake(amount) {
+            shakeAmount = Math.max(shakeAmount, amount);
+        }
+
+        // Particle particle generator
+        function spawnExplosion(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let speed = 1 + Math.random() * 4;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 1.5 + Math.random() * 2.5,
+                    color: color,
+                    alpha: 1,
+                    decay: 0.015 + Math.random() * 0.02
+                });
+            }
+        }
+
+        function updateAndDrawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= p.decay;
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Handle touch inputs cleanly, preventing zoom & scrolls
+        function handleTouch(key, isPressed, event) {
+            if (event) {
+                event.preventDefault();
+            }
+            touchState[key] = isPressed;
+            if (isPressed) {
+                triggerHaptic(12);
+            }
+        }
+
+        // PC Key mapping setup
+        const keyMap = {
+            'ArrowLeft': 'left',
+            'KeyA': 'left',
+            'ArrowRight': 'right',
+            'KeyD': 'right',
+            'ArrowUp': 'up',
+            'KeyW': 'up',
+            'ArrowDown': 'down',
+            'KeyS': 'down',
+            'Space': 'action',
+            'KeyK': 'action',
+            'ShiftLeft': 'actionB',
+            'ShiftRight': 'actionB',
+            'KeyL': 'actionB'
+        };
 
         window.onkeydown = (e) => {
-            keys[e.code] = true;
-            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
-                e.preventDefault();
-            }
-        };
-        window.onkeyup = (e) => {
-            keys[e.code] = false;
-            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
-                e.preventDefault();
+            let action = keyMap[e.code];
+            if (action) {
+                touchState[action] = true;
+                if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                    e.preventDefault();
+                }
             }
         };
 
+        window.onkeyup = (e) => {
+            let action = keyMap[e.code];
+            if (action) {
+                touchState[action] = false;
+                if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                    e.preventDefault();
+                }
+            }
+        };
+
+        // Attach touch handler direct to canvas for easy flapping
+        function handleCanvasAction(e) {
+            if (e) e.preventDefault();
+            if (isGameOver) {
+                restartActiveGame();
+                return;
+            }
+            if (currentGame === 'flappy') {
+                touchState.action = true;
+                triggerHaptic(10);
+                setTimeout(() => { touchState.action = false; }, 30);
+            }
+        }
+
+        // Bootstrapping active game arena
         function startGame(type) {
             currentGame = type;
             score = 0;
             isGameOver = false;
+            particles = [];
+            shakeAmount = 0;
+            accumulator = 0;
+            lastTime = 0;
+            wasActionPressed = false;
+            
+            // UI Switch views
             document.getElementById('hubView').style.display = 'none';
             document.getElementById('gameView').style.display = 'flex';
             document.getElementById('gameOverOverlay').style.display = 'none';
             document.getElementById('scoreDisplay').innerText = '0';
             
-            const touchElem = document.getElementById('touchControls');
-            const touchShooter = document.getElementById('touchShooter');
-            const touchSnake = document.getElementById('touchSnake');
-            const touchBreaker = document.getElementById('touchBreaker');
-            const touchPong = document.getElementById('touchPong');
+            // Set dynamic instruction tutorial
+            const tutOverlay = document.getElementById('tutorialOverlay');
+            document.getElementById('tutorialText').innerText = tutorials[type];
+            tutOverlay.style.opacity = '1';
+            setTimeout(() => { tutOverlay.style.opacity = '0'; }, 5000);
 
-            if (currentMode === 'phone') {
-                touchElem.style.display = 'flex';
-                touchShooter.style.display = type === 'shooter' ? 'flex' : 'none';
-                touchSnake.style.display = type === 'snake' ? 'flex' : 'none';
-                touchBreaker.style.display = type === 'breaker' ? 'flex' : 'none';
-                touchPong.style.display = type === 'pong' ? 'flex' : 'none';
-            } else {
-                touchElem.style.display = 'none';
+            // Handle virtual controller
+            const touchElem = document.getElementById('touchControls');
+            touchElem.style.display = currentMode === 'phone' ? 'flex' : 'none';
+
+            // D-pad & action custom adaptive rendering based on active game rules
+            const btnUp = document.getElementById('btn-up');
+            const btnDown = document.getElementById('btn-down');
+            const btnLeft = document.getElementById('btn-left');
+            const btnRight = document.getElementById('btn-right');
+            const btnB = document.getElementById('btn-actionB');
+            
+            // Defaults active Dpad items
+            btnUp.style.opacity = '1'; btnUp.disabled = false;
+            btnDown.style.opacity = '1'; btnDown.disabled = false;
+            btnLeft.style.opacity = '1'; btnLeft.disabled = false;
+            btnRight.style.opacity = '1'; btnRight.disabled = false;
+            btnB.style.opacity = '0.3'; btnB.disabled = true;
+
+            if (type === 'shooter' || type === 'breaker') {
+                btnUp.style.opacity = '0.15'; btnUp.disabled = true;
+                btnDown.style.opacity = '0.15'; btnDown.disabled = true;
+            } else if (type === 'pong') {
+                btnLeft.style.opacity = '0.15'; btnLeft.disabled = true;
+                btnRight.style.opacity = '0.15'; btnRight.disabled = true;
+            } else if (type === 'flappy') {
+                btnUp.style.opacity = '0.15'; btnUp.disabled = true;
+                btnDown.style.opacity = '0.15'; btnDown.disabled = true;
+                btnLeft.style.opacity = '0.15'; btnLeft.disabled = true;
+                btnRight.style.opacity = '0.15'; btnRight.disabled = true;
+            } else if (type === 'racer') {
+                btnUp.style.opacity = '0.15'; btnUp.disabled = true;
+                btnDown.style.opacity = '0.15'; btnDown.disabled = true;
+                btnB.style.opacity = '1'; btnB.disabled = false; // Turbo Active!
             }
 
+            // Standard HTML5 canvas setup
             canvas = document.getElementById('gameCanvas');
             ctx = canvas.getContext('2d');
+            
+            // Clean active listeners to prevent stack-ups
+            canvas.onmousedown = handleCanvasAction;
+            canvas.ontouchstart = handleCanvasAction;
 
-            if (gameInterval) clearInterval(gameInterval);
+            // Header UI setup
+            let cleanTitle = type.toUpperCase();
+            if (type === 'shooter') cleanTitle = 'Space Shooter';
+            else if (type === 'snake') cleanTitle = 'Neon Snake';
+            else if (type === 'breaker') cleanTitle = 'Brick Breaker';
+            else if (type === 'pong') cleanTitle = 'Cyber Pong';
+            else if (type === 'flappy') cleanTitle = 'Neon Flappy';
+            else if (type === 'racer') cleanTitle = 'Cyber Racer';
+            document.getElementById('gameTitleDisplay').innerText = cleanTitle;
 
-            if (type === 'shooter') runShooter();
-            else if (type === 'snake') runSnake();
-            else if (type === 'breaker') runBreaker();
-            else if (type === 'pong') runPong();
+            // Instantiate Game State Engines
+            if (type === 'shooter') initShooterEngine();
+            else if (type === 'snake') initSnakeEngine();
+            else if (type === 'breaker') initBreakerEngine();
+            else if (type === 'pong') initPongEngine();
+            else if (type === 'flappy') initFlappyEngine();
+            else if (type === 'racer') initRacerEngine();
+
+            if (gameRequest) cancelAnimationFrame(gameRequest);
+            gameRequest = requestAnimationFrame(engineLoop);
         }
 
         function restartActiveGame() {
             startGame(currentGame);
         }
 
-        function triggerGameOver(finalScore) {
+        function triggerGameOver() {
             isGameOver = true;
-            if (gameInterval) clearInterval(gameInterval);
-            document.getElementById('finalScore').innerText = finalScore;
+            document.getElementById('finalScore').innerText = score;
             document.getElementById('gameOverOverlay').style.display = 'flex';
-            if (finalScore > highScore) {
-                highScore = finalScore;
+            triggerHaptic([150, 100, 150]);
+            
+            if (score > highScore) {
+                highScore = score;
                 localStorage.setItem('arcade_highscore', highScore);
                 document.getElementById('highScoreDisplay').innerText = highScore;
             }
         }
 
-        // --- SPACE SHOOTER ---
-        function runShooter() {
-            let ship = { x: 375, y: 380, w: 50, h: 25, speed: 7 };
-            let bullets = [];
-            let enemies = [];
-            let frame = 0;
+        // ==========================================
+        // 🚀 CENTRAL UNIFIED GAME ENGINE LOOP (RAF)
+        // ==========================================
+        function engineLoop(timestamp) {
+            if (isGameOver) return;
+            
+            if (!lastTime) lastTime = timestamp;
+            let elapsed = timestamp - lastTime;
+            lastTime = timestamp;
 
-            gameInterval = setInterval(() => {
-                if (isGameOver) return;
-                frame++;
+            // Lock spiral of death
+            if (elapsed > 100) elapsed = 100;
 
-                if ((keys['ArrowLeft'] || touchState.left) && ship.x > 0) ship.x -= ship.speed;
-                if ((keys['ArrowRight'] || touchState.right) && ship.x < 800 - ship.w) ship.x += ship.speed;
-                if ((keys['Space'] || touchState.action) && frame % 12 === 0) {
-                    bullets.push({ x: ship.x + ship.w / 2 - 3, y: ship.y, w: 6, h: 12, speed: 9 });
-                }
+            accumulator += elapsed;
 
-                if (frame % 35 === 0) {
-                    enemies.push({ x: Math.random() * 750, y: -30, w: 35, h: 25, speed: 3 + Math.random() * 2 });
-                }
+            // Update physics with a fixed time step (60 times/sec)
+            while (accumulator >= timeStep) {
+                updateGame(timeStep / 1000);
+                accumulator -= timeStep;
+            }
 
-                bullets.forEach(b => b.y -= b.speed);
-                bullets = bullets.filter(b => b.y > 0);
+            // Render game frame smoothly aligned with vsync
+            renderGame();
 
-                enemies.forEach(e => e.y += e.speed);
-
-                bullets.forEach((b, bi) => {
-                    enemies.forEach((e, ei) => {
-                        if (b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
-                            bullets.splice(bi, 1);
-                            enemies.splice(ei, 1);
-                            score += 10;
-                            document.getElementById('scoreDisplay').innerText = score;
-                        }
-                    });
-                });
-
-                enemies.forEach(e => {
-                    if (e.y > 450 || (e.x < ship.x + ship.w && e.x + e.w > ship.x && e.y < ship.y + ship.h && e.y + e.h > ship.y)) {
-                        triggerGameOver(score);
-                    }
-                });
-                enemies = enemies.filter(e => e.y <= 450);
-
-                ctx.fillStyle = '#0B0E14';
-                ctx.fillRect(0, 0, 800, 450);
-
-                ctx.fillStyle = '#FF3B7C';
-                ctx.fillRect(ship.x, ship.y + 8, ship.w, 17);
-                ctx.fillRect(ship.x + 20, ship.y, 10, 12);
-
-                ctx.fillStyle = '#22D3EE';
-                bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
-
-                ctx.fillStyle = '#A855F7';
-                enemies.forEach(e => ctx.fillRect(e.x, e.y, e.w, e.h));
-            }, 1000 / 60);
+            gameRequest = requestAnimationFrame(engineLoop);
         }
 
-        // --- NEON SNAKE ---
-        function runSnake() {
-            let snake = [{ x: 160, y: 160 }, { x: 140, y: 160 }, { x: 120, y: 160 }];
-            let food = { x: 300, y: 200 };
-            let dx = 20, dy = 0;
-            let changed = false;
+        function updateGame(dt) {
+            if (currentGame === 'shooter') updateShooter(dt);
+            else if (currentGame === 'snake') updateSnake(dt);
+            else if (currentGame === 'breaker') updateBreaker(dt);
+            else if (currentGame === 'pong') updatePong(dt);
+            else if (currentGame === 'flappy') updateFlappy(dt);
+            else if (currentGame === 'racer') updateRacer(dt);
+        }
 
-            const spawnFood = () => {
-                food.x = Math.floor(Math.random() * 38) * 20;
-                food.y = Math.floor(Math.random() * 20) * 20;
+        function renderGame() {
+            ctx.save();
+            
+            // Smooth Screen Shake
+            if (shakeAmount > 0) {
+                let dx = (Math.random() - 0.5) * shakeAmount;
+                let dy = (Math.random() - 0.5) * shakeAmount;
+                ctx.translate(dx, dy);
+                shakeAmount *= 0.88; // decay
+                if (shakeAmount < 0.2) shakeAmount = 0;
+            }
+
+            // Execute draw commands
+            if (currentGame === 'shooter') drawShooter();
+            else if (currentGame === 'snake') drawSnake();
+            else if (currentGame === 'breaker') drawBreaker();
+            else if (currentGame === 'pong') drawPong();
+            else if (currentGame === 'flappy') drawFlappy();
+            else if (currentGame === 'racer') drawRacer();
+
+            ctx.restore();
+        }
+
+        // ==========================================
+        // 🌌 GAME 1: SPACE SHOOTER ENGINE
+        // ==========================================
+        function initShooterEngine() {
+            shooterState = {
+                ship: { x: 375, y: 370, w: 50, h: 25, speed: 450 }, // speed in units/sec
+                bullets: [],
+                enemies: [],
+                stars: [],
+                shootCooldown: 0,
+                enemySpawnTimer: 0
             };
+            
+            // Spawn 50 space stars for parallax backgrounds
+            for (let i = 0; i < 50; i++) {
+                shooterState.stars.push({
+                    x: Math.random() * 800,
+                    y: Math.random() * 450,
+                    size: 0.5 + Math.random() * 2,
+                    speed: 40 + Math.random() * 120
+                });
+            }
+        }
 
-            gameInterval = setInterval(() => {
-                if (isGameOver) return;
+        function updateShooter(dt) {
+            let s = shooterState;
+            
+            // Movement steering
+            if (touchState.left && s.ship.x > 0) s.ship.x -= s.ship.speed * dt;
+            if (touchState.right && s.ship.x < 800 - s.ship.w) s.ship.x += s.ship.speed * dt;
+            
+            // Combat shooter mechanics
+            if (s.shootCooldown > 0) s.shootCooldown -= dt;
+            if (touchState.action && s.shootCooldown <= 0) {
+                s.bullets.push({ x: s.ship.x + s.ship.w / 2 - 3, y: s.ship.y, w: 6, h: 14, speed: 550 });
+                s.shootCooldown = 0.18; // shoot every 180ms
+                triggerHaptic(10);
+                
+                // Spawn tiny yellow exhaust muzzle flare particles
+                spawnExplosion(s.ship.x + s.ship.w / 2, s.ship.y, '#FBBF24', 2);
+            }
 
-                if (!changed) {
-                    if ((keys['ArrowLeft'] || touchState.left) && dx === 0) { dx = -20; dy = 0; changed = true; }
-                    else if ((keys['ArrowRight'] || touchState.right) && dx === 0) { dx = 20; dy = 0; changed = true; }
-                    else if ((keys['ArrowUp'] || touchState.up) && dy === 0) { dx = 0; dy = -20; changed = true; }
-                    else if ((keys['ArrowDown'] || touchState.down) && dy === 0) { dx = 0; dy = 20; changed = true; }
+            // Obstacle spawning
+            s.enemySpawnTimer -= dt;
+            if (s.enemySpawnTimer <= 0) {
+                s.enemies.push({
+                    x: 30 + Math.random() * 740,
+                    y: -30,
+                    w: 36,
+                    h: 26,
+                    speed: 150 + Math.random() * 100,
+                    sinOffset: Math.random() * 10,
+                    sinSpeed: 1 + Math.random() * 3
+                });
+                s.enemySpawnTimer = 0.5 + Math.random() * 0.4; // 500ms spawn
+            }
+
+            // Bullet flight
+            s.bullets.forEach(b => b.y -= b.speed * dt);
+            s.bullets = s.bullets.filter(b => b.y > -20);
+
+            // Alien flight
+            s.enemies.forEach(e => {
+                e.y += e.speed * dt;
+                // Wobble sin motion
+                e.x += Math.sin(e.y * 0.015 + e.sinOffset) * 0.8;
+            });
+
+            // Bullet vs alien collision detection
+            for (let bi = s.bullets.length - 1; bi >= 0; bi--) {
+                let b = s.bullets[bi];
+                for (let ei = s.enemies.length - 1; ei >= 0; ei--) {
+                    let e = s.enemies[ei];
+                    if (b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
+                        // Collision match
+                        spawnExplosion(e.x + e.w/2, e.y + e.h/2, '#FF3B7C', 10);
+                        spawnExplosion(e.x + e.w/2, e.y + e.h/2, '#A855F7', 6);
+                        triggerShake(4);
+                        triggerHaptic(20);
+                        
+                        s.bullets.splice(bi, 1);
+                        s.enemies.splice(ei, 1);
+                        
+                        score += 10;
+                        document.getElementById('scoreDisplay').innerText = score;
+                        break;
+                    }
                 }
-                changed = false;
+            }
 
-                let head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            // Self damages
+            s.enemies.forEach(e => {
+                if (e.y > 455) {
+                    triggerShake(10);
+                    triggerGameOver();
+                } else if (e.x < s.ship.x + s.ship.w && e.x + e.w > s.ship.x && e.y < s.ship.y + s.ship.h && e.y + e.h > s.ship.y) {
+                    // Ship collision explosion
+                    spawnExplosion(s.ship.x + s.ship.w/2, s.ship.y + s.ship.h/2, '#EF4444', 30);
+                    triggerShake(18);
+                    triggerGameOver();
+                }
+            });
 
+            // Ambient background moves
+            s.stars.forEach(st => {
+                st.y += st.speed * dt;
+                if (st.y > 450) {
+                    st.y = 0;
+                    st.x = Math.random() * 800;
+                }
+            });
+        }
+
+        function drawShooter() {
+            let s = shooterState;
+            // Clear background
+            ctx.fillStyle = '#0B0E14';
+            ctx.fillRect(0, 0, 800, 450);
+
+            // Parallax Starfield
+            ctx.fillStyle = '#FFFFFF';
+            s.stars.forEach(st => {
+                ctx.globalAlpha = st.speed / 160; // Faster stars are brighter
+                ctx.fillRect(st.x, st.y, st.size, st.size);
+            });
+            ctx.globalAlpha = 1.0;
+
+            // Player Neon Starfighter
+            ctx.fillStyle = '#FF3B7C';
+            ctx.beginPath();
+            ctx.moveTo(s.ship.x + s.ship.w / 2, s.ship.y);
+            ctx.lineTo(s.ship.x + s.ship.w, s.ship.y + s.ship.h);
+            ctx.lineTo(s.ship.x + s.ship.w - 8, s.ship.y + s.ship.h);
+            ctx.lineTo(s.ship.x + s.ship.w / 2, s.ship.y + s.ship.h - 6);
+            ctx.lineTo(s.ship.x + 8, s.ship.y + s.ship.h);
+            ctx.lineTo(s.ship.x, s.ship.y + s.ship.h);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cockpit glass
+            ctx.fillStyle = '#22D3EE';
+            ctx.beginPath();
+            ctx.moveTo(s.ship.x + s.ship.w / 2, s.ship.y + 6);
+            ctx.lineTo(s.ship.x + s.ship.w / 2 + 5, s.ship.y + 16);
+            ctx.lineTo(s.ship.x + s.ship.w / 2 - 5, s.ship.y + 16);
+            ctx.closePath();
+            ctx.fill();
+
+            // Laser beams
+            ctx.fillStyle = '#22D3EE';
+            s.bullets.forEach(b => {
+                ctx.fillRect(b.x, b.y, b.w, b.h);
+            });
+
+            // Alien invader crafts
+            ctx.fillStyle = '#A855F7';
+            s.enemies.forEach(e => {
+                ctx.fillRect(e.x + 4, e.y, e.w - 8, e.h - 8);
+                // Wings
+                ctx.fillRect(e.x, e.y + 6, 4, e.h - 12);
+                ctx.fillRect(e.x + e.w - 4, e.y + 6, 4, e.h - 12);
+                // Laser cannons bottom
+                ctx.fillStyle = '#F43F5E';
+                ctx.fillRect(e.x + 8, e.y + e.h - 4, 4, 4);
+                ctx.fillRect(e.x + e.w - 12, e.y + e.h - 4, 4, 4);
+                ctx.fillStyle = '#A855F7';
+            });
+
+            // Juicy particles explosion update/draw
+            updateAndDrawParticles();
+        }
+
+        // ==========================================
+        // 🐍 GAME 2: NEON SNAKE ENGINE
+        // ==========================================
+        function initSnakeEngine() {
+            snakeState = {
+                snake: [{ x: 160, y: 160 }, { x: 140, y: 160 }, { x: 120, y: 160 }],
+                food: { x: 300, y: 200 },
+                dx: 20,
+                dy: 0,
+                moveTimer: 0,
+                moveInterval: 0.1, // move every 100ms
+                directionQueue: [], // BUFFERED INPUTS queue! Prevents self collision on double taps
+                gridWidth: 40,
+                gridHeight: 22.5
+            };
+            spawnSnakeFood();
+        }
+
+        function spawnSnakeFood() {
+            let s = snakeState;
+            let onSnake;
+            do {
+                onSnake = false;
+                s.food.x = Math.floor(Math.random() * 38 + 1) * 20;
+                s.food.y = Math.floor(Math.random() * 20 + 1) * 20;
+                
+                // Ensure food doesn't land inside snake body
+                for (let part of s.snake) {
+                    if (part.x === s.food.x && part.y === s.food.y) {
+                        onSnake = true;
+                        break;
+                    }
+                }
+            } while (onSnake);
+        }
+
+        function updateSnake(dt) {
+            let s = snakeState;
+            
+            // Queue up direction turns when buttons are pressed
+            if (touchState.left && s.directionQueue[s.directionQueue.length - 1] !== 'right') {
+                if (s.dx === 0 && s.directionQueue[s.directionQueue.length - 1] !== 'left') s.directionQueue.push('left');
+            }
+            if (touchState.right && s.directionQueue[s.directionQueue.length - 1] !== 'left') {
+                if (s.dx === 0 && s.directionQueue[s.directionQueue.length - 1] !== 'right') s.directionQueue.push('right');
+            }
+            if (touchState.up && s.directionQueue[s.directionQueue.length - 1] !== 'down') {
+                if (s.dy === 0 && s.directionQueue[s.directionQueue.length - 1] !== 'up') s.directionQueue.push('up');
+            }
+            if (touchState.down && s.directionQueue[s.directionQueue.length - 1] !== 'up') {
+                if (s.dy === 0 && s.directionQueue[s.directionQueue.length - 1] !== 'down') s.directionQueue.push('down');
+            }
+
+            s.moveTimer += dt;
+            if (s.moveTimer >= s.moveInterval) {
+                s.moveTimer -= s.moveInterval;
+                
+                // Read next instruction from the buffered queue
+                if (s.directionQueue.length > 0) {
+                    let nextDir = s.directionQueue.shift();
+                    if (nextDir === 'left' && s.dx === 0) { s.dx = -20; s.dy = 0; }
+                    else if (nextDir === 'right' && s.dx === 0) { s.dx = 20; s.dy = 0; }
+                    else if (nextDir === 'up' && s.dy === 0) { s.dx = 0; s.dy = -20; }
+                    else if (nextDir === 'down' && s.dy === 0) { s.dx = 0; s.dy = 20; }
+                }
+
+                // Next position calculate
+                let head = { x: s.snake[0].x + s.dx, y: s.snake[0].y + s.dy };
+
+                // Collision limits
                 if (head.x < 0 || head.x >= 800 || head.y < 0 || head.y >= 450) {
-                    triggerGameOver(score);
+                    spawnExplosion(s.snake[0].x + 10, s.snake[0].y + 10, '#EF4444', 15);
+                    triggerShake(12);
+                    triggerGameOver();
                     return;
                 }
 
-                for (let i = 0; i < snake.length; i++) {
-                    if (head.x === snake[i].x && head.y === snake[i].y) {
-                        triggerGameOver(score);
+                // Self biting collision
+                for (let i = 0; i < s.snake.length; i++) {
+                    if (head.x === s.snake[i].x && head.y === s.snake[i].y) {
+                        spawnExplosion(head.x + 10, head.y + 10, '#EF4444', 15);
+                        triggerShake(12);
+                        triggerGameOver();
                         return;
                     }
                 }
 
-                snake.unshift(head);
-                if (head.x === food.x && head.y === food.y) {
+                // Move forward
+                s.snake.unshift(head);
+                
+                // Eat Food check
+                if (head.x === s.food.x && head.y === s.food.y) {
                     score += 20;
                     document.getElementById('scoreDisplay').innerText = score;
-                    spawnFood();
+                    triggerHaptic(20);
+                    triggerShake(3);
+                    spawnExplosion(s.food.x + 10, s.food.y + 10, '#FF3B7C', 12);
+                    spawnSnakeFood();
+                    // Speed up slightly!
+                    s.moveInterval = Math.max(0.065, s.moveInterval - 0.001);
                 } else {
-                    snake.pop();
-                }
-
-                ctx.fillStyle = '#0B0E14';
-                ctx.fillRect(0, 0, 800, 450);
-
-                ctx.fillStyle = '#FF3B7C';
-                ctx.fillRect(food.x, food.y, 18, 18);
-
-                snake.forEach((part, idx) => {
-                    ctx.fillStyle = idx === 0 ? '#22D3EE' : '#3B82F6';
-                    ctx.fillRect(part.x, part.y, 18, 18);
-                });
-            }, 100);
-        }
-
-        // --- BRICK BREAKER ---
-        function runBreaker() {
-            let x = 400, y = 250, dx = 4, dy = -4;
-            let paddleX = 350, paddleW = 100, paddleH = 12;
-            let bricks = [];
-            for (let c = 0; c < 10; c++) {
-                bricks[c] = [];
-                for (let r = 0; r < 4; r++) {
-                    bricks[c][r] = { x: c * 75 + 35, y: r * 25 + 35, status: 1 };
+                    s.snake.pop();
                 }
             }
+        }
 
-            gameInterval = setInterval(() => {
-                if (isGameOver) return;
+        function drawSnake() {
+            let s = snakeState;
+            // Background
+            ctx.fillStyle = '#0B0E14';
+            ctx.fillRect(0, 0, 800, 450);
 
-                ctx.fillStyle = '#0B0E14';
-                ctx.fillRect(0, 0, 800, 450);
+            // Soft glowing neon background grid
+            ctx.strokeStyle = '#181E29';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < 800; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0); ctx.lineTo(x, 450);
+                ctx.stroke();
+            }
+            for (let y = 0; y < 450; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y); ctx.lineTo(800, y);
+                ctx.stroke();
+            }
 
-                for (let c = 0; c < 10; c++) {
-                    for (let r = 0; r < 4; r++) {
-                        let b = bricks[c][r];
-                        if (b.status === 1) {
-                            ctx.fillStyle = r % 2 === 0 ? '#FF3B7C' : '#22D3EE';
-                            ctx.fillRect(b.x, b.y, 70, 20);
-                            if (x > b.x && x < b.x + 70 && y > b.y && y < b.y + 20) {
-                                dy = -dy;
-                                b.status = 0;
+            // Food Glowing
+            ctx.fillStyle = '#FF3B7C';
+            ctx.fillRect(s.food.x + 2, s.food.y + 2, 16, 16);
+            ctx.strokeStyle = '#FF3B7C';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(s.food.x, s.food.y, 20, 20);
+
+            // Snake Rendering
+            s.snake.forEach((part, idx) => {
+                if (idx === 0) {
+                    ctx.fillStyle = '#22D3EE'; // Head Cyan
+                    ctx.fillRect(part.x + 1, part.y + 1, 18, 18);
+                    
+                    // Eyes details
+                    ctx.fillStyle = '#000000';
+                    if (s.dx > 0) { // Facing right
+                        ctx.fillRect(part.x + 12, part.y + 4, 3, 3);
+                        ctx.fillRect(part.x + 12, part.y + 12, 3, 3);
+                    } else if (s.dx < 0) { // Facing left
+                        ctx.fillRect(part.x + 4, part.y + 4, 3, 3);
+                        ctx.fillRect(part.x + 4, part.y + 12, 3, 3);
+                    } else if (s.dy > 0) { // Facing down
+                        ctx.fillRect(part.x + 4, part.y + 12, 3, 3);
+                        ctx.fillRect(part.x + 12, part.y + 12, 3, 3);
+                    } else if (s.dy < 0) { // Facing up
+                        ctx.fillRect(part.x + 4, part.y + 4, 3, 3);
+                        ctx.fillRect(part.x + 12, part.y + 4, 3, 3);
+                    }
+                } else {
+                    ctx.fillStyle = '#3B82F6'; // Body Blue
+                    ctx.fillRect(part.x + 2, part.y + 2, 16, 16);
+                }
+            });
+
+            // Particles Update/Draw
+            updateAndDrawParticles();
+        }
+
+        // ==========================================
+        // 🧱 GAME 3: BRICK BREAKER ENGINE
+        // ==========================================
+        function initBreakerEngine() {
+            breakerState = {
+                ball: { x: 400, y: 390, dx: 0, dy: 0, speed: 380, r: 8, active: false }, // Ball sticks to paddle until launched
+                paddle: { x: 350, y: 410, w: 100, h: 12, normalSpeed: 450, turboSpeed: 700 },
+                bricks: [],
+                columns: 10,
+                rows: 4,
+                brickW: 70,
+                brickH: 20,
+                padding: 10,
+                offsetTop: 50,
+                offsetLeft: 40,
+                ballTrail: []
+            };
+
+            let b = breakerState;
+            for (let c = 0; c < b.columns; c++) {
+                b.bricks[c] = [];
+                for (let r = 0; r < b.rows; r++) {
+                    b.bricks[c][r] = { status: 1 };
+                }
+            }
+        }
+
+        function updateBreaker(dt) {
+            let b = breakerState;
+            
+            // Speed settings (Paddle)
+            let paddleSpeed = touchState.actionB ? b.paddle.turboSpeed : b.paddle.normalSpeed;
+            if (touchState.left && b.paddle.x > 0) b.paddle.x -= paddleSpeed * dt;
+            if (touchState.right && b.paddle.x < 800 - b.paddle.w) b.paddle.x += paddleSpeed * dt;
+
+            // Handle Ball launch state
+            if (!b.ball.active) {
+                b.ball.x = b.paddle.x + b.paddle.w / 2;
+                b.ball.y = b.paddle.y - b.ball.r - 2;
+                
+                if (touchState.action) {
+                    b.ball.active = true;
+                    b.ball.dx = (Math.random() - 0.5) * 200; // random launch angle
+                    b.ball.dy = -b.ball.speed;
+                    triggerHaptic(30);
+                }
+            } else {
+                // Store ball trail coordinates
+                b.ballTrail.push({ x: b.ball.x, y: b.ball.y });
+                if (b.ballTrail.length > 8) b.ballTrail.shift();
+
+                // Ball flying physics
+                b.ball.x += b.ball.dx * dt;
+                b.ball.y += b.ball.dy * dt;
+
+                // Wall reflections
+                if (b.ball.x - b.ball.r < 0) {
+                    b.ball.x = b.ball.r;
+                    b.ball.dx = -b.ball.dx;
+                    triggerHaptic(10);
+                } else if (b.ball.x + b.ball.r > 800) {
+                    b.ball.x = 800 - b.ball.r;
+                    b.ball.dx = -b.ball.dx;
+                    triggerHaptic(10);
+                }
+
+                if (b.ball.y - b.ball.r < 0) {
+                    b.ball.y = b.ball.r;
+                    b.ball.dy = -b.ball.dy;
+                    triggerHaptic(10);
+                }
+
+                // Bounce off paddle
+                if (b.ball.y + b.ball.r >= b.paddle.y && b.ball.y - b.ball.r <= b.paddle.y + b.paddle.h &&
+                    b.ball.x >= b.paddle.x && b.ball.x <= b.paddle.x + b.paddle.w) {
+                    
+                    b.ball.y = b.paddle.y - b.ball.r;
+                    
+                    // Advanced reflection physics: bounce angle depends on WHERE the ball hits the paddle
+                    let relativeHit = (b.ball.x - (b.paddle.x + b.paddle.w / 2)) / (b.paddle.w / 2);
+                    b.ball.dx = relativeHit * b.ball.speed * 0.8;
+                    b.ball.dy = -Math.sqrt(Math.max(10000, b.ball.speed * b.ball.speed - b.ball.dx * b.ball.dx));
+                    
+                    triggerHaptic(15);
+                    spawnExplosion(b.ball.x, b.ball.y + b.ball.r, '#F59E0B', 4);
+                }
+
+                // Brick collisions
+                let won = true;
+                for (let c = 0; c < b.columns; c++) {
+                    for (let r = 0; r < b.rows; r++) {
+                        let br = b.bricks[c][r];
+                        if (br.status === 1) {
+                            won = false;
+                            let bx = c * (b.brickW + b.padding) + b.offsetLeft;
+                            let by = r * (b.brickH + b.padding) + b.offsetTop;
+
+                            // Standard AABB bounding box checks
+                            if (b.ball.x + b.ball.r > bx && b.ball.x - b.ball.r < bx + b.brickW &&
+                                b.ball.y + b.ball.r > by && b.ball.y - b.ball.r < by + b.brickH) {
+                                
+                                // Determine collision side to flip dx or dy
+                                let overlapLeft = (b.ball.x + b.ball.r) - bx;
+                                let overlapRight = (bx + b.brickW) - (b.ball.x - b.ball.r);
+                                let overlapTop = (b.ball.y + b.ball.r) - by;
+                                let overlapBottom = (by + b.brickH) - (b.ball.y - b.ball.r);
+
+                                let minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+
+                                if (minOverlap === overlapLeft || minOverlap === overlapRight) {
+                                    b.ball.dx = -b.ball.dx;
+                                } else {
+                                    b.ball.dy = -b.ball.dy;
+                                }
+
+                                br.status = 0;
                                 score += 15;
                                 document.getElementById('scoreDisplay').innerText = score;
+                                
+                                triggerHaptic(20);
+                                triggerShake(3);
+                                spawnExplosion(bx + b.brickW/2, by + b.brickH/2, r % 2 === 0 ? '#FF3B7C' : '#22D3EE', 8);
+                                break;
                             }
                         }
                     }
                 }
 
-                ctx.fillStyle = '#F59E0B';
-                ctx.fillRect(paddleX, 450 - paddleH - 10, paddleW, paddleH);
-
-                ctx.beginPath();
-                ctx.arc(x, y, 9, 0, Math.PI * 2);
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fill();
-                ctx.closePath();
-
-                if (x + dx > 800 - 9 || x + dx < 9) dx = -dx;
-                if (y + dy < 9) dy = -dy;
-                else if (y + dy > 450 - 20) {
-                    if (x > paddleX && x < paddleX + paddleW) dy = -dy;
-                    else triggerGameOver(score);
+                // Win check
+                if (won) {
+                    score += 500; // Big clear bonus!
+                    document.getElementById('scoreDisplay').innerText = score;
+                    initBreakerEngine(); // reset with new bricks
                 }
 
-                x += dx;
-                y += dy;
-
-                if ((keys['ArrowRight'] || touchState.right) && paddleX < 800 - paddleW) paddleX += 8;
-                if ((keys['ArrowLeft'] || touchState.left) && paddleX > 0) paddleX -= 8;
-            }, 1000 / 60);
+                // Death limits
+                if (b.ball.y > 450) {
+                    triggerShake(12);
+                    triggerGameOver();
+                }
+            }
         }
 
-        // --- CYBER PONG ---
-        function runPong() {
-            let ball = { x: 400, y: 225, dx: 5, dy: 3, r: 9 };
-            let player = { x: 20, y: 180, w: 12, h: 80 };
-            let ai = { x: 768, y: 180, w: 12, h: 80 };
+        function drawBreaker() {
+            let b = breakerState;
+            // Clear
+            ctx.fillStyle = '#0B0E14';
+            ctx.fillRect(0, 0, 800, 450);
 
-            gameInterval = setInterval(() => {
-                if (isGameOver) return;
+            // Draw Bricks
+            for (let c = 0; c < b.columns; c++) {
+                for (let r = 0; r < b.rows; r++) {
+                    if (b.bricks[c][r].status === 1) {
+                        let bx = c * (b.brickW + b.padding) + b.offsetLeft;
+                        let by = r * (b.brickH + b.padding) + b.offsetTop;
+                        
+                        // Alternate row colors (Cyber Pink & Neon Cyan)
+                        ctx.fillStyle = r % 2 === 0 ? '#FF3B7C' : '#22D3EE';
+                        ctx.fillRect(bx, by, b.brickW, b.brickH);
+                        
+                        // Add sleek highlight overlay
+                        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                        ctx.fillRect(bx, by, b.brickW, 4);
+                    }
+                }
+            }
 
-                if ((keys['ArrowUp'] || touchState.up) && player.y > 10) player.y -= 7;
-                if ((keys['ArrowDown'] || touchState.down) && player.y < 450 - player.h - 10) player.y += 7;
+            // Draw Paddle
+            ctx.fillStyle = '#F59E0B';
+            ctx.fillRect(b.paddle.x, b.paddle.y, b.paddle.w, b.paddle.h);
+            // Highlight
+            ctx.fillStyle = '#FBBF24';
+            ctx.fillRect(b.paddle.x, b.paddle.y, b.paddle.w, 3);
 
-                if (ai.y + ai.h / 2 < ball.y) ai.y += 5;
-                if (ai.y + ai.h / 2 > ball.y) ai.y -= 5;
+            // Draw Ball Trail Streak
+            b.ballTrail.forEach((t, index) => {
+                ctx.save();
+                ctx.globalAlpha = index / b.ballTrail.length * 0.4;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, b.ball.r * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
 
-                ball.x += ball.dx;
-                ball.y += ball.dy;
+            // Draw Ball
+            ctx.beginPath();
+            ctx.arc(b.ball.x, b.ball.y, b.ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.closePath();
 
-                if (ball.y - ball.r < 0 || ball.y + ball.r > 450) ball.dy = -ball.dy;
+            // Particles
+            updateAndDrawParticles();
+        }
 
-                if (ball.x - ball.r < player.x + player.w && ball.y > player.y && ball.y < player.y + player.h) {
-                    ball.dx = -ball.dx;
+        // ==========================================
+        // 🏓 GAME 4: CYBER PONG ENGINE
+        // ==========================================
+        function initPongEngine() {
+            pongState = {
+                ball: { x: 400, y: 225, dx: 350, dy: 180, speedMultiplier: 1.05, r: 9 },
+                player: { x: 20, y: 180, w: 12, h: 80, normalSpeed: 420, turboSpeed: 650 },
+                ai: { x: 768, y: 180, w: 12, h: 80, speed: 280 },
+                ballTrail: []
+            };
+        }
+
+        function updatePong(dt) {
+            let p = pongState;
+            
+            // Speed player paddle
+            let playerSpeed = touchState.actionB ? p.player.turboSpeed : p.player.normalSpeed;
+            if (touchState.up && p.player.y > 10) p.player.y -= playerSpeed * dt;
+            if (touchState.down && p.player.y < 450 - p.player.h - 10) p.player.y += playerSpeed * dt;
+
+            // AI movement trackers (slight lag error built-in so beatable)
+            let aiTargetY = p.ball.y - p.ai.h / 2;
+            let aiDiff = aiTargetY - p.ai.y;
+            if (Math.abs(aiDiff) > 10) {
+                p.ai.y += Math.sign(aiDiff) * p.ai.speed * dt;
+            }
+            // clamp AI limits
+            if (p.ai.y < 10) p.ai.y = 10;
+            if (p.ai.y > 450 - p.ai.h - 10) p.ai.y = 450 - p.ai.h - 10;
+
+            // Ball coordinates tracker
+            p.ballTrail.push({ x: p.ball.x, y: p.ball.y });
+            if (p.ballTrail.length > 8) p.ballTrail.shift();
+
+            // Physics move ball
+            p.ball.x += p.ball.dx * dt;
+            p.ball.y += p.ball.dy * dt;
+
+            // Roof and floor reflections
+            if (p.ball.y - p.ball.r < 0) {
+                p.ball.y = p.ball.r;
+                p.ball.dy = -p.ball.dy;
+                triggerHaptic(8);
+            } else if (p.ball.y + p.ball.r > 450) {
+                p.ball.y = 450 - p.ball.r;
+                p.ball.dy = -p.ball.dy;
+                triggerHaptic(8);
+            }
+
+            // Player paddle collision
+            if (p.ball.x - p.ball.r < p.player.x + p.player.w && p.ball.x + p.ball.r > p.player.x &&
+                p.ball.y > p.player.y && p.ball.y < p.player.y + p.player.h) {
+                
+                p.ball.x = p.player.x + p.player.w + p.ball.r;
+                
+                // Angle depends on paddle hit location
+                let relativeHit = (p.ball.y - (p.player.y + p.player.h / 2)) / (p.player.h / 2);
+                p.ball.dx = -p.ball.dx * p.ball.speedMultiplier;
+                p.ball.dy = relativeHit * 300;
+                
+                score += 10;
+                document.getElementById('scoreDisplay').innerText = score;
+                triggerHaptic(15);
+                triggerShake(2);
+                spawnExplosion(p.ball.x, p.ball.y, '#22D3EE', 5);
+            }
+
+            // AI paddle collision
+            if (p.ball.x + p.ball.r > p.ai.x && p.ball.x - p.ball.r < p.ai.x + p.ai.w &&
+                p.ball.y > p.ai.y && p.ball.y < p.ai.y + p.ai.h) {
+                
+                p.ball.x = p.ai.x - p.ball.r;
+                p.ball.dx = -p.ball.dx * p.ball.speedMultiplier;
+                
+                let relativeHit = (p.ball.y - (p.ai.y + p.ai.h / 2)) / (p.ai.h / 2);
+                p.ball.dy = relativeHit * 300;
+                
+                triggerHaptic(15);
+                spawnExplosion(p.ball.x, p.ball.y, '#FF3B7C', 5);
+            }
+
+            // Out of bounds checks
+            if (p.ball.x < 0) {
+                triggerShake(12);
+                triggerGameOver();
+            } else if (p.ball.x > 800) {
+                // Score bonus reset
+                score += 50;
+                document.getElementById('scoreDisplay').innerText = score;
+                triggerHaptic(50);
+                spawnExplosion(400, 225, '#10B981', 15);
+                
+                // Reset ball
+                p.ball.x = 400;
+                p.ball.y = 225;
+                p.ball.dx = -350; // Serve to player
+                p.ball.dy = (Math.random() - 0.5) * 200;
+            }
+        }
+
+        function drawPong() {
+            let p = pongState;
+            // Clear
+            ctx.fillStyle = '#0B0E14';
+            ctx.fillRect(0, 0, 800, 450);
+
+            // Draw center split lines
+            ctx.strokeStyle = '#181E29';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([8, 12]);
+            ctx.beginPath();
+            ctx.moveTo(400, 0); ctx.lineTo(400, 450);
+            ctx.stroke();
+            ctx.setLineDash([]); // clear dash
+
+            // Draw Player Paddle (Cyan)
+            ctx.fillStyle = '#22D3EE';
+            ctx.fillRect(p.player.x, p.player.y, p.player.w, p.player.h);
+
+            // Draw AI Paddle (Pink)
+            ctx.fillStyle = '#FF3B7C';
+            ctx.fillRect(p.ai.x, p.ai.y, p.ai.w, p.ai.h);
+
+            // Draw Ball Trail
+            p.ballTrail.forEach((t, index) => {
+                ctx.save();
+                ctx.globalAlpha = index / p.ballTrail.length * 0.35;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, p.ball.r * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw Ball
+            ctx.beginPath();
+            ctx.arc(p.ball.x, p.ball.y, p.ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.closePath();
+
+            // Particles
+            updateAndDrawParticles();
+        }
+
+        // ==========================================
+        // 🐦 GAME 5: NEON FLAPPY ENGINE (NEW!)
+        // ==========================================
+        function initFlappyEngine() {
+            flappyState = {
+                ship: { x: 150, y: 200, r: 15, vy: 0, gravity: 22, lift: -380, speed: 200 },
+                pillars: [],
+                spawnTimer: 0,
+                stars: []
+            };
+
+            // Spawns scrolling background stars
+            for (let i = 0; i < 30; i++) {
+                flappyState.stars.push({
+                    x: Math.random() * 800,
+                    y: Math.random() * 450,
+                    size: 1 + Math.random() * 2,
+                    speed: 25 + Math.random() * 40
+                });
+            }
+        }
+
+        function updateFlappy(dt) {
+            let f = flappyState;
+
+            // Gravity Physics
+            f.ship.vy += f.ship.gravity;
+            f.ship.y += f.ship.vy * dt;
+
+            // Spark thrust particles at tail
+            if (Math.random() < 0.4) {
+                particles.push({
+                    x: f.ship.x - 12,
+                    y: f.ship.y,
+                    vx: -150 - Math.random() * 100,
+                    vy: (Math.random() - 0.5) * 50,
+                    size: 1.5 + Math.random() * 2,
+                    color: '#D946EF',
+                    alpha: 0.8,
+                    decay: 0.04
+                });
+            }
+
+            // Keyboard or Mobile Virtual A tap
+            if (touchState.action) {
+                if (!wasActionPressed) {
+                    f.ship.vy = f.ship.lift;
+                    wasActionPressed = true;
+                    triggerHaptic(12);
+                    
+                    // Spawn tiny emerald fire sparks from boost engine
+                    spawnExplosion(f.ship.x - 12, f.ship.y, '#22D3EE', 4);
+                }
+            } else {
+                wasActionPressed = false;
+            }
+
+            // Pillar spawns
+            f.spawnTimer -= dt;
+            if (f.spawnTimer <= 0) {
+                let gapHeight = 135;
+                let minVal = 50;
+                let maxVal = 450 - gapHeight - minVal;
+                let topHeight = minVal + Math.random() * (maxVal - minVal);
+                
+                f.pillars.push({
+                    x: 820,
+                    topH: topHeight,
+                    botH: 450 - topHeight - gapHeight,
+                    w: 60,
+                    passed: false,
+                    speed: 180
+                });
+                
+                f.spawnTimer = 2.0; // Spawn every 2 seconds
+            }
+
+            // Pillar flight moves
+            f.pillars.forEach(p => {
+                p.x -= p.speed * dt;
+                
+                // Score check passed
+                if (!p.passed && p.x + p.w < f.ship.x) {
+                    p.passed = true;
                     score += 10;
                     document.getElementById('scoreDisplay').innerText = score;
+                    triggerHaptic(20);
                 }
-                if (ball.x + ball.r > ai.x && ball.y > ai.y && ball.y < ai.y + ai.h) {
-                    ball.dx = -ball.dx;
+            });
+
+            // Filter old pillars
+            f.pillars = f.pillars.filter(p => p.x > -80);
+
+            // Star scroll background
+            f.stars.forEach(st => {
+                st.x -= st.speed * dt;
+                if (st.x < 0) {
+                    st.x = 810;
+                    st.y = Math.random() * 450;
+                }
+            });
+
+            // Collision boundary hits top/bottom
+            if (f.ship.y - f.ship.r < 0 || f.ship.y + f.ship.r > 450) {
+                spawnExplosion(f.ship.x, f.ship.y, '#EF4444', 25);
+                triggerShake(15);
+                triggerGameOver();
+                return;
+            }
+
+            // Column bounds collisions
+            for (let p of f.pillars) {
+                // Top pillar collision rect
+                if (f.ship.x + f.ship.r > p.x && f.ship.x - f.ship.r < p.x + p.w &&
+                    f.ship.y - f.ship.r < p.topH) {
+                    spawnExplosion(f.ship.x, f.ship.y, '#EF4444', 25);
+                    triggerShake(15);
+                    triggerGameOver();
+                    return;
+                }
+                // Bottom pillar collision rect
+                if (f.ship.x + f.ship.r > p.x && f.ship.x - f.ship.r < p.x + p.w &&
+                    f.ship.y + f.ship.r > 450 - p.botH) {
+                    spawnExplosion(f.ship.x, f.ship.y, '#EF4444', 25);
+                    triggerShake(15);
+                    triggerGameOver();
+                    return;
+                }
+            }
+        }
+
+        function drawFlappy() {
+            let f = flappyState;
+            // Clear
+            ctx.fillStyle = '#0B0E14';
+            ctx.fillRect(0, 0, 800, 450);
+
+            // Draw Stars
+            ctx.fillStyle = 'rgba(217, 70, 239, 0.4)'; // soft fuchsia glow stars
+            f.stars.forEach(st => {
+                ctx.fillRect(st.x, st.y, st.size, st.size);
+            });
+
+            // Draw Pillars (Glowing Fuchsia Columns)
+            f.pillars.forEach(p => {
+                ctx.fillStyle = '#D946EF';
+                // Top Column
+                ctx.fillRect(p.x, 0, p.w, p.topH);
+                ctx.fillStyle = '#F472B6';
+                ctx.fillRect(p.x, p.topH - 12, p.w, 12); // column lips
+
+                // Bottom Column
+                ctx.fillStyle = '#D946EF';
+                ctx.fillRect(p.x, 450 - p.botH, p.w, p.botH);
+                ctx.fillStyle = '#F472B6';
+                ctx.fillRect(p.x, 450 - p.botH, p.w, 12); // column lips
+            });
+
+            // Draw Ship (Fighter triangle pointing right)
+            ctx.save();
+            ctx.translate(f.ship.x, f.ship.y);
+            // Tilt ship based on vertical velocity
+            let tilt = Math.min(Math.PI / 4, Math.max(-Math.PI / 6, f.ship.vy * 0.002));
+            ctx.rotate(tilt);
+
+            // Body
+            ctx.fillStyle = '#22D3EE'; // Cyan ship nose
+            ctx.beginPath();
+            ctx.moveTo(15, 0);
+            ctx.lineTo(-12, -10);
+            ctx.lineTo(-6, 0);
+            ctx.lineTo(-12, 10);
+            ctx.closePath();
+            ctx.fill();
+
+            // Thrust booster fire details
+            ctx.fillStyle = '#FF3B7C';
+            ctx.fillRect(-12, -4, 5, 8);
+
+            ctx.restore();
+
+            // Particles Update/Draw
+            updateAndDrawParticles();
+        }
+
+        // ==========================================
+        // 🏎️ GAME 6: CYBER RACER ENGINE (NEW!)
+        // ==========================================
+        function initRacerEngine() {
+            racerState = {
+                player: { x: 375, y: 340, w: 45, h: 75, speed: 400 },
+                roadWidth: 320,
+                roadLines: [],
+                enemies: [],
+                coins: [],
+                spawnTimer: 0,
+                coinSpawnTimer: 0,
+                roadScrollY: 0
+            };
+        }
+
+        function updateRacer(dt) {
+            let r = racerState;
+
+            // Handle Turbo speed multipliers
+            let speedFactor = touchState.actionB ? 2.2 : 1.0;
+            let currentScrollSpeed = 450 * speedFactor;
+
+            // Horizontal steering
+            let steerSpeed = r.player.speed;
+            if (touchState.left && r.player.x > (400 - r.roadWidth / 2 + 10)) {
+                r.player.x -= steerSpeed * dt;
+            }
+            if (touchState.right && r.player.x < (400 + r.roadWidth / 2 - r.player.w - 10)) {
+                r.player.x += steerSpeed * dt;
+            }
+
+            // Scroll Road Lines
+            r.roadScrollY += currentScrollSpeed * dt;
+            if (r.roadScrollY > 100) {
+                r.roadScrollY -= 100;
+            }
+
+            // Nitro thrust fire particles from exhaust pipe
+            if (touchState.actionB) {
+                triggerShake(1);
+                // Dual exhaust flames
+                if (Math.random() < 0.6) {
+                    particles.push({
+                        x: r.player.x + 10,
+                        y: r.player.y + r.player.h,
+                        vx: (Math.random() - 0.5) * 40,
+                        vy: 200 + Math.random() * 150,
+                        size: 2 + Math.random() * 3,
+                        color: '#F59E0B',
+                        alpha: 1.0,
+                        decay: 0.05
+                    });
+                    particles.push({
+                        x: r.player.x + r.player.w - 10,
+                        y: r.player.y + r.player.h,
+                        vx: (Math.random() - 0.5) * 40,
+                        vy: 200 + Math.random() * 150,
+                        size: 2 + Math.random() * 3,
+                        color: '#FF3B7C',
+                        alpha: 1.0,
+                        decay: 0.05
+                    });
+                }
+            }
+
+            // Increment points slowly over time
+            score += touchState.actionB ? 2 : 1;
+            document.getElementById('scoreDisplay').innerText = score;
+
+            // Spawn obstacles cars
+            r.spawnTimer -= dt;
+            if (r.spawnTimer <= 0) {
+                // Lane positions
+                let lanes = [400 - 110, 400 - 40, 400 + 40, 400 + 110];
+                let chosenLane = lanes[Math.floor(Math.random() * lanes.length)];
+                
+                r.enemies.push({
+                    x: chosenLane - 20,
+                    y: -100,
+                    w: 42,
+                    h: 70,
+                    speed: 80 + Math.random() * 150, // scroll down relative
+                    color: ['#3B82F6', '#10B981', '#A855F7', '#EC4899'][Math.floor(Math.random()*4)]
+                });
+
+                r.spawnTimer = 1.0 + Math.random() * 0.8;
+            }
+
+            // Spawn Golden Coins
+            r.coinSpawnTimer -= dt;
+            if (r.coinSpawnTimer <= 0) {
+                let lanes = [400 - 110, 400 - 40, 400 + 40, 400 + 110];
+                let chosenLane = lanes[Math.floor(Math.random() * lanes.length)];
+                
+                r.coins.push({
+                    x: chosenLane,
+                    y: -40,
+                    r: 9,
+                    speed: currentScrollSpeed
+                });
+
+                r.coinSpawnTimer = 1.5 + Math.random() * 2;
+            }
+
+            // Coin scrolls and picks
+            for (let i = r.coins.length - 1; i >= 0; i--) {
+                let c = r.coins[i];
+                c.y += currentScrollSpeed * dt;
+                
+                // Collect coin checking
+                if (c.x > r.player.x - c.r && c.x < r.player.x + r.player.w + c.r &&
+                    c.y > r.player.y - c.r && c.y < r.player.y + r.player.h + c.r) {
+                    
+                    score += 150; // Big coin bonus!
+                    document.getElementById('scoreDisplay').innerText = score;
+                    triggerHaptic([30, 20]);
+                    spawnExplosion(c.x, c.y, '#FBBF24', 15); // gold burst!
+                    
+                    r.coins.splice(i, 1);
+                    continue;
                 }
 
-                if (ball.x < 0) triggerGameOver(score);
-                if (ball.x > 800) { ball.x = 400; ball.y = 225; ball.dx = -ball.dx; }
+                if (c.y > 480) {
+                    r.coins.splice(i, 1);
+                }
+            }
 
-                ctx.fillStyle = '#0B0E14';
-                ctx.fillRect(0, 0, 800, 450);
+            // Move opponent cars down relative to road speed
+            r.enemies.forEach(e => {
+                e.y += (currentScrollSpeed - e.speed) * dt;
+            });
 
-                ctx.strokeStyle = '#232A38';
-                ctx.lineWidth = 4;
-                ctx.setLineDash([8, 12]);
+            // Filter cars
+            r.enemies = r.enemies.filter(e => e.y < 480 && e.y > -150);
+
+            // Collision check
+            for (let e of r.enemies) {
+                if (r.player.x + 4 < e.x + e.w && r.player.x + r.player.w - 4 > e.x &&
+                    r.player.y + 4 < e.y + e.h && r.player.y + r.player.h - 4 > e.y) {
+                    
+                    // CRASH!
+                    spawnExplosion(r.player.x + r.player.w/2, r.player.y + r.player.h/2, '#EF4444', 30);
+                    spawnExplosion(r.player.x + r.player.w/2, r.player.y + r.player.h/2, '#F59E0B', 15);
+                    triggerShake(20);
+                    triggerGameOver();
+                    return;
+                }
+            }
+        }
+
+        function drawRacer() {
+            let r = racerState;
+            // Clear sky/background grass fields
+            ctx.fillStyle = '#06080F';
+            ctx.fillRect(0, 0, 800, 450);
+
+            // Draw Central Asphalt Highway
+            ctx.fillStyle = '#111622';
+            ctx.fillRect(400 - r.roadWidth / 2, 0, r.roadWidth, 450);
+
+            // Draw Road Shoulders Red/White bars
+            ctx.fillStyle = '#DC2626'; // Red
+            ctx.fillRect(400 - r.roadWidth / 2 - 8, 0, 8, 450);
+            ctx.fillRect(400 + r.roadWidth / 2, 0, 8, 450);
+
+            let laneBarLength = 40;
+            let laneBarGap = 40;
+            let offset = r.roadScrollY % (laneBarLength + laneBarGap);
+
+            // Draw white scrolling bars on road shoulders
+            ctx.fillStyle = '#FFFFFF';
+            for (let y = -offset; y < 450; y += laneBarLength + laneBarGap) {
+                ctx.fillRect(400 - r.roadWidth / 2 - 8, y, 8, laneBarLength);
+                ctx.fillRect(400 + r.roadWidth / 2, y, 8, laneBarLength);
+            }
+
+            // Draw central scrolling lane dividers
+            ctx.fillStyle = '#374151';
+            for (let y = -offset; y < 450; y += laneBarLength + laneBarGap) {
+                ctx.fillRect(400 - 45, y, 4, laneBarLength);
+                ctx.fillRect(400 + 45, y, 4, laneBarLength);
+            }
+
+            // Draw Coins
+            r.coins.forEach(c => {
+                ctx.fillStyle = '#F59E0B';
                 ctx.beginPath();
-                ctx.moveTo(400, 0); ctx.lineTo(400, 450);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                ctx.fillStyle = '#22D3EE';
-                ctx.fillRect(player.x, player.y, player.w, player.h);
-                ctx.fillStyle = '#FF3B7C';
-                ctx.fillRect(ai.x, ai.y, ai.w, ai.h);
-
-                ctx.beginPath();
-                ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-                ctx.fillStyle = '#FFFFFF';
+                ctx.arc(c.x, c.y, c.r, 0, Math.PI*2);
                 ctx.fill();
-                ctx.closePath();
-            }, 1000 / 60);
+                // inner star detail
+                ctx.fillStyle = '#FFF';
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, c.r * 0.4, 0, Math.PI*2);
+                ctx.fill();
+            });
+
+            // Draw Player Car (Sleek red racing car)
+            ctx.fillStyle = '#DC2626'; // main red
+            ctx.fillRect(r.player.x + 4, r.player.y + 10, r.player.w - 8, r.player.h - 15);
+            
+            // Cockpit canopy windshield
+            ctx.fillStyle = '#1E293B';
+            ctx.fillRect(r.player.x + 8, r.player.y + 25, r.player.w - 16, 15);
+            // Neon Cyan shine
+            ctx.fillStyle = '#22D3EE';
+            ctx.fillRect(r.player.x + 10, r.player.y + 25, 6, 15);
+
+            // Wheels
+            ctx.fillStyle = '#000';
+            ctx.fillRect(r.player.x - 2, r.player.y + 12, 6, 14); // Left front
+            ctx.fillRect(r.player.x + r.player.w - 4, r.player.y + 12, 6, 14); // Right front
+            ctx.fillRect(r.player.x - 2, r.player.y + r.player.h - 22, 6, 14); // Left back
+            ctx.fillRect(r.player.x + r.player.w - 4, r.player.y + r.player.h - 22, 6, 14); // Right back
+
+            // Headlights
+            ctx.fillStyle = '#FEE2E2';
+            ctx.fillRect(r.player.x + 6, r.player.y + 8, 8, 3);
+            ctx.fillRect(r.player.x + r.player.w - 14, r.player.y + 8, 8, 3);
+
+            // Draw Enemies cars
+            r.enemies.forEach(e => {
+                ctx.fillStyle = e.color;
+                ctx.fillRect(e.x + 4, e.y + 10, e.w - 8, e.h - 15);
+                
+                // Windshield
+                ctx.fillStyle = '#1E293B';
+                ctx.fillRect(e.x + 8, e.y + e.h - 35, e.w - 16, 12);
+
+                // Tires
+                ctx.fillStyle = '#000';
+                ctx.fillRect(e.x - 2, e.y + 12, 6, 14);
+                ctx.fillRect(e.x + e.w - 4, e.y + 12, 6, 14);
+                ctx.fillRect(e.x - 2, e.y + e.h - 22, 6, 14);
+                ctx.fillRect(e.x + e.w - 4, e.y + e.h - 22, 6, 14);
+            });
+
+            // Particles Update/Draw
+            updateAndDrawParticles();
         }
     </script>
 </body>
