@@ -3,7 +3,7 @@
 > A premium, cyberpunk-themed retro arcade gaming hub featuring multiple fully playable HTML5 canvas games (Space Shooter, Neon Snake, Brick Breaker) with local high-score tracking and instant in-browser play.
 
 ## 🌟 Live Preview
-🌐 **Directory:** `/home/hermes/workspace/projects/RETRO-ARCADE-HUB/`
+🌐 **Play it live:** https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/
 
 ## 🕹️ Included Games
 1. **Cyber Space Combat:** Fast-paced starfighter shooter.

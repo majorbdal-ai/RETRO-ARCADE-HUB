@@ -124,6 +124,9 @@
             <span class="text-xs font-bold text-cyan-400 bg-cyan-950 px-3 py-2 rounded-full border border-cyan-800 shadow-[0_0_10px_rgba(34,211,238,0.15)]">
                 High: <span id="highScoreDisplay" class="font-arcade">0</span>
             </span>
+            <span class="text-xs font-bold text-amber-300 bg-amber-950/60 px-3 py-2 rounded-full border border-amber-700 shadow-[0_0_10px_rgba(245,158,11,0.15)]">
+                🔥 Best: <span id="bestScoreDisplay" class="font-arcade">0</span>
+            </span>
         </div>
     </header>
 
@@ -220,7 +223,12 @@
                     <h3 id="gameTitleDisplay" class="text-base sm:text-lg font-bold uppercase text-white tracking-widest font-arcade text-pink-500">Game</h3>
                     <p class="text-xs text-gray-400">Score: <span id="scoreDisplay" class="text-cyan-400 font-bold font-arcade">0</span></p>
                 </div>
-                <button onclick="restartActiveGame()" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition">Restart</button>
+                <div class="flex items-center gap-1.5">
+                    <button id="soundBtn" onclick="initAudio(); toggleSound();" title="Sound (M)" class="bg-gray-800 hover:bg-gray-700 text-white w-9 h-9 rounded-lg text-xs cursor-pointer transition"><i class="fa-solid fa-volume-high"></i></button>
+                    <button id="pauseBtn" onclick="togglePause()" title="Pause (P)" class="bg-gray-800 hover:bg-gray-700 text-white w-9 h-9 rounded-lg text-xs cursor-pointer transition"><i class="fa-solid fa-pause"></i></button>
+                    <button onclick="toggleFullscreen()" title="Fullscreen" class="bg-gray-800 hover:bg-gray-700 text-white w-9 h-9 rounded-lg text-xs cursor-pointer transition"><i class="fa-solid fa-expand"></i></button>
+                    <button onclick="restartActiveGame()" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition">Restart</button>
+                </div>
             </div>
 
             <!-- Canvas Container with CRT overlay -->
@@ -231,6 +239,7 @@
                 <div id="gameOverOverlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center space-y-4 z-20">
                     <h2 class="font-arcade text-3xl sm:text-4xl text-pink-500 animate-pulse tracking-widest">GAME OVER</h2>
                     <p class="text-gray-300 text-sm sm:text-base">Final Score: <span id="finalScore" class="text-cyan-400 font-arcade text-lg">0</span></p>
+                    <p class="text-xs text-amber-300 font-bold">🔥 Best: <span id="finalBestScore" class="font-arcade">0</span></p>
                     <button onclick="restartActiveGame()" class="bg-pink-600 hover:bg-pink-700 text-white font-arcade text-xs px-6 py-3 rounded-xl cursor-pointer transition transform hover:scale-105 shadow-[0_0_15px_#FF3B7C]">Play Again</button>
                 </div>
                 
@@ -379,7 +388,7 @@
         const tutorials = {
             'shooter': "PC: LEFT / RIGHT Arrows to move, SPACE to Shoot. Mobile: D-Pad to move, A to Shoot.",
             'snake': "PC: ARROW Keys to Turn. Mobile: D-Pad to Turn.",
-            'breaker': "PC: LEFT / RIGHT Arrows to move, SPACE to Launch. Mobile: D-Pad to move, A to Launch.",
+            'breaker': "PC: LEFT / RIGHT Arrows to move, SPACE to Launch. Mobile: D-Pad to move, A to Launch. Tips: B/Shift = Turbo paddle!",
             'pong': "PC: UP / DOWN Arrows to move. Mobile: D-Pad UP / DOWN to move paddle.",
             'flappy': "PC: SPACE to Flap ship. Mobile: Tap canvas or Press A to Flap.",
             'racer': "PC: LEFT / RIGHT Arrows to steer, Hold SHIFT for Nitro (2x Score!). Mobile: D-Pad to steer, Hold B for Nitro."
@@ -387,6 +396,12 @@
 
         // Initialize High Score
         document.getElementById('highScoreDisplay').innerText = highScore;
+        document.getElementById('bestScoreDisplay').innerText = parseInt(localStorage.getItem('arcade_bestscore')) || 0;
+        // Unlock audio on first user gesture (browsers block autoplay)
+        window.addEventListener('pointerdown', function onceAudio() {
+            initAudio();
+            window.removeEventListener('pointerdown', onceAudio);
+        }, { once: true });
 
         function openModal() {
             document.getElementById('modeModal').style.display = 'flex';
@@ -411,6 +426,85 @@
             document.getElementById('hubView').style.display = 'block';
             document.getElementById('gameOverOverlay').style.display = 'none';
             currentGame = null;
+            // Reset sound & combo state when leaving to hub (fresh game on replay)
+            localStorage.setItem('arcade_bestscore', Math.max(parseInt(localStorage.getItem('arcade_bestscore')) || 0, parseInt(localStorage.getItem('arcade_highscore')) || 0));
+            score = 0;
+        }
+
+        // 🎵 WebAudio sound engine — tiny bleeps, no assets needed
+        let audioCtx = null;
+        let soundOn = true;
+        function initAudio() {
+            if (!audioCtx) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {}
+            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        function playTone(freq, dur, type = 'square', vol = 0.05) {
+            if (!soundOn || !audioCtx) return;
+            try {
+                let o = audioCtx.createOscillator();
+                let g = audioCtx.createGain();
+                o.type = type; o.frequency.value = freq;
+                g.gain.setValueAtTime(vol, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(); o.stop(audioCtx.currentTime + dur);
+            } catch (e) {}
+        }
+        function sfxShoot()  { playTone(880, 0.08, 'square', 0.04); }
+        function sfxHit()    { playTone(520, 0.1, 'triangle', 0.06); }
+        function sfxExplode(){ playTone(180, 0.25, 'sawtooth', 0.06); }
+        function sfxCoin()   { playTone(1320, 0.12, 'sine', 0.06); }
+        function sfxWin()    { playTone(660, 0.15, 'square', 0.05); playTone(880, 0.15, 'square', 0.05); }
+        function toggleSound() {
+            soundOn = !soundOn;
+            document.getElementById('soundBtn').innerHTML = soundOn ? '<i class=\"fa-solid fa-volume-high\"></i>' : '<i class=\"fa-solid fa-volume-xmark\"></i>';
+            if (soundOn) { initAudio(); sfxCoin(); }
+        }
+
+        // ⏸️ Pause support
+        let paused = false;
+        function togglePause() {
+            if (!currentGame) return;
+            paused = !paused;
+            document.getElementById('pauseBtn').innerHTML = paused ? '<i class=\"fa-solid fa-play\"></i>' : '<i class=\"fa-solid fa-pause\"></i>';
+            if (paused && gameRequest) cancelAnimationFrame(gameRequest);
+            else if (!paused) { lastTime = 0; gameRequest = requestAnimationFrame(engineLoop); }
+        }
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyP' && currentGame) togglePause();
+            if (e.code === 'KeyM') toggleSound();
+        });
+
+        // 🏆 Persist best score across games (all-time top)
+        function recordScore() {
+            let best = parseInt(localStorage.getItem('arcade_bestscore')) || 0;
+            if (score > best) {
+                localStorage.setItem('arcade_bestscore', score);
+                document.getElementById('bestScoreDisplay').innerText = score;
+            }
+        }
+
+        // 🔥 Combo multiplier (resets on game over)
+        let combo = 0;
+        function addCombo(base) {
+            combo = Math.min(combo + 1, 9);
+            let mult = 1 + combo * 0.1; // x1.1 → x1.9
+            score += Math.round(base * mult);
+            document.getElementById('scoreDisplay').innerText = score;
+        }
+        function resetCombo() { combo = 0; }
+
+        // 🖥️ Fullscreen toggle
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen && document.exitFullscreen();
+            }
         }
 
         // Haptic rumble for mobile devices
@@ -535,6 +629,9 @@
             accumulator = 0;
             lastTime = 0;
             wasActionPressed = false;
+            paused = false;
+            document.getElementById('pauseBtn').innerHTML = '<i class="fa-solid fa-pause"></i>';
+            document.getElementById('finalBestScore').innerText = parseInt(localStorage.getItem('arcade_bestscore')) || 0;
             
             // UI Switch views
             document.getElementById('hubView').style.display = 'none';
@@ -622,6 +719,9 @@
             document.getElementById('finalScore').innerText = score;
             document.getElementById('gameOverOverlay').style.display = 'flex';
             triggerHaptic([150, 100, 150]);
+            sfxExplode();
+            resetCombo();
+            recordScore();
             
             if (score > highScore) {
                 highScore = score;
@@ -634,7 +734,7 @@
         // 🚀 CENTRAL UNIFIED GAME ENGINE LOOP (RAF)
         // ==========================================
         function engineLoop(timestamp) {
-            if (isGameOver) return;
+            if (isGameOver || paused) return;
             
             if (!lastTime) lastTime = timestamp;
             let elapsed = timestamp - lastTime;
@@ -726,6 +826,7 @@
                 s.bullets.push({ x: s.ship.x + s.ship.w / 2 - 3, y: s.ship.y, w: 6, h: 14, speed: 550 });
                 s.shootCooldown = 0.18; // shoot every 180ms
                 triggerHaptic(10);
+                sfxShoot();
                 
                 // Spawn tiny yellow exhaust muzzle flare particles
                 spawnExplosion(s.ship.x + s.ship.w / 2, s.ship.y, '#FBBF24', 2);
@@ -768,11 +869,12 @@
                         spawnExplosion(e.x + e.w/2, e.y + e.h/2, '#A855F7', 6);
                         triggerShake(4);
                         triggerHaptic(20);
+                        sfxHit();
                         
                         s.bullets.splice(bi, 1);
                         s.enemies.splice(ei, 1);
                         
-                        score += 10;
+                        addCombo(10);
                         document.getElementById('scoreDisplay').innerText = score;
                         break;
                     }
@@ -953,10 +1055,11 @@
                 
                 // Eat Food check
                 if (head.x === s.food.x && head.y === s.food.y) {
-                    score += 20;
+                    addCombo(20);
                     document.getElementById('scoreDisplay').innerText = score;
                     triggerHaptic(20);
                     triggerShake(3);
+                    sfxCoin();
                     spawnExplosion(s.food.x + 10, s.food.y + 10, '#FF3B7C', 12);
                     spawnSnakeFood();
                     // Speed up slightly!
@@ -1141,11 +1244,12 @@
                                 }
 
                                 br.status = 0;
-                                score += 15;
+                                addCombo(15);
                                 document.getElementById('scoreDisplay').innerText = score;
                                 
                                 triggerHaptic(20);
                                 triggerShake(3);
+                                sfxHit();
                                 spawnExplosion(bx + b.brickW/2, by + b.brickH/2, r % 2 === 0 ? '#FF3B7C' : '#22D3EE', 8);
                                 break;
                             }
@@ -1157,6 +1261,8 @@
                 if (won) {
                     score += 500; // Big clear bonus!
                     document.getElementById('scoreDisplay').innerText = score;
+                    sfxWin();
+                    triggerHaptic(60);
                     initBreakerEngine(); // reset with new bricks
                 }
 
@@ -1281,10 +1387,11 @@
                 p.ball.dx = -p.ball.dx * p.ball.speedMultiplier;
                 p.ball.dy = relativeHit * 300;
                 
-                score += 10;
+                addCombo(10);
                 document.getElementById('scoreDisplay').innerText = score;
                 triggerHaptic(15);
                 triggerShake(2);
+                sfxHit();
                 spawnExplosion(p.ball.x, p.ball.y, '#22D3EE', 5);
             }
 
@@ -1311,6 +1418,7 @@
                 score += 50;
                 document.getElementById('scoreDisplay').innerText = score;
                 triggerHaptic(50);
+                sfxCoin();
                 spawnExplosion(400, 225, '#10B981', 15);
                 
                 // Reset ball
@@ -1415,6 +1523,7 @@
                     f.ship.vy = f.ship.lift;
                     wasActionPressed = true;
                     triggerHaptic(12);
+                    sfxShoot();
                     
                     // Spawn tiny emerald fire sparks from boost engine
                     spawnExplosion(f.ship.x - 12, f.ship.y, '#22D3EE', 4);
@@ -1450,9 +1559,10 @@
                 // Score check passed
                 if (!p.passed && p.x + p.w < f.ship.x) {
                     p.passed = true;
-                    score += 10;
+                    addCombo(10);
                     document.getElementById('scoreDisplay').innerText = score;
                     triggerHaptic(20);
+                    sfxCoin();
                 }
             });
 
@@ -1668,6 +1778,7 @@
                     score += 150; // Big coin bonus!
                     document.getElementById('scoreDisplay').innerText = score;
                     triggerHaptic([30, 20]);
+                    sfxCoin();
                     spawnExplosion(c.x, c.y, '#FBBF24', 15); // gold burst!
                     
                     r.coins.splice(i, 1);

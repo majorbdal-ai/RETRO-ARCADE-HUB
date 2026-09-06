@@ -69,7 +69,7 @@ function arcadeApp() {
         // --- 1. Space Shooter Engine ---
         runSpaceShooter() {
             let ctx = this.ctx;
-            let ship = { x: 375, y: 420, w: 50, h: 30, speed: 7 };
+            let ship = { x: 375, y: 395, w: 50, h: 30, speed: 7 };
             let bullets = [];
             let enemies = [];
             let keys = {};
@@ -112,14 +112,14 @@ function arcadeApp() {
                 });
 
                 enemies.forEach(e => {
-                    if (e.y > 500 || (e.x < ship.x + ship.w && e.x + e.w > ship.x && e.y < ship.y + ship.h && e.y + e.h > ship.y)) {
+                    if (e.y > 455 || (e.x < ship.x + ship.w && e.x + e.w > ship.x && e.y < ship.y + ship.h && e.y + e.h > ship.y)) {
                         this.gameOver = true;
                     }
                 });
-                enemies = enemies.filter(e => e.y <= 500);
+                enemies = enemies.filter(e => e.y <= 455);
 
                 ctx.fillStyle = '#0B0E14';
-                ctx.fillRect(0, 0, 800, 500);
+                ctx.fillRect(0, 0, 800, 450);
 
                 ctx.fillStyle = '#FF3B7C';
                 ctx.fillRect(ship.x, ship.y + 10, ship.w, 20);
@@ -141,6 +141,8 @@ function arcadeApp() {
             let food = { x: 300, y: 300 };
             let dx = 20, dy = 0;
             let changingDirection = false;
+            // Snake 500px → 450px canvas resize fixes
+            const maxX = 780, maxY = 430;
 
             window.onkeydown = (e) => {
                 if (changingDirection) return;
@@ -151,8 +153,11 @@ function arcadeApp() {
             };
 
             const spawnFood = () => {
-                food.x = Math.floor(Math.random() * 40) * 20;
-                food.y = Math.floor(Math.random() * 25) * 20;
+                food.x = Math.floor(Math.random() * 39) * 20;
+                food.y = Math.floor(Math.random() * 21) * 20;
+                // Keep food inside 800x450 canvas
+                if (food.x > maxX) food.x = maxX;
+                if (food.y > maxY) food.y = maxY;
             };
 
             this.gameInterval = setInterval(() => {
@@ -168,7 +173,7 @@ function arcadeApp() {
                 changingDirection = false;
                 let head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-                if (head.x < 0 || head.x >= 800 || head.y < 0 || head.y >= 500) {
+                if (head.x < 0 || head.x >= 800 || head.y < 0 || head.y >= 450) {
                     this.gameOver = true;
                     return;
                 }
@@ -194,7 +199,7 @@ function arcadeApp() {
                 }
 
                 ctx.fillStyle = '#0B0E14';
-                ctx.fillRect(0, 0, 800, 500);
+                ctx.fillRect(0, 0, 800, 450);
 
                 ctx.fillStyle = '#FF3B7C';
                 ctx.fillRect(food.x, food.y, 18, 18);
@@ -238,7 +243,7 @@ function arcadeApp() {
                 if (this.gameOver) return;
 
                 ctx.fillStyle = '#0B0E14';
-                ctx.fillRect(0, 0, 800, 500);
+                ctx.fillRect(0, 0, 800, 450);
 
                 for (let c = 0; c < brickColumnCount; c++) {
                     for (let r = 0; r < brickRowCount; r++) {
@@ -264,7 +269,7 @@ function arcadeApp() {
                 }
 
                 ctx.fillStyle = '#F59E0B';
-                ctx.fillRect(paddleX, 500 - paddleHeight - 10, paddleWidth, paddleHeight);
+                ctx.fillRect(paddleX, 450 - paddleHeight - 10, paddleWidth, paddleHeight);
 
                 ctx.beginPath();
                 ctx.arc(x, y, 10, 0, Math.PI * 2);
@@ -274,7 +279,7 @@ function arcadeApp() {
 
                 if (x + dx > 800 - 10 || x + dx < 10) dx = -dx;
                 if (y + dy < 10) dy = -dy;
-                else if (y + dy > 500 - 25) {
+                else if (y + dy > 450 - 25) {
                     if (x > paddleX && x < paddleX + paddleWidth) {
                         dy = -dy;
                     } else {
@@ -294,9 +299,9 @@ function arcadeApp() {
         // --- 4. Cyber Neon Pong Engine ---
         runPong() {
             let ctx = this.ctx;
-            let ball = { x: 400, y: 250, dx: 5, dy: 3, radius: 10 };
-            let player = { x: 20, y: 200, w: 12, h: 90 };
-            let ai = { x: 768, y: 200, w: 12, h: 90 };
+            let ball = { x: 400, y: 225, dx: 5, dy: 3, radius: 10 };
+            let player = { x: 20, y: 180, w: 12, h: 90 };
+            let ai = { x: 768, y: 180, w: 12, h: 90 };
             let keys = {};
 
             window.onkeydown = (e) => { keys[e.code] = true; };
@@ -306,7 +311,7 @@ function arcadeApp() {
                 if (this.gameOver) return;
 
                 if ((keys['ArrowUp'] || this.controls.up) && player.y > 10) player.y -= 8;
-                if ((keys['ArrowDown'] || this.controls.down) && player.y < 500 - player.h - 10) player.y += 8;
+                if ((keys['ArrowDown'] || this.controls.down) && player.y < 450 - player.h - 10) player.y += 8;
 
                 if (ai.y + ai.h / 2 < ball.y) ai.y += 5.5;
                 if (ai.y + ai.h / 2 > ball.y) ai.y -= 5.5;
@@ -314,7 +319,7 @@ function arcadeApp() {
                 ball.x += ball.dx;
                 ball.y += ball.dy;
 
-                if (ball.y - ball.radius < 0 || ball.y + ball.radius > 500) ball.dy = -ball.dy;
+                if (ball.y - ball.radius < 0 || ball.y + ball.radius > 450) ball.dy = -ball.dy;
 
                 if (ball.x - ball.radius < player.x + player.w && ball.y > player.y && ball.y < player.y + player.h) {
                     ball.dx = -ball.dx;
@@ -335,19 +340,19 @@ function arcadeApp() {
 
                 if (ball.x > 800) {
                     ball.x = 400;
-                    ball.y = 250;
+                    ball.y = 225;
                     ball.dx = -ball.dx;
                 }
 
                 ctx.fillStyle = '#0B0E14';
-                ctx.fillRect(0, 0, 800, 500);
+                ctx.fillRect(0, 0, 800, 450);
 
                 ctx.strokeStyle = '#232A38';
                 ctx.lineWidth = 4;
                 ctx.setLineDash([10, 15]);
                 ctx.beginPath();
                 ctx.moveTo(400, 0);
-                ctx.lineTo(400, 500);
+                ctx.lineTo(400, 450);
                 ctx.stroke();
                 ctx.setLineDash([]);
 
