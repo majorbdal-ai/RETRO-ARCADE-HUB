@@ -1,7 +1,1 @@
-{
-  "project": "RETRO-ARCADE-HUB",
-  "version": "4.1.0",
-  "updatedAt": "2026-09-07 18:29:05",
-  "status": "All 20 games live",
-  "totalIterations": 2000
-}
+{"version": "5.0.0", "games": 55, "build": "2026-09-07"}

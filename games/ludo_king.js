@@ -38,11 +38,13 @@ function ludoKing(canvas, ctx, onScore, onGameOver, onCoins) {
   }
   const DICE = { x: 105, y: 82 };
 
-  // ---- players ----
+    let mobile = false;
+
+// ---- players ----
   const players = { red: { tokens: [], captures: 0, homeCount: 0 }, blue: { tokens: [], captures: 0, homeCount: 0 } };
   for (const c of ['red', 'blue']) {
     for (let i = 0; i < 4; i++) {
-      const t = { color: c, state: 'base', cell: -1, done: false, x: 0, y: 0 };
+      const t = { color: c, idx: i, state: 'base', cell: -1, done: false, x: 0, y: 0 };
       t.x = baseSlot(c === 'red' ? RED_BASE : BLUE_BASE, i).x;
       t.y = baseSlot(c === 'red' ? RED_BASE : BLUE_BASE, i).y;
       players[c].tokens.push(t);

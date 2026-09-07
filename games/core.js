@@ -28,7 +28,42 @@ const GAME_ENGINE = {
   'hill-climb':     'hillClimb',
   'temple-run':     'templeRun',
   'candy-crush':    'candyCrush',
-  'snake-classic':  'snakeClassic'
+  'snake-classic':  'snakeClassic',
+  'tank-battle':          'tankBattle',
+  'airstrike':          'airStrike',
+  'fruit-merge':          'fruitMerge',
+  'bubble-shooter':          'bubbleShooter',
+  'piano-tiles':          'pianoTiles',
+  'duck-hunt':          'duckHunt',
+  'neon-dash':          'neonDash',
+  'color-switch':          'colorSwitch',
+  'neon-jumper':          'neonJumper',
+  'stack-drop':          'stackDrop',
+  'helix-drop':          'helixDrop',
+  'traffic-racer':          'trafficRacer',
+  'dino-run':          'dinoRun',
+  'sling-birds':          'slingBirds',
+  'pong':          'pong',
+  'table-tennis':          'tableTennis',
+  'bowling-strike':          'bowlingStrike',
+  'cricket-sixer':          'cricketSixer',
+  'hoop-dunk':          'hoopDunk',
+  'archery-master':          'archeryMaster',
+  'soccer-penalty':          'soccerPenalty',
+  'athletics-sprint':          'athleticsSprint',
+  'flow-free':          'flowFree',
+  'word-search':          'wordSearch',
+  'memory-match':          'memoryMatch',
+  'mine-sweeper':          'mineSweeper',
+  'sudoku':          'sudoku',
+  'mastermind':          'mastermind',
+  'simon-says':          'simonSays',
+  'tic-tac-toe':          'ticTacToe',
+  'connect-four':          'connectFour',
+  'checkers':          'checkers',
+  'slide-puzzle':          'slidePuzzle',
+  'nonogram':          'nonogram',
+  'lucky-spin':          'luckySpin',
 };
 
 // true when the game's engine file is loaded (window[fn] is a function)
@@ -69,6 +104,37 @@ function bindGameTouch(engine) {
     canvas.addEventListener('mousemove', move, { passive: false });
     canvas.addEventListener('mouseup', up, { passive: false });
     swipeBinding = { el: canvas, type: 'pointer', handlers: { down, move, up } };
+    return;
+  }
+  // generic swipe fallback → touches (snake, light-cycle, 2048, invaders, pac-runner, etc.)
+  if (typeof engine.swipe !== 'function' && typeof engine.onSwipe !== 'function' && typeof engine.pointerDown !== 'function') {
+    let swipeDirTimer = null;
+    const clearDir = () => { gameState.touches.left = gameState.touches.right = gameState.touches.up = gameState.touches.down = false; };
+    const start = (e) => {
+      const t = e.touches ? e.touches[0] : e;
+      canvasSwipe.startX = t.clientX; canvasSwipe.startY = t.clientY; canvasSwipe.started = true;
+      if (e.preventDefault) e.preventDefault();
+    };
+    const end = (e) => {
+      if (!canvasSwipe.started) return;
+      const t = e.changedTouches ? e.changedTouches[0] : e;
+      const dx = t.clientX - canvasSwipe.startX;
+      const dy = t.clientY - canvasSwipe.startY;
+      canvasSwipe.started = false;
+      if (Math.hypot(dx, dy) > 20) {
+        clearDir();
+        if (Math.abs(dx) > Math.abs(dy)) { gameState.touches.left = dx < 0; gameState.touches.right = dx > 0; }
+        else { gameState.touches.up = dy < 0; gameState.touches.down = dy > 0; }
+        clearTimeout(swipeDirTimer);
+        swipeDirTimer = setTimeout(clearDir, 300); // hold direction briefly so touch→key bridge fires
+      }
+      if (e.preventDefault) e.preventDefault();
+    };
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchend', end, { passive: false });
+    canvas.addEventListener('mousedown', start, { passive: false });
+    canvas.addEventListener('mouseup', end, { passive: false });
+    swipeBinding = { el: canvas, type: 'swipe', handlers: { start, end } };
     return;
   }
   // swipe style (temple-run / snake-classic)
@@ -139,33 +205,70 @@ function pressed(control, isDown, ev) {
 
 // ---- draw per-game custom control panel ----
 function drawControls(gameId) {
-  const layout = CONTROL_LAYOUT[gameId] || { joystick: false, btns: ['action'], label: 'TAP' };
+  const layout = CONTROL_LAYOUT[gameId] || { type: 'tap', hint: 'TAP' };
   const wrap = document.getElementById('touchControls');
   if (!wrap) return;
   let html = '';
   // control hint label
-  html += `<div class="ctrl-hint">${layout.label}</div>`;
-  if (layout.joystick) {
+  html += `<div class="ctrl-hint">${layout.hint || 'TAP'}</div>`;
+
+  const type = layout.type || 'tap';
+  // Canvas-based / no virtual buttons (game handles its own canvas touch)
+  if (type === 'canvas') {
+    html += `<div class="ctrl-spacer"></div>`;
+  }
+  // Swipe + rotate button (tetris: swipe move + tap rotate)
+  else if (type === 'swipe+drag') {
+    html += `<div class="ctrl-group"><button class="ctrl-btn" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-rotate"></i>ROTATE</button></div>`;
+  }
+  // Swipe-only
+  else if (type === 'swipe') {
+    html += `<div class="ctrl-spacer"></div>`;
+  }
+  // Virtual joystick (single)
+  else if (type === 'joystick') {
     html += `<div class="joystick" id="joystick"><div class="knob" id="jKnob"></div></div>`;
   }
-  const btnHtml = (layout.btns || []).map(b => {
-    const lb = CTRL_BTN_LABELS[b] || { icon: 'circle', text: b.toUpperCase() };
-    return `<button class="ctrl-btn${b === 'boost' ? ' ctrl-boost' : ''}${b === 'drift' ? ' ctrl-drift' : ''}" id="btn_${b}"
-      ontouchstart="pressed('${b}',true,event)" ontouchend="pressed('${b}',false,event)" ontouchcancel="pressed('${b}',false,event)"
-      onmousedown="pressed('${b}',true,event)" onmouseup="pressed('${b}',false,event)" onmouseleave="pressed('${b}',false,event)">
-      <i class="fa-solid fa-${lb.icon}"></i>${lb.text}</button>`;
-  }).join('');
-  if (btnHtml) html += `<div class="ctrl-group">${btnHtml}</div>`;
+  // Joystick + ACTION button (pixel-dungeon: move + attack)
+  else if (type === 'joystick2') {
+    html += `<div class="joystick" id="joystick"><div class="knob" id="jKnob"></div></div>`;
+    html += `<div class="ctrl-group"><button class="ctrl-btn" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-hand-fist"></i>ATTACK</button></div>`;
+  }
+  // Dual joystick (tank battle)
+  else if (type === 'dual') {
+    html += `<div class="joystick" id="joyL"><div class="knob" id="jKnobL"></div></div>`;
+    html += `<div class="joystick" id="joyR"><div class="knob" id="jKnobR"></div></div>`;
+  }
+  // Tilt display (accelerometer-based on device; buttons fallback)
+  else if (type === 'tilt') {
+    html += `<div class="ctrl-tilt"><i class="fa-solid fa-mobile-screen-button"></i><span>TILT</span></div>`;
+    html += `<div class="ctrl-group">
+      <button class="ctrl-btn ctrl-boost" id="btn_boost" ontouchstart="pressed('boost',true,event)" ontouchend="pressed('boost',false,event)" ontouchcancel="pressed('boost',false,event)" onmousedown="pressed('boost',true,event)" onmouseup="pressed('boost',false,event)" onmouseleave="pressed('boost',false,event)"><i class="fa-solid fa-gauge-high"></i>BOOST</button>
+      <button class="ctrl-btn ctrl-drift" id="btn_drift" ontouchstart="pressed('drift',true,event)" ontouchend="pressed('drift',false,event)" ontouchcancel="pressed('drift',false,event)" onmousedown="pressed('drift',true,event)" onmouseup="pressed('drift',false,event)" onmouseleave="pressed('drift',false,event)"><i class="fa-solid fa-wind"></i>DRIFT</button>
+    </div>`;
+  }
+  // Touch-split (hill-climb: left gas / right brake)
+  else if (type === 'touch') {
+    html += `<div class="ctrl-touch-left" id="touchLeft" ontouchstart="pressed('gas',true,event)" ontouchend="pressed('gas',false,event)" ontouchcancel="pressed('gas',false,event)" onmousedown="pressed('gas',true,event)" onmouseup="pressed('gas',false,event)" onmouseleave="pressed('gas',false,event)"><i class="fa-solid fa-gas-pump"></i><span>GAS</span></div>`;
+    html += `<div class="ctrl-touch-right" id="touchRight" ontouchstart="pressed('brake',true,event)" ontouchend="pressed('brake',false,event)" ontouchcancel="pressed('brake',false,event)" onmousedown="pressed('brake',true,event)" onmouseup="pressed('brake',false,event)" onmouseleave="pressed('brake',false,event)"><i class="fa-solid fa-brake-warning"></i><span>BRAKE</span></div>`;
+  }
+  // Tap-only: single big action button (or just hint)
+  else if (type === 'tap') {
+    html += `<div class="ctrl-tap-area" id="ctrlTap" onclick="pressed('action',true,event);setTimeout(()=>pressed('action',false,event),80)"><i class="fa-solid fa-hand-pointer"></i><span>TAP</span></div>`;
+  } else {
+    html += `<div class="ctrl-spacer"></div>`;
+  }
   wrap.innerHTML = html;
-  // wire joystick
-  if (layout.joystick) initJoystick();
+  // wire joystick(s)
+  if (type === 'joystick') initJoystick('joystick', 'jKnob', 'main');
+  else if (type === 'dual') { initJoystick('joyL', 'jKnobL', 'left'); initJoystick('joyR', 'jKnobR', 'right'); }
 }
 
-// ---- joystick (virtual) ----
+// ---- joystick (virtual) — multi-instance (main / left / right) ----
 let joystickActive = false;
-function initJoystick() {
-  const j = document.getElementById('joystick');
-  const knob = document.getElementById('jKnob');
+function initJoystick(elId, knobId, axis) {
+  const j = document.getElementById(elId);
+  const knob = document.getElementById(knobId);
   if (!j || !knob) return;
   let base = null;
   const setKnob = (dx, dy) => {
@@ -173,10 +276,20 @@ function initJoystick() {
     const len = Math.hypot(dx, dy) || 1;
     const k = Math.min(1, len / max);
     knob.style.transform = `translate(${dx * k}px, ${dy * k}px)`;
-    gameState.touches.left = dx < -12;
-    gameState.touches.right = dx > 12;
-    gameState.touches.up = dy < -12;
-    gameState.touches.down = dy > 12;
+    if (axis === 'left') {
+      gameState.touches.up = dy < -12;
+      gameState.touches.down = dy > 12;
+      gameState.touches.left = dx < -12;
+      gameState.touches.right = dx > 12;
+      gameState.touches.tankMove = { x: dx / max, y: dy / max };
+    } else if (axis === 'right') {
+      gameState.touches.tankAim = { x: dx / max, y: dy / max };
+    } else {
+      gameState.touches.left = dx < -12;
+      gameState.touches.right = dx > 12;
+      gameState.touches.up = dy < -12;
+      gameState.touches.down = dy > 12;
+    }
   };
   j.addEventListener('touchstart', (e) => {
     e.preventDefault(); const t = e.touches[0];
@@ -192,7 +305,9 @@ function initJoystick() {
   j.addEventListener('touchend', () => {
     base = null; joystickActive = false;
     knob.style.transform = 'translate(0,0)';
-    gameState.touches.left = gameState.touches.right = gameState.touches.up = gameState.touches.down = false;
+    if (axis === 'left') { gameState.touches.up = gameState.touches.down = gameState.touches.left = gameState.touches.right = false; gameState.touches.tankMove = null; }
+    else if (axis === 'right') { gameState.touches.tankAim = null; }
+    else { gameState.touches.left = gameState.touches.right = gameState.touches.up = gameState.touches.down = false; }
   }, { passive: false });
   // mouse fallback
   j.addEventListener('mousedown', (e) => {
@@ -204,8 +319,35 @@ function initJoystick() {
   });
   j.addEventListener('mouseup', () => {
     base = null; joystickActive = false; knob.style.transform = 'translate(0,0)';
-    gameState.touches.left = gameState.touches.right = gameState.touches.up = gameState.touches.down = false;
+    if (axis === 'left') { gameState.touches.up = gameState.touches.down = gameState.touches.left = gameState.touches.right = false; gameState.touches.tankMove = null; }
+    else if (axis === 'right') { gameState.touches.tankAim = null; }
+    else { gameState.touches.left = gameState.touches.right = gameState.touches.up = gameState.touches.down = false; }
   });
+}
+
+
+// ---- touch → keyboard bridge ----
+// Many engines read gameState.keys (keyboard codes). On mobile we translate
+// on-screen touches/swipes into key states so EVERY game gets touch controls.
+const TOUCH_KEY_MAP = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', action: 'Space', boost: 'ShiftRight' };
+let touchKeyTimer = null;
+let touchedKeys = {};
+function startTouchKeySync() {
+  stopTouchKeySync();
+  touchKeyTimer = setInterval(() => {
+    if (!gameState.running || gameState.over) return;
+    for (const [t, k] of Object.entries(TOUCH_KEY_MAP)) {
+      if (gameState.touches[t]) {
+        if (!touchedKeys[k]) { touchedKeys[k] = true; gameState.keys[k] = true; }
+      } else if (touchedKeys[k]) {
+        touchedKeys[k] = false; gameState.keys[k] = false;
+      }
+    }
+  }, 40);
+}
+function stopTouchKeySync() {
+  if (touchKeyTimer) { clearInterval(touchKeyTimer); touchKeyTimer = null; }
+  touchedKeys = {};
 }
 
 // ---- launch a game by id ----
@@ -242,8 +384,10 @@ function launchGame(id) {
 
   // draw per-game controls
   drawControls(id);
+  const tcWrap = document.getElementById('touchControls');
+  if (tcWrap) tcWrap.classList.add('show');
 
-  // bind canvas touch (carrom/temple/snake-classic)
+  // bind canvas touch (carrom/temple/snake-classic + all canvas-driven)
   bindGameTouch(currentGame);
 
   // hide game over overlay
@@ -257,6 +401,9 @@ function launchGame(id) {
   // wire keyboard
   window.addEventListener('keydown', keyDown);
   window.addEventListener('keyup', keyUp);
+
+  // touch → key sync for keyboard-driven engines
+  startTouchKeySync();
 }
 
 // ---- end game ----
@@ -312,6 +459,9 @@ function exitToHub() {
   gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
   window.removeEventListener('keydown', keyDown);
   window.removeEventListener('keyup', keyUp);
+  stopTouchKeySync();
+  const tcWrap = document.getElementById('touchControls');
+  if (tcWrap) tcWrap.classList.remove('show');
   go('arcade');
   renderArcadeGrid('');
 }

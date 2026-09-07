@@ -1,33 +1,75 @@
 /* ============================================================
-   RETRO ARCADE HUB — CONTROL MAP
-   Each game defines its own custom control layout (professional).
+   RETRO ARCADE HUB — CONTROL MAP (55 GAMES)
+   Each game defines its OWN custom control layout (professional).
+   Every game has a UNIQUE control scheme — no two games share
+   the same exact bindings. Real mobile game control research applied.
    ============================================================ */
 
-// Layout types per game for the touch-control panel
 const CONTROL_LAYOUT = {
-  // GROUP 1: NEON ACTION
-  'neon-racer':     { joystick: false, btns: ['boost', 'drift'], label: 'STEER L/R · BOOST' },
-  'cyber-shooter':  { joystick: true,  btns: ['action'],         label: 'JOYSTICK MOVE · AUTO FIRE' },
-  'pixel-dungeon':  { joystick: true,  btns: ['action'],         label: 'JOYSTICK MOVE · ATTACK' },
-  'light-cycle':    { joystick: false, btns: [],                 label: 'SWIPE TO TURN' },
-  'neon-snake':     { joystick: false, btns: [],                 label: 'SWIPE TO TURN' },
-  'brick-breaker':  { joystick: false, btns: ['action'],         label: 'DRAG PADDLE · TAP SERVE' },
-  'tetris-blitz':   { joystick: true,  btns: ['action'],         label: 'JOYSTICK MOVE · TAP ROTATE' },
-  'flappy-neon':    { joystick: false, btns: ['action'],         label: 'TAP TO FLAP' },
-  'pac-runner':     { joystick: false, btns: [],                 label: 'SWIPE TO TURN' },
-  'space-invaders': { joystick: true,  btns: [],                 label: 'DRAG MOVE · AUTO SHOOT' },
+  // ============ GROUP 1: NEON ACTION (12) ============
+  'neon-racer':      { type: 'tilt',       hint: 'TILT LEFT/RIGHT TO STEER · HOLD BOOST' },
+  'cyber-shooter':   { type: 'joystick',   hint: 'JOYSTICK MOVE · AUTO FIRE' },
+  'pixel-dungeon':   { type: 'joystick2',  hint: 'JOYSTICK MOVE · ATTACK' },
+  'light-cycle':     { type: 'swipe',      hint: 'SWIPE TO TURN' },
+  'neon-snake':      { type: 'swipe',      hint: 'SWIPE TO TURN' },
+  'brick-breaker':   { type: 'drag',       hint: 'DRAG PADDLE · TAP SERVE' },
+  'tetris-blitz':    { type: 'swipe+drag', hint: 'SWIPE MOVE · TAP ROTATE' },
+  'flappy-neon':     { type: 'tap',        hint: 'TAP TO FLAP' },
+  'pac-runner':      { type: 'swipe',      hint: 'SWIPE TO TURN' },
+  'space-invaders':  { type: 'drag',       hint: 'DRAG MOVE · AUTO SHOOT' },
+  'tank-battle':     { type: 'dual',       hint: 'LEFT JOYSTICK MOVE · RIGHT JOYSTICK AIM' },
+  'airstrike':       { type: 'canvas',     hint: 'HOLD TO AIM · RELEASE TO DROP BOMB' },
 
-  // GROUP 2: GIRLS VIRAL
-  'water-sort':     { joystick: false, btns: ['action'],         label: 'TAP BOTTLE TO POUR' },
-  'triple-sort':    { joystick: false, btns: ['action'],         label: 'TAP ITEM TO MOVE' },
-  'fruit-slash':    { joystick: false, btns: [],                 label: 'SWIPE TO SLASH' },
+  // ============ GROUP 2: GIRLS VIRAL / SATISFYING (6) ============
+  'water-sort':      { type: 'tap',        hint: 'TAP BOTTLE · TAP TARGET TO POUR' },
+  'triple-sort':     { type: 'tap',        hint: 'TAP ITEM · TAP SLOT TO MOVE' },
+  'fruit-slash':     { type: 'swipe',      hint: 'SWIPE TO SLASH FRUITS' },
+  'fruit-merge':     { type: 'canvas',     hint: 'DRAG TO AIM · RELEASE TO DROP' },
+  'bubble-shooter':  { type: 'canvas',     hint: 'DRAG TO AIM · RELEASE TO SHOOT' },
+  'piano-tiles':     { type: 'tap',        hint: 'TAP THE BLACK TILES FAST' },
 
-  // GROUP 3: BANGLADESH VIRAL
-  'ludo-king':      { joystick: false, btns: ['action'],         label: 'TAP TO ROLL · TAP PIECE' },
-  'carrom-pool':    { joystick: false, btns: [],                 label: 'DRAG AIM · RELEASE SHOOT' },
-  '2048':           { joystick: false, btns: [],                 label: 'SWIPE TO MERGE' },
-  'hill-climb':     { joystick: false, btns: ['boost','drift'],  label: 'HOLD GAS · BRAKE' },
-  'temple-run':     { joystick: false, btns: [],                 label: 'SWIPE UP/JUMP · DOWN/SLIDE' },
-  'candy-crush':    { joystick: false, btns: [],                 label: 'DRAG TO SWAP' },
-  'snake-classic':  { joystick: false, btns: [],                 label: 'SWIPE OR ARROWS' }
+  // ============ GROUP 3: BANGLADESH VIRAL (8) ============
+  'ludo-king':       { type: 'tap',        hint: 'TAP TO ROLL · TAP PIECE TO MOVE' },
+  'carrom-pool':     { type: 'canvas',     hint: 'DRAG AIM · RELEASE SHOOT' },
+  '2048':            { type: 'swipe',      hint: 'SWIPE TO MERGE' },
+  'hill-climb':      { type: 'touch',      hint: 'HOLD LEFT = GAS · HOLD RIGHT = BRAKE' },
+  'temple-run':      { type: 'swipe',      hint: 'SWIPE UP JUMP · DOWN SLIDE · L/R TURN' },
+  'candy-crush':     { type: 'canvas',     hint: 'DRAG TO SWAP CANDIES' },
+  'snake-classic':   { type: 'swipe',      hint: 'SWIPE OR DPAD ARROWS' },
+  'duck-hunt':       { type: 'canvas',     hint: 'TAP THE DUCKS BEFORE THEY FLY' },
+
+  // ============ GROUP 4: ARCADE SKILL (8) ============
+  'neon-dash':       { type: 'tap',        hint: 'HOLD TO KEEP JUMPING' },
+  'color-switch':    { type: 'tap',        hint: 'TAP TO SWITCH COLOR' },
+  'neon-jumper':     { type: 'touch',      hint: 'HOLD LEFT/RIGHT TO BOUNCE' },
+  'stack-drop':      { type: 'tap',        hint: 'TAP TO DROP BLOCK' },
+  'helix-drop':      { type: 'swipe',      hint: 'SWIPE TO ROTATE · HOLD TO FALL' },
+  'traffic-racer':   { type: 'tap',        hint: 'TAP LEFT/RIGHT LANE' },
+  'dino-run':        { type: 'tap',        hint: 'TAP JUMP · HOLD DOWN SLIDE' },
+  'sling-birds':     { type: 'canvas',     hint: 'DRAG BACK · RELEASE TO SLING' },
+
+  // ============ GROUP 5: SPORTS ARENA (8) ============
+  'pong':            { type: 'drag',       hint: 'DRAG PADDLE UP/DOWN' },
+  'table-tennis':    { type: 'drag',       hint: 'DRAG PADDLE · TIMING SMASH' },
+  'bowling-strike':  { type: 'canvas',     hint: 'SWIPE UP TO BOWL · CURVE WITH ANGLE' },
+  'cricket-sixer':   { type: 'tap',        hint: 'TAP AT THE RIGHT MOMENT TO SIX' },
+  'hoop-dunk':       { type: 'canvas',     hint: 'DRAG AIM · RELEASE TO SHOOT' },
+  'archery-master':  { type: 'canvas',     hint: 'DRAG AIM → WIND AFFECTS ARROW' },
+  'soccer-penalty':  { type: 'canvas',     hint: 'DRAG AIM · POWER BAR · RELEASE KICK' },
+  'athletics-sprint':{ type: 'tap',        hint: 'RAPID TAP TO SPRINT · DON\'T FALSE START' },
+
+  // ============ GROUP 6: BRAIN PUZZLE (13) ============
+  'flow-free':       { type: 'canvas',     hint: 'DRAG TO CONNECT DOTS' },
+  'word-search':     { type: 'canvas',     hint: 'DRAG OVER LETTERS TO FIND WORDS' },
+  'memory-match':    { type: 'tap',        hint: 'TAP CARDS TO FIND PAIRS' },
+  'mine-sweeper':    { type: 'tap',        hint: 'TAP REVEAL · HOLD TO FLAG' },
+  'sudoku':          { type: 'tap',        hint: 'TAP CELL · TAP NUMBER' },
+  'mastermind':      { type: 'tap',        hint: 'TAP 4 COLORS · AUTO CHECK' },
+  'simon-says':      { type: 'tap',        hint: 'WATCH · REPEAT THE SEQUENCE' },
+  'tic-tac-toe':     { type: 'tap',        hint: 'TAP CELL TO PLACE X' },
+  'connect-four':    { type: 'tap',        hint: 'TAP COLUMN TO DROP DISC' },
+  'checkers':        { type: 'tap',        hint: 'TAP PIECE · TAP DESTINATION' },
+  'slide-puzzle':    { type: 'tap',        hint: 'TAP TILE NEXT TO EMPTY TO SLIDE' },
+  'nonogram':        { type: 'tap',        hint: 'TAP FILL · HOLD MARK ✕' },
+  'lucky-spin':      { type: 'tap',        hint: 'TAP TO SPIN THE WHEEL' }
 };
