@@ -518,6 +518,40 @@ function showTutorial(text) {
 function isTouchDevice() { return ('ontouchstart' in window) || navigator.maxTouchPoints > 0; }
 function showTouchControls(on) { document.getElementById('touchControls').classList.toggle('show', on); }
 function pressed(key, val, e) { if (e) e.preventDefault(); game.touches[key] = val; }
+
+/* ==================== VIRTUAL JOYSTICK ==================== */
+let joyActive = false, joyCx = 0, joyCy = 0, joyR = 0;
+const JOY_MAX = 40;
+function initJoystick() {
+  const joy = document.getElementById('joystick');
+  const knob = document.getElementById('jKnob');
+  if (!joy || !knob) return;
+  const clear = () => {
+    game.touches.left = game.touches.right = game.touches.up = game.touches.down = false;
+    knob.style.transform = 'translate(-50%,-50%)';
+  };
+  const apply = (e) => {
+    const r = joy.getBoundingClientRect();
+    joyCx = r.left + r.width / 2; joyCy = r.top + r.height / 2; joyR = r.width / 2;
+    const t = e.touches ? e.touches[0] : e;
+    let dx = t.clientX - joyCx, dy = t.clientY - joyCy;
+    const dist = Math.hypot(dx, dy);
+    if (dist > joyR) { dx = dx / dist * joyR; dy = dy / dist * joyR; }
+    knob.style.transform = 'translate(' + (dx - 50) + '%,' + (dy - 50) + '%)';
+    const th = 8, mag = Math.hypot(dx, dy);
+    game.touches.left = dx < -th && mag > th;
+    game.touches.right = dx > th && mag > th;
+    game.touches.up = dy < -th && mag > th;
+    game.touches.down = dy > th && mag > th;
+  };
+  joy.addEventListener('touchstart', (e) => { joyActive = true; e.preventDefault(); apply(e); }, { passive: false });
+  joy.addEventListener('touchmove', (e) => { if (joyActive) { e.preventDefault(); apply(e); } }, { passive: false });
+  joy.addEventListener('touchend', (e) => { e.preventDefault(); joyActive = false; clear(); }, { passive: false });
+  joy.addEventListener('touchcancel', (e) => { joyActive = false; clear(); }, { passive: false });
+  joy.addEventListener('mousedown', (e) => { joyActive = true; e.preventDefault(); apply(e); });
+  document.addEventListener('mousemove', (e) => { if (joyActive) apply(e); });
+  document.addEventListener('mouseup', () => { if (joyActive) { joyActive = false; clear(); } });
+}
 function launchFromHome(id) { launchGame(id); }
 function exitToHub() {
   stopLoop();
@@ -533,6 +567,9 @@ function togglePause() {
 }
 function restartGame() {
   stopLoop();
+  const ov = document.getElementById('gameOverOverlay');
+  if (ov) ov.classList.remove('show');
+  const tt = document.getElementById('tutTip'); if (tt) tt.remove();
   launchGame(game.id);
 }
 function shareGame() {
@@ -1385,6 +1422,7 @@ document.addEventListener('keyup', (e) => {
 function init() {
   openAuth();
   navInit();
+  initJoystick();
   // run engine init for all games lazily
   Object.keys(ENGINES).forEach(k => { if (ENGINES[k].init) ENGINES[k].init(game); });
   // hide boot, show UI
