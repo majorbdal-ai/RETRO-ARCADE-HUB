@@ -301,36 +301,14 @@ body.game-active main{display:none}
     </div>
   </section>
 
-  <!-- 03 GAME PLAY SCREEN -->
+  <!-- GAMES (coming soon — pick from design phase) -->
   <section id="page-game" class="page">
-    <div class="hud">
-      <button class="hud-btn" onclick="exitToHub()" title="Back"><i class="fa-solid fa-arrow-left"></i></button>
-      <div class="hud-title" id="hudGameTitle">GAME</div>
-      <div class="hud-chip" id="hudScore">0</div>
-      <div class="hud-chip" style="color:var(--pink);border-color:rgba(255,16,240,.35);background:rgba(255,16,240,.08)"><i class="fa-solid fa-coins"></i> <span id="hudCoins">0</span></div>
-      <button class="hud-btn" onclick="togglePause()" title="Pause"><i class="fa-solid fa-pause"></i></button>
-    </div>
-    <div id="gameCanvasWrap">
-      <canvas id="gameCanvas" width="800" height="450"></canvas>
-      <div id="gameOverOverlay">
-        <h2 style="font-family:'Press Start 2P',monospace;color:var(--pink);font-size:22px;animation:pulse 1s infinite">GAME OVER</h2>
-        <div style="text-align:center;color:#fff;font-size:15px">SCORE: <b id="overScore" style="color:var(--cyan);font-family:'Orbitron',sans-serif">0</b></div>
-        <div style="text-align:center;color:var(--yellow);font-size:13px">+ <span id="overCoins">0</span> COINS</div>
-        <div style="text-align:center;color:var(--sub);font-size:12px">BEST: <span id="overBest" style="color:#fff">0</span> | LEVEL: <span id="overLevel" style="color:#fff">1</span></div>
-        <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;justify-content:center">
-          <button class="btn btn-primary" onclick="restartGame()" style="padding:11px 18px;font-size:13px"><i class="fa-solid fa-rotate-right"></i> PLAY AGAIN</button>
-          <button class="btn btn-ghost" onclick="exitToHub()" style="padding:11px 18px;font-size:13px"><i class="fa-solid fa-shop"></i> LOBBY</button>
-          <button class="btn btn-pink" onclick="shareGame()" style="padding:11px 18px;font-size:13px"><i class="fa-solid fa-share-nodes"></i> SHARE</button>
-        </div>
-      </div>
-    </div>
-    <div id="touchControls">
-      <div class="joystick" id="joystick"><div class="knob" id="jKnob"></div></div>
-      <div class="ctrl-group">
-        <button class="ctrl-btn ctrl-boost" id="btnBoost" ontouchstart="pressed('boost',true,event)" ontouchend="pressed('boost',false,event)" ontouchcancel="pressed('boost',false,event)" onmousedown="pressed('boost',true,event)" onmouseup="pressed('boost',false,event)" onmouseleave="pressed('boost',false,event)"><i class="fa-solid fa-gauge-high"></i>BOOST</button>
-        <button class="ctrl-btn" id="btnAction" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-bolt"></i>ACTION</button>
-        <button class="ctrl-btn ctrl-drift" id="btnDrift" ontouchstart="pressed('drift',true,event)" ontouchend="pressed('drift',false,event)" ontouchcancel="pressed('drift',false,event)" onmousedown="pressed('drift',true,event)" onmouseup="pressed('drift',false,event)" onmouseleave="pressed('drift',false,event)"><i class="fa-solid fa-wind"></i>DRIFT</button>
-      </div>
+    <div class="scroll-area" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;padding:30px 20px">
+      <div style="font-size:56px;margin-bottom:16px;animation:pulse 1.6s infinite">🕹️</div>
+      <h2 style="font-family:'Press Start 2P',monospace;font-size:16px;color:var(--cyan);text-shadow:0 0 14px rgba(0,255,255,.6);margin-bottom:12px">GAMES COMING SOON</h2>
+      <p style="font-size:13px;color:var(--sub);max-width:280px;line-height:1.6;margin-bottom:22px">We're hand-picking the best arcade legends. Select your favourites and they'll drop right here.</p>
+      <button class="btn btn-primary" onclick="go('arcade')" style="padding:13px 26px;font-size:14px"><i class="fa-solid fa-arcade"></i> BROWSE ARCADE</button>
+      <div style="margin-top:30px;font-size:11px;color:var(--sub);letter-spacing:2px">WHO IS THE KING? 👑</div>
     </div>
   </section>
 
