@@ -109,23 +109,33 @@ async function syncScore(gameId, score) {
   try { await api('save_score', { username: auth.user, game: gameId, score }); refreshLeaderboard(); } catch (e) {}
 }
 
-/* ==================== 15 GAMES ==================== */
+/* ==================== 20 GAMES ==================== */
 const GAMES = [
-  { id: 'neon-racer',  name: 'NEON RACER',   icon: '🏎️', color: '#00FFFF', desc: 'Dodge cars, grab stars, nitro 2x', featured: true,  type: 'racer',  controls: 'Left/Right steer · B/Shift Nitro' },
-  { id: 'cyber-shooter', name: 'CYBER SHOOTER', icon: '🚀', color: '#FF10F0', desc: 'Blast alien armadas, combo kills', featured: true, type: 'shooter', controls: 'Left/Right move · Space shoot' },
-  { id: 'pixel-dungeon', name: 'PIXEL DUNGEON', icon: '🗡️', color: '#FFE600', desc: 'Descend, dodge traps, grab loot', featured: true, type: 'dungeon', controls: 'Left/Right move · Space jump' },
-  { id: 'light-cycle', name: 'LIGHT CYCLE', icon: '🏍️', color: '#39FF88', desc: 'Tron-style grid duel — don\'t crash', featured: true, type: 'cycle', controls: 'Arrows turn · avoid walls' },
-  { id: 'neon-snake', name: 'NEON SNAKE', icon: '🐍', color: '#22D3EE', desc: 'Glowing classic, speed up each food', featured: false, type: 'snake', controls: 'Arrows turn' },
-  { id: 'brick-breaker', name: 'BRICK BREAKER', icon: '🧱', color: '#F59E0B', desc: 'Paddle-ball, clear boards, turbo', featured: false, type: 'breaker', controls: 'Left/Right · Space launch' },
-  { id: 'cyber-pong', name: 'CYBER PONG', icon: '🏓', color: '#10B981', desc: 'Speed-increasing rally vs AI', featured: false, type: 'pong', controls: 'Up/Down move paddle' },
-  { id: 'neon-flappy', name: 'NEON FLAPPY', icon: '🐦', color: '#D946EF', desc: 'Flap a neon ship through columns', featured: false, type: 'flappy', controls: 'Space/tap to flap' },
-  { id: 'cyber-racer', name: 'CYBER RACER', icon: '🛞', color: '#EC4899', desc: 'Highway dodge, coins, nitro flames', featured: false, type: 'racer2', controls: 'Left/Right · B Nitro' },
-  { id: 'galaxy-invaders', name: 'GALAXY INVADERS', icon: '👾', color: '#A855F7', desc: 'Classic invaders, waves, shields', featured: false, type: 'invaders', controls: 'Left/Right · Space shoot' },
-  { id: 'volley-clash', name: 'VOLLEY CLASH', icon: '🏐', color: '#F97316', desc: '2-player volleyball rally', featured: false, type: 'volley', controls: 'A/D or Left/Right' },
-  { id: 'astro-hop', name: 'ASTRO HOP', icon: '👨‍🚀', color: '#38BDF8', desc: 'Platform hopper with gravity bounce', featured: false, type: 'hopper', controls: 'Left/Right · Space jump' },
-  { id: 'laser-maze', name: 'LASER MAZE', icon: '🔦', color: '#FDE047', desc: 'Slide through moving laser walls', featured: false, type: 'maze', controls: 'Arrows move' },
-  { id: 'coin-catch', name: 'COIN CATCH', icon: '🪙', color: '#FBBF24', desc: 'Catch coins, avoid bombs', featured: false, type: 'catch', controls: 'Left/Right move' },
-  { id: 'space-miner', name: 'SPACE MINER', icon: '⛏️', color: '#94A3B8', desc: 'Mine asteroids, avoid hazards', featured: false, type: 'miner', controls: 'Arrows move · Space dig' }
+  // GROUP 1: NEON ACTION (1-10)
+  { id: 'neon-racer',    name: 'NEON RACER',    icon: '🏎️', color: '#00FFFF', desc: 'Dodge traffic, collect coins, nitro boost', featured: true,  type: 'racer',   controls: 'Left/Right steer · Boost' },
+  { id: 'cyber-shooter', name: 'CYBER SHOOTER', icon: '🚀', color: '#FF10F0', desc: 'Blast alien armadas, combo kills, 3 lives', featured: true, type: 'shooter', controls: 'Drag to move · Auto fire' },
+  { id: 'pixel-dungeon', name: 'PIXEL DUNGEON', icon: '🗡️', color: '#FFE600', desc: 'Descend, dodge traps, find key, open chest', featured: true, type: 'dungeon', controls: 'Joystick move · Attack' },
+  { id: 'light-cycle',   name: 'LIGHT CYCLE',   icon: '🏍️', color: '#39FF88', desc: 'Tron-style grid duel — don\'t hit walls', featured: true, type: 'cycle',   controls: 'Swipe to turn' },
+  { id: 'neon-snake',    name: 'NEON SNAKE',    icon: '🐍', color: '#22D3EE', desc: 'Glowing classic, speed up each food', featured: false, type: 'snake',   controls: 'Swipe to turn' },
+  { id: 'brick-breaker', name: 'BRICK BREAKER', icon: '🧱', color: '#F59E0B', desc: 'Paddle-ball, clear all bricks, power-ups', featured: false, type: 'breaker', controls: 'Drag paddle · Tap launch' },
+  { id: 'tetris-blitz',  name: 'TETRIS BLITZ',  icon: '🧩', color: '#A855F7', desc: 'Fast Tetris, line clear, hold piece', featured: false, type: 'tetris',  controls: 'Tap rotate · Swipe move' },
+  { id: 'flappy-neon',   name: 'FLAPPY NEON',   icon: '🐦', color: '#D946EF', desc: 'Flap through neon pipes, avoid crash', featured: false, type: 'flappy',  controls: 'Tap to flap' },
+  { id: 'pac-runner',    name: 'PAC-RUNNER',    icon: '🟡', color: '#FBBF24', desc: 'Eat coins, avoid ghosts, power pellets', featured: false, type: 'pac',     controls: 'Swipe to turn' },
+  { id: 'space-invaders',name: 'SPACE INVADERS', icon: '👾', color: '#F97316', desc: 'Clear alien waves, auto-shoot, shields', featured: false, type: 'invaders', controls: 'Drag move · Auto shoot' },
+
+  // GROUP 2: GIRLS VIRAL - SATISFYING (11-13)
+  { id: 'water-sort',    name: 'WATER SORT',    icon: '🧪', color: '#38BDF8', desc: 'Color match puzzle, pour bottles', featured: false, type: 'watersort', controls: 'Tap bottle to pour' },
+  { id: 'triple-sort',   name: 'TRIPLE SORT',   icon: '📦', color: '#22D3EE', desc: 'Goods puzzle, match 3 on shelf', featured: false, type: 'triplesort', controls: 'Tap item to move' },
+  { id: 'fruit-slash',   name: 'FRUIT SLASH',   icon: '🍎', color: '#F87171', desc: 'Fruit Ninja style, swipe to slash', featured: false, type: 'fruitslash', controls: 'Swipe to slash' },
+
+  // GROUP 3: BANGLADESH OLD VIRAL (14-20)
+  { id: 'ludo-king',     name: 'LUDO KING',     icon: '🎲', color: '#F59E0B', desc: '2-4 player, pass & play, vs bot', featured: false, type: 'ludo',    controls: 'Tap to roll · Tap piece' },
+  { id: 'carrom-pool',   name: 'CARROM POOL',   icon: '🎯', color: '#EAB308', desc: 'Striker drag & shoot, queen cover', featured: false, type: 'carrom',  controls: 'Drag aim · Release shoot' },
+  { id: '2048',          name: '2048',          icon: '🔢', color: '#84CC16', desc: 'Swipe merge, reach 2048', featured: false, type: '2048',    controls: 'Swipe to merge' },
+  { id: 'hill-climb',    name: 'HILL CLIMB',    icon: '🚙', color: '#F97316', desc: 'Gas/brake, collect fuel, upgrade shop', featured: false, type: 'hillclimb', controls: 'Hold Gas/Brake' },
+  { id: 'temple-run',    name: 'TEMPLE RUN',    icon: '🏃', color: '#EF4444', desc: 'Endless runner, swipe jump/slide/turn', featured: false, type: 'templerun', controls: 'Swipe Up/Down/L/R' },
+  { id: 'candy-crush',   name: 'CANDY CRUSH',   icon: '🍬', color: '#EC4899', desc: '3-match blast, line/color bombs', featured: false, type: 'candy',   controls: 'Swap adjacent' },
+  { id: 'snake-classic', name: 'SNAKE CLASSIC', icon: '🐍', color: '#22C55E', desc: 'Nokia 1100 style, keypad + swipe', featured: false, type: 'snakeclassic', controls: 'Arrows or Swipe' }
 ];
 
 /* ==================== NAVIGATION ==================== */
@@ -230,24 +240,27 @@ function renderHome() {
   document.getElementById('featuredGrid').innerHTML = feat.map((g, i) => `
     <div class="featured-card" style="background:linear-gradient(145deg,${g.color}33,#0A0E16 65%)">
       <div class="f-ico" style="color:${g.color}">${g.icon}</div>
-      <span class="badge" style="position:absolute;top:10px;right:10px">COMING SOON</span>
+      <span class="badge" style="position:absolute;top:10px;right:10px">${engineReady(g.id) ? 'PLAY' : 'SOON'}</span>
       <h3>${g.name}</h3>
       <p style="font-size:10px;color:var(--sub)">${g.desc}</p>
-      <button class="btn btn-primary play-btn" style="padding:7px 14px;font-size:11px" onclick="comingSoon('${g.name}')">COMING SOON</button>
+      <button class="btn btn-primary play-btn" style="padding:7px 14px;font-size:11px" onclick="playGame('${g.id}')">${engineReady(g.id) ? '▶ PLAY NOW' : 'COMING SOON'}</button>
     </div>`).join('');
   renderGameGrid('');
 }
 function renderGameGrid(filter = '') {
   const q = (filter || '').toLowerCase();
   const list = GAMES.filter(g => !q || g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q));
-  const html = list.map(g => `
+  const html = list.map(g => {
+    const ready = !!engineReady(g.id);
+    return `
     <div class="card game-card" style="cursor:pointer;position:relative">
-      <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">SOON</span>
+      <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${ready ? 'OPEN' : 'SOON'}</span>
       <div class="thumb" style="border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${g.icon}</div>
       <h4>${g.name}</h4>
       <p>${g.desc}</p>
-      <button class="btn btn-ghost" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="comingSoon('${g.name}')">COMING SOON &#128274;</button>
-    </div>`).join('');
+      <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
+    </div>`;
+  }).join('');
   const g1 = document.getElementById('gameGrid');
   const g2 = document.getElementById('arcadeGrid');
   if (g1) g1.innerHTML = html;

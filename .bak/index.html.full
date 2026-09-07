@@ -9,7 +9,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&family=Space+Grotesk:wght@400;500;700&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 /* ==================== PART 1: HD DESIGN SYSTEM ==================== */
@@ -301,7 +301,7 @@ body.game-active main{display:none}
     </div>
   </section>
 
-  <!-- GAME PLAY SCREEN -->
+  <!-- 03 GAME PLAY SCREEN -->
   <section id="page-game" class="page">
     <div class="hud">
       <button class="hud-btn" onclick="exitToHub()" title="Back"><i class="fa-solid fa-arrow-left"></i></button>
@@ -473,28 +473,6 @@ body.game-active main{display:none}
   </div>
 </div>
 
-<script src="games/controls.js"></script>
-<script src="games/neon_racer.js"></script>
-<script src="games/cyber_shooter.js"></script>
-<script src="games/neon_snake.js"></script>
-<script src="games/brick_breaker.js"></script>
-<script src="games/candy_crush.js"></script>
-<script src="games/flappy_neon.js"></script>
-<script src="games/fruit_slash.js"></script>
-<script src="games/game2048.js"></script>
-<script src="games/hill_climb.js"></script>
-<script src="games/light_cycle.js"></script>
-<script src="games/ludo_king.js"></script>
-<script src="games/pac_runner.js"></script>
-<script src="games/pixel_dungeon.js"></script>
-<script src="games/space_invaders.js"></script>
-<script src="games/tetris_blitz.js"></script>
-<script src="games/triple_sort.js"></script>
-<script src="games/water_sort.js"></script>
-<script src="games/carrom_pool.js"></script>
-<script src="games/temple_run.js"></script>
-<script src="games/snake_classic.js"></script>
-<script src="games/core.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
