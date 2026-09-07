@@ -134,6 +134,11 @@ function go(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('page-' + page);
   if (el) el.classList.add('active');
+  if (page === 'game') {
+    document.body.classList.add('game-active');
+  } else {
+    document.body.classList.remove('game-active');
+  }
   if (['home','arcade','shop','board','profile'].includes(page)) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
   }
@@ -493,12 +498,14 @@ function launchGame(id) {
 function setGameCanvasSize() {
   const wrap = document.getElementById('gameCanvasWrap');
   const c = document.getElementById('gameCanvas');
+  if (!wrap || !c) return;
   const w = wrap.clientWidth, h = wrap.clientHeight;
+  if (!w || !h) return;
   const scale = Math.min(w / game.canvasW, h / game.canvasH);
   c.style.width = (game.canvasW * scale) + 'px';
   c.style.height = (game.canvasH * scale) + 'px';
 }
-window.addEventListener('resize', () => { if (game.running) setGameCanvasSize(); });
+window.addEventListener('resize', () => { if (game && game.running) setTimeout(setGameCanvasSize, 50); });
 function showTutorial(text) {
   const t = document.createElement('div');
   t.id = 'tutTip';
