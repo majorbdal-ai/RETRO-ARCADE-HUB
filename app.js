@@ -4,6 +4,9 @@
    ============================================================ */
 'use strict';
 
+/* ==================== API LAYER (InfinityFree PHP backend) ==================== */
+const API_BASE = 'api/index.php'; // সাইটের api/ ফোল্ডারে — পাবলিক
+
 /* ==================== STORAGE ==================== */
 const K = {
   profile: 'rah_profile',
@@ -42,6 +45,68 @@ function saveState() {
   store.set(K.daily, state.daily);
   store.set(K.stats, state.stats);
   store.set(K.best, state.best);
+}
+
+/* ==================== API LAYER (InfinityFree PHP backend) ==================== */
+const auth = {
+  token: store.get('rah_auth_token', null),
+  user: store.get('rah_auth_user', null)
+};
+async function api(action, data = {}) {
+  try {
+    const body = new URLSearchParams({ action, ...data });
+    const res = await fetch(API_BASE + '?action=' + action, {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body
+    });
+    return await res.json();
+  } catch (e) { return { ok: false, error: 'net' }; }
+}
+function setAuthUser(u) { auth.user = u; store.set('rah_auth_user', u); }
+let authMode = 'login';
+function openAuthModal(mode = 'login') {
+  authMode = mode;
+  document.getElementById('authTitle').innerText = mode === 'login' ? '🎮 LOGIN' : '🆕 SIGN UP';
+  document.getElementById('authBtn').innerText = mode === 'login' ? 'LOGIN' : 'SIGN UP';
+  document.getElementById('authToggle').innerText = mode === 'login' ? 'SIGN UP' : 'LOGIN';
+  document.getElementById('authMsg').innerText = '';
+  document.getElementById('authModal').classList.add('show');
+}
+function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); }
+function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'signup' : 'login'); }
+async function authSubmit() {
+  const u = document.getElementById('authUser').value.trim();
+  const p = document.getElementById('authPass').value;
+  const msg = document.getElementById('authMsg');
+  if (u.length < 3) { msg.innerText = '⚠ Username at least 3 characters'; return; }
+  if (p.length < 4) { msg.innerText = '⚠ Password at least 4 characters'; return; }
+  msg.innerText = '⏳ Please wait...';
+  const r = await api(authMode, { username: u, password: p });
+  if (r.ok) {
+    setAuthUser(r.username || u);
+    state.profile.username = r.username || u;
+    saveState();
+    msg.style.color = 'var(--green)'; msg.innerText = '✅ Welcome, ' + (r.username || u) + '!';
+    setTimeout(() => { closeAuthModal(); renderProfile(); refreshLeaderboard(); }, 900);
+  } else if (r.error === 'taken') { msg.style.color = 'var(--red)'; msg.innerText = '❌ Username already taken — try another'; }
+  else if (r.error === 'wrong') { msg.style.color = 'var(--red)'; msg.innerText = '❌ Wrong username or password'; }
+  else { msg.style.color = 'var(--red)'; msg.innerText = '⚠ Server offline — playing locally (guest mode)'; closeAuthModal(); }
+}
+async function refreshLeaderboard() {
+  const r = await api('leaderboard');
+  if (!r.ok || !r.rows) return;
+  const me = auth.user || state.profile.username;
+  const list = document.getElementById('boardList');
+  if (list) list.innerHTML = r.rows.slice(0, 12).map((b, i) => `
+    <div class="card rank-row ${b.username === me ? 'me' : ''}" style="margin-bottom:8px">
+      <div class="rank-no">${i < 3 ? '<span class="crown">👑</span>' : '#' + (i + 1)}</div>
+      <div class="rank-avatar">${(b.username[0] || '?').toUpperCase()}</div>
+      <div class="rank-name">${b.username}${b.username === me ? ' <span style="color:var(--cyan);font-size:10px">(YOU)</span>' : ''}</div>
+      <div class="rank-score">${Number(b.score).toLocaleString()}</div>
+    </div>`).join('');
+}
+async function syncScore(gameId, score) {
+  if (!auth.user) return;
+  try { await api('save_score', { username: auth.user, game: gameId, score }); refreshLeaderboard(); } catch (e) {}
 }
 
 /* ==================== 15 GAMES ==================== */
@@ -521,6 +586,7 @@ function endGame(win) {
   document.getElementById('overBest').innerText = Math.max(prevBest, game.score).toLocaleString();
   document.getElementById('overLevel').innerText = game.level;
   document.getElementById('gameOverOverlay').classList.add('show');
+  syncScore(game.id, game.score); // সার্ভারে সেভ (লগইন থাকলে)
 }
 function winGame() { endGame(true); }
 function loseGame() { endGame(false); }

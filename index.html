@@ -387,7 +387,10 @@ body{
         <div class="progress"><div id="achBar" style="width:0%"></div></div>
         <div id="achList" style="margin-top:12px"></div>
       </div>
-      <button class="btn" style="width:100%;padding:12px;background:rgba(255,59,107,.1);border:1px solid var(--red);color:var(--red);font-size:13px" onclick="openDeleteModal()"><i class="fa-solid fa-trash"></i> DELETE ACCOUNT</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1;padding:12px;font-size:13px" onclick="openAuthModal('login')"><i class="fa-solid fa-right-to-bracket"></i> LOGIN / SIGN UP</button>
+      </div>
+      <button class="btn" style="width:100%;padding:12px;background:rgba(255,59,107,.1);border:1px solid var(--red);color:var(--red);font-size:13px;margin-top:10px" onclick="openDeleteModal()"><i class="fa-solid fa-trash"></i> DELETE ACCOUNT</button>
     </div>
   </section>
 
@@ -435,6 +438,24 @@ body{
     <div style="display:flex;gap:8px">
       <button class="btn btn-ghost" onclick="closeDeleteModal()" style="flex:1;padding:11px">CANCEL</button>
       <button class="btn" onclick="confirmDelete()" style="flex:1;padding:11px;background:var(--red);color:#fff">DELETE</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL (লগইন / সাইন-আপ) -->
+<div class="modal-backdrop" id="authModal">
+  <div class="modal">
+    <h2 id="authTitle">🎮 LOGIN</h2>
+    <p style="font-size:11px;color:var(--sub);text-align:center;margin-bottom:12px">Save your scores &amp; coins — play on any device</p>
+    <input id="authUser" placeholder="Username (min 3 chars)" autocomplete="off"
+      style="width:100%;padding:11px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;margin-bottom:10px;outline:none">
+    <input id="authPass" type="password" placeholder="Password (min 4 chars)"
+      style="width:100%;padding:11px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;margin-bottom:14px;outline:none">
+    <div id="authMsg" style="font-size:12px;color:var(--yellow);text-align:center;margin-bottom:10px;min-height:16px"></div>
+    <button class="btn btn-primary" onclick="authSubmit()" style="width:100%;padding:12px" id="authBtn">LOGIN</button>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-ghost" onclick="closeAuthModal()" style="flex:1;padding:10px">CANCEL</button>
+      <button class="btn btn-ghost" onclick="toggleAuthMode()" style="flex:1;padding:10px" id="authToggle">SIGN UP</button>
     </div>
   </div>
 </div>
