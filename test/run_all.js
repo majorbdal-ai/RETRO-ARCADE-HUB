@@ -10,7 +10,10 @@ const canvas = { width:800, height:450, style:{}, getContext(){ return makeCtx()
 let rafCbs = {};
 global.requestAnimationFrame = (cb)=>{ const id=Math.random(); rafCbs[id]=cb; return id; };
 global.cancelAnimationFrame = (id)=>{ delete rafCbs[id]; };
-global.__t = 0; global.performance = { now: ()=>{ global.__t+=16; return global.__t; } };
+global.__t = 0;
+try { global.performance = { now: ()=>{ global.__t+=16; return global.__t; } }; }
+catch(e) { Object.defineProperty(global, 'performance', { value: { now: ()=>{ global.__t+=16; return global.__t; } }, writable: true, configurable: true }); }
+if (!globalThis.performance) globalThis.performance = global.performance;
 
 // Build map file→fn from core.js GAME_ENGINE
 const core = fs.readFileSync(path.join(G,'core.js'),'utf8');
@@ -38,7 +41,7 @@ for (const [file, fn] of Object.entries(map)) {
     eng.pause(); eng.resume(); eng.destroy();
     results.push('PASS ' + file);
   } catch (e) {
-    results.push('FAIL ' + file + ' — ' + (e && e.message ? e.message : String(e)));
+    results.push('FAIL ' + file + ' — ' + (e && e.message ? e.message : String(e)) + (e && e.stack ? '\n' + e.stack.split('\n').slice(0,4).join('\n') : ''));
   }
 }
 results.forEach(r=>console.log(r));
