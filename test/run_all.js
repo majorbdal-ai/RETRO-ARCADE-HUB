@@ -14,6 +14,8 @@ global.__t = 0;
 try { global.performance = { now: ()=>{ global.__t+=16; return global.__t; } }; }
 catch(e) { Object.defineProperty(global, 'performance', { value: { now: ()=>{ global.__t+=16; return global.__t; } }, writable: true, configurable: true }); }
 if (!globalThis.performance) globalThis.performance = global.performance;
+// Node <21 has no navigator (browser-only). Games may touch navigator.vibrate.
+if (!globalThis.navigator) globalThis.navigator = { vibrate: ()=>false, userAgent: 'node-test', platform: 'node' };
 
 // Build map file→fn from core.js GAME_ENGINE
 const core = fs.readFileSync(path.join(G,'core.js'),'utf8');
