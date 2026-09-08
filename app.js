@@ -831,8 +831,9 @@ function cycleTheme() {
   toast('Theme: ' + THEMES.find(t => t.id === next).name + ' ' + THEMES.find(t => t.id === next).ico);
 }
 
-/* Dynamic particle / neon-arc background canvas — theme-aware */
-let themeBgCtx = null, themeBgRaf = null, themeParticles = [];
+/* Dynamic particle / neon-arc background canvas — theme-aware (v6.4: bloom, trails, themed FX) */
+let themeBgCtx = null, themeBgRaf = null, themeParticles = [], themeShooting = [], themeTrail = [];
+let themeFx = 'web';  // 'web' | 'matrix' | 'stars' | 'sunset' | 'gold'
 function initThemeCanvas() {
   const c = document.getElementById('themeCanvas');
   if (!c || !c.getContext) return;
@@ -841,7 +842,7 @@ function initThemeCanvas() {
   size();
   addEventListener('resize', size);
   // spawn particles (arcs + dots) based on current palette — capped for perf
-  themeParticles = [];
+  themeParticles = []; themeShooting = []; themeTrail = [];
   const n = Math.min(24, Math.floor(innerWidth / 40)); // fewer particles = smoother on mobile
   for (let i = 0; i < n; i++) {
     themeParticles.push({
@@ -852,6 +853,8 @@ function initThemeCanvas() {
       a: .3 + Math.random() * .4, pulse: Math.random() * Math.PI * 2
     });
   }
+  // shooting star occasionally
+  spawnShooting();
   // pause the canvas when tab hidden (perf)
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stopThemeCanvas();
@@ -859,14 +862,41 @@ function initThemeCanvas() {
   });
   themeBgRaf = requestAnimationFrame(themeBgLoop);
 }
+
+function spawnShooting() {
+  if (themeShooting.length > 3) return;
+  themeShooting.push({
+    x: Math.random() * innerWidth, y: Math.random() * innerHeight * .5,
+    vx: 2 + Math.random() * 4, vy: 1 + Math.random() * 2.5,
+    life: 1, len: 60 + Math.random() * 60
+  });
+}
+
+function themeCanvasFx() {
+  // choose FX mode based on active theme
+  const t = globalTheme || 'neon';
+  themeFx = t === 'matrix' ? 'matrix' : t === 'void' ? 'stars' : t === 'sunset' ? 'sunset'
+    : t === 'royal' ? 'gold' : 'web';
+}
+
 function themeBgLoop() {
   const ctx = themeBgCtx; if (!ctx) return;
   const c = document.getElementById('themeCanvas');
   const W = c.width, H = c.height;
-  ctx.clearRect(0, 0, W, H);
+  // fade last frame for trails (composite 'destination-out' or alpha fill)
+  ctx.fillStyle = 'rgba(5,7,10,0.18)';
+  ctx.fillRect(0, 0, W, H);
   const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00FFFF';
   const accent2 = getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim() || '#FF10F0';
-  // draw connecting lines between near particles (neon web)
+
+  // theme-specific backdrop FX
+  themeCanvasFx();
+  if (themeFx === 'matrix') drawMatrixRain(ctx, W, H, accent);
+  else if (themeFx === 'stars') drawStarField(ctx, W, H);
+  else if (themeFx === 'sunset') drawSunsetGlow(ctx, W, H);
+  else if (themeFx === 'gold') drawGoldDust(ctx, W, H, accent, accent2);
+
+  // connecting web lines between near particles (neon web) + bloom dots
   ctx.lineWidth = .6;
   for (let i = 0; i < themeParticles.length; i++) {
     const p = themeParticles[i];
@@ -883,13 +913,122 @@ function themeBgLoop() {
       }
     }
     const col = p.hue === 'accent' ? accent : accent2;
+    // bloom glow (radial gradient)
+    ctx.globalAlpha = (.25 + .2 * Math.sin(p.pulse)) * .5;
+    const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 6);
+    glow.addColorStop(0, col); glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 6, 0, Math.PI * 2); ctx.fill();
+    // core dot
     ctx.globalAlpha = .4 + .3 * Math.sin(p.pulse);
     ctx.fillStyle = col;
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
   }
   ctx.globalAlpha = 1;
+
+  // shooting star streaks
+  for (let i = themeShooting.length - 1; i >= 0; i--) {
+    const s = themeShooting[i];
+    s.x += s.vx; s.y += s.vy; s.life -= .008;
+    const grad = ctx.createLinearGradient(s.x, s.y, s.x - s.vx * s.len, s.y - s.vy * s.len);
+    grad.addColorStop(0, '#FFFFFF'); grad.addColorStop(.3, accent); grad.addColorStop(1, 'transparent');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = Math.max(0, s.life) * .7;
+    ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x - s.vx * s.len, s.y - s.vy * s.len); ctx.stroke();
+    if (s.life <= 0) themeShooting.splice(i, 1);
+  }
+  ctx.globalAlpha = 1;
+  if (Math.random() < .003) spawnShooting();  // every ~5s
+
   themeBgRaf = requestAnimationFrame(themeBgLoop);
 }
+
+// ---- Theme-specific backdrop FX ----
+let matrixCols = [];
+function drawMatrixRain(ctx, W, H, accent) {
+  const fw = 14;
+  if (!matrixCols.length) {
+    for (let x = 0; x < W; x += fw) {
+      matrixCols.push({ x, y: Math.random() * H, speed: 6 + Math.random() * 10, chars: [] });
+    }
+  }
+  ctx.font = '12px monospace';
+  matrixCols.forEach(col => {
+    col.y += col.speed * 0.25;
+    if (col.y - 20 > H) col.y = -20;
+    const ch = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ01'.split('')[Math.floor(Math.random() * 30)];
+    ctx.fillStyle = accent + '88';
+    ctx.globalAlpha = .5;
+    ctx.fillText(ch, col.x, col.y);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.globalAlpha = .8;
+    ctx.fillText(ch, col.x, col.y - 16);
+  });
+  ctx.globalAlpha = 1;
+}
+
+let starTwinkle = [];
+function drawStarField(ctx, W, H) {
+  if (!starTwinkle.length) {
+    for (let i = 0; i < 60; i++) {
+      starTwinkle.push({ x: Math.random() * W, y: Math.random() * H, r: .5 + Math.random() * 1.5, p: Math.random() * 6.28, s: .02 + Math.random() * .04 });
+    }
+  }
+  starTwinkle.forEach(s => {
+    s.p += s.s;
+    ctx.globalAlpha = .3 + .5 * Math.abs(Math.sin(s.p));
+    ctx.fillStyle = '#CCD6FF';
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+
+function drawSunsetGlow(ctx, W, H) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, 'rgba(255,94,58,.10)');
+  g.addColorStop(.5, 'rgba(249,115,22,.05)');
+  g.addColorStop(1, 'rgba(255,16,240,.06)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  // sun disc low on horizon
+  const sx = W * .7, sy = H * .8, sr = Math.min(W, H) * .28;
+  const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
+  sg.addColorStop(0, 'rgba(255,180,90,.25)');
+  sg.addColorStop(.5, 'rgba(255,120,50,.08)');
+  sg.addColorStop(1, 'transparent');
+  ctx.fillStyle = sg;
+  ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawGoldDust(ctx, W, H, accent, accent2) {
+  const g = ctx.createRadialGradient(W * .5, H * .4, 0, W * .5, H * .4, Math.max(W, H) * .7);
+  g.addColorStop(0, 'rgba(255,200,80,.06)');
+  g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+// interactive ripple on touch/click
+function themeTouchRipple(x, y) {
+  if (!themeBgCtx) return;
+  const c = document.getElementById('themeCanvas');
+  if (!c) return;
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00FFFF';
+  for (let i = 0; i < 6; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 1 + Math.random() * 2;
+    themeParticles.push({
+      x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      r: 1.5 + Math.random() * 2,
+      hue: Math.random() < .5 ? 'accent' : 'accent2',
+      a: .6, pulse: Math.random() * 6.28
+    });
+  }
+  if (themeParticles.length > 60) themeParticles.splice(0, themeParticles.length - 60);
+}
+addEventListener('pointerdown', (e) => themeTouchRipple(e.clientX, e.clientY), { passive: true });
+
 function stopThemeCanvas() { if (themeBgRaf) { cancelAnimationFrame(themeBgRaf); themeBgRaf = null; } }
 
 function renderThemes() {
