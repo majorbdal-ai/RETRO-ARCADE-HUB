@@ -332,6 +332,70 @@ function openAuth() {
 /* ==================== DELETE ACCOUNT ==================== */
 function openDeleteModal() { document.getElementById('deleteModal').classList.add('show'); }
 function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('show'); }
+
+/* ==================== PWA INSTALL + OFFLINE DETECTION ==================== */
+let deferredPrompt = null;
+let installShown = false;
+function openInstallModal() {
+  const m = document.getElementById('installModal');
+  if (m) m.classList.add('show');
+}
+function closeInstallModal() {
+  const m = document.getElementById('installModal');
+  if (m) m.classList.remove('show');
+}
+async function installPWA() {
+  const btn = document.getElementById('installBtn');
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice.catch(() => ({}));
+    deferredPrompt = null;
+    closeInstallModal();
+    if (choice && choice.outcome === 'accepted') {
+      toast('Installed! 🎮 Game on.');
+    } else {
+      toast('OK — play in browser anytime');
+    }
+  } else if (navigator.userAgent.match(/iphone|ipad|ipod/i)) {
+    // iOS Safari: no beforeinstallprompt — instruct manual Add to Home Screen
+    toast('Tap Share → "Add to Home Screen" ⬆️');
+    closeInstallModal();
+  } else {
+    toast('Already installed or unsupported — just keep playing!');
+    closeInstallModal();
+  }
+}
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Never auto-prompt inside an installed/standalone app
+  const standalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+  if (standalone || navigator.standalone === true || installShown) return;
+  installShown = true;
+  setTimeout(openInstallModal, 4000);
+});
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  toast('App installed — find it on your home screen! 🎮');
+});
+// Offline / online awareness — hub works fully from cache
+function onlineState(online) {
+  const off = document.getElementById('offlineBadge');
+  const on = document.getElementById('onlineBadge');
+  if (online) {
+    if (off && off.style.display === 'block') {
+      off.style.display = 'none';
+      if (on) { on.style.display = 'block'; setTimeout(() => { on.style.display = 'none'; }, 2500); }
+    }
+  } else {
+    if (off) off.style.display = 'block';
+  }
+  const badge = document.getElementById('heroOfflineBadge');
+  if (badge) badge.style.display = 'inline';
+}
+window.addEventListener('online', () => onlineState(true));
+window.addEventListener('offline', () => onlineState(false));
+if (navigator.onLine === false) onlineState(false); // show offline badge right away
 function confirmDelete() {
   const v = document.getElementById('deleteInput').value.trim();
   if (v.toUpperCase() !== 'DELETE') { toast('Type DELETE to confirm'); return; }
@@ -1183,7 +1247,7 @@ function init() {
 }
 document.addEventListener('DOMContentLoaded', init);
 
-// version badge
+// version badge + hero counts stay in sync with version.json automatically
 function showVersionBadge() {
   try {
     if (location.protocol === 'file:') return;
@@ -1192,6 +1256,15 @@ function showVersionBadge() {
       badge.style.cssText = 'position:fixed;bottom:8px;right:8px;z-index:5;font-size:9px;opacity:.4;color:var(--sub);font-family:monospace';
       badge.innerText = `v${d.version} · ${d.games} games`;
       document.body.appendChild(badge);
+      // keep hero copy truthful without hand-editing
+      const gc = document.getElementById('heroGameCount');
+      if (gc) gc.innerText = d.games;
+      const sg = document.getElementById('heroStatGames');
+      if (sg) sg.innerText = d.games + '+';
+      const hsc = document.getElementById('heroSubCount');
+      if (hsc) hsc.innerText = d.games + ' GAMES · PLAY INSTANTLY';
+      // page title too
+      if (d.games) document.title = document.title.replace(/\d+ Games/, d.games + ' Games');
     });
   } catch (e) {}
 }

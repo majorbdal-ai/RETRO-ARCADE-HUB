@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>RETRO ARCADE HUB — 60 Games! Play Free Online</title>
-<meta name="description" content="Play 60 free retro arcade games on your phone — neon snake, tetris, pinball, racing, puzzle, sports & more. Coins, skins, leaderboard. No download, no install.">
+<title>RETRO ARCADE HUB — 66 Games! Play Free Online</title>
+<meta name="description" content="Play 66 free retro arcade games on your phone — neon snake, tetris, pinball, racing, puzzle, sports & more. XP, achievements, daily quests, coins, skins, leaderboard. No download, no install.">
 <meta name="keywords" content="retro arcade games, free mobile games, neon games, online arcade, play games free, tetris, snake, pinball">
 <meta name="robots" content="index,follow">
 <meta name="author" content="RETRO ARCADE HUB">
 <meta name="theme-color" content="#05070A">
 <!-- Open Graph / Social Preview (Facebook, WhatsApp, etc.) -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="RETRO ARCADE HUB — 60 Free Games">
-<meta property="og:description" content="Play 60 free retro arcade games on your phone. Coins, skins, leaderboard. No download needed.">
+<meta property="og:title" content="RETRO ARCADE HUB — 66 Free Games">
+<meta property="og:description" content="Play 66 free retro arcade games on your phone. XP, achievements, daily quests, coins, skins, leaderboard. No download needed.">
 <meta property="og:url" content="https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/">
 <meta property="og:site_name" content="RETRO ARCADE HUB">
 <meta property="og:image" content="https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/assets/og-cover.svg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="RETRO ARCADE HUB — 60 Free Games">
-<meta name="twitter:description" content="Play 60 free retro arcade games on your phone.">
+<meta name="twitter:title" content="RETRO ARCADE HUB — 66 Free Games">
+<meta name="twitter:description" content="Play 66 free retro arcade games on your phone.">
 <meta name="twitter:image" content="https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/assets/og-cover.svg">
 <!-- PWA manifest -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -552,12 +552,12 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
       <!-- HERO SECTION -->
       <div class="hero-section" style="margin-bottom:var(--space-xl);padding:var(--space-lg);background:linear-gradient(135deg,var(--panel),var(--bg));border-radius:var(--radius-xl);border:1px solid var(--glass-border);overflow:hidden;position:relative">
         <div class="hero-content" style="display:flex;flex-direction:column;gap:var(--space-md);align-items:flex-start;position:relative;z-index:1">
-          <div class="hero-badge" style="display:inline-flex;align-items:center;gap:var(--space-xs);background:var(--btn-grad);color:#000;padding:var(--space-xs) var(--space-sm);border-radius:999px;font-size:var(--font-xs);font-weight:700;letter-spacing:.5px"><i class="fa-solid fa-fire"></i> NEW UPDATE v6.1</div>
-          <h1 class="hero-title" style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(var(--font-xl),6vw,var(--font-2xl));line-height:1.1;color:#fff;background:linear-gradient(135deg,#fff,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;margin:0">60 GAMES. ONE ARENA.</h1>
-          <p class="hero-subtitle" style="color:var(--sub);font-size:var(--font-md);margin:0;max-width:280px">Play free retro arcade games on mobile. No downloads. Instant fun.</p>
+          <div class="hero-badge" style="display:inline-flex;align-items:center;gap:var(--space-xs);background:var(--btn-grad);color:#000;padding:var(--space-xs) var(--space-sm);border-radius:999px;font-size:var(--font-xs);font-weight:700;letter-spacing:.5px"><i class="fa-solid fa-fire"></i> NEW UPDATE v6.7</div>
+          <h1 class="hero-title" style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(var(--font-xl),6vw,var(--font-2xl));line-height:1.1;color:#fff;background:linear-gradient(135deg,#fff,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;margin:0"><span id="heroGameCount">66</span> GAMES. ONE ARENA.</h1>
+          <p class="hero-subtitle" style="color:var(--sub);font-size:var(--font-md);margin:0;max-width:280px">Play free retro arcade games on mobile. No downloads. Instant fun. <span id="heroOfflineBadge" style="display:none;color:var(--green,#22c55e);font-weight:700">OFFLINE-READY</span></p>
           <div class="hero-stats" style="display:flex;gap:var(--space-lg);margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:1px solid rgba(255,255,255,.08)">
             <div class="stat" style="text-align:center">
-              <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:var(--font-xl);color:var(--cyan)">60+</div>
+              <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:var(--font-xl);color:var(--cyan)" id="heroStatGames">66+</div>
               <div style="font-size:var(--font-xs);color:var(--sub);text-transform:uppercase">Games</div>
             </div>
             <div class="stat" style="text-align:center">
@@ -615,7 +615,7 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
         <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap">
           <div>
             <h2 class="sec-title" style="margin:0"><span class="glow">ARCADE</span></h2>
-            <p style="margin:var(--space-xs) 0 0;color:var(--sub);font-size:var(--font-sm)">60 GAMES · PLAY INSTANTLY</p>
+            <p style="margin:var(--space-xs) 0 0;color:var(--sub);font-size:var(--font-sm)" id="heroSubCount">66 GAMES · PLAY INSTANTLY</p>
           </div>
           <div class="view-toggle" style="display:flex;gap:var(--space-xs);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:var(--space-xs)">
             <button class="view-btn active" data-view="grid" onclick="setArcadeView('grid')" title="Grid View" style="padding:var(--space-xs) var(--space-sm);background:var(--btn-grad);color:#000;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--font-xs)"><i class="fa-solid fa-th-large"></i></button>
@@ -857,6 +857,21 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
   <button class="nav-item" data-page="board"><i class="fa-solid fa-trophy"></i>BOARD</button>
   <button class="nav-item" data-page="profile"><i class="fa-solid fa-user"></i>PROFILE</button>
 </nav>
+
+<!-- INSTALL PWA PROMPT -->
+<div class="modal-backdrop" id="installModal">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:44px;margin-bottom:8px">🎮</div>
+    <h2>INSTALL ARCADE</h2>
+    <p style="font-size:13px;color:var(--sub);margin-bottom:14px">Add <b style="color:#fff">RETRO ARCADE HUB</b> to your home screen — plays offline, works without internet, launches fullscreen like a real app.</p>
+    <button class="btn btn-primary" onclick="installPWA()" style="width:100%;padding:13px;margin-bottom:8px" id="installBtn"><i class="fa-solid fa-download"></i> INSTALL NOW</button>
+    <button class="btn btn-ghost" onclick="closeInstallModal()" style="width:100%;padding:11px">NOT NOW</button>
+  </div>
+</div>
+
+<!-- OFFLINE / ONLINE INDICATOR -->
+<div id="onlineBadge" style="display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:210;background:rgba(16,24,16,.95);border:1px solid var(--green,#22c55e);color:var(--green,#22c55e);padding:6px 14px;border-radius:999px;font-size:11px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:.5px;box-shadow:0 0 18px rgba(34,197,94,.35)"><i class="fa-solid fa-wifi"></i> BACK ONLINE</div>
+<div id="offlineBadge" style="display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:210;background:rgba(24,16,16,.95);border:1px solid var(--red,#f43f5e);color:var(--red,#f43f5e);padding:6px 14px;border-radius:999px;font-size:11px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:.5px;box-shadow:0 0 18px rgba(244,63,94,.35)"><i class="fa-solid fa-wifi"></i> OFFLINE — PLAYING FROM CACHE</div>
 
 <!-- DELETE MODAL -->
 <div class="modal-backdrop" id="deleteModal">
