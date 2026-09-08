@@ -215,12 +215,49 @@ function lockGameScroll(lock) {
   }
 }
 
+// ---- synth sound effects (WebAudio, zero assets) ----
+let sfxCtx = null;
+function ensureSfx() {
+  try {
+    if (!sfxCtx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) sfxCtx = new AC(); }
+    if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume();
+  } catch (e) {}
+  return sfxCtx;
+}
+function sfxTone(freq, dur, type, gain, slideTo) {
+  if (isMuted()) return;
+  const ctx = ensureSfx(); if (!ctx) return;
+  try {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(freq, ctx.currentTime);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, ctx.currentTime + dur);
+    g.gain.setValueAtTime(gain || 0.05, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + dur);
+  } catch (e) {}
+}
+const SFX = {
+  click()  { sfxTone(660, 0.06, 'square', 0.035); },
+  pop()    { sfxTone(520, 0.09, 'sine', 0.06, 880); },
+  coin()   { sfxTone(988, 0.08, 'square', 0.045); setTimeout(() => sfxTone(1319, 0.14, 'square', 0.045), 70); },
+  hit()    { sfxTone(180, 0.12, 'sawtooth', 0.05, 90); },
+  over()   { sfxTone(392, 0.18, 'sawtooth', 0.05, 130); setTimeout(() => sfxTone(196, 0.28, 'sawtooth', 0.05, 60), 160); },
+  launch() { sfxTone(440, 0.1, 'square', 0.045, 880); },
+  win()    { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => sfxTone(f, 0.12, 'square', 0.045), i * 90)); }
+};
+window.playSfx = (n) => { try { SFX[n] && SFX[n](); } catch (e) {} };
+
 // ---- touch buttons (with ripple visual feedback) ----
 let lastRippleAt = 0;
 function pressed(control, isDown, ev) {
   if (ev && ev.preventDefault) ev.preventDefault();
   gameState.touches[control] = isDown;
-  if (isDown && navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
+  if (isDown) {
+    if (navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
+  }
   // touch ripple — visual press feedback on the control (throttled)
   const now = Date.now();
   const btn = ev && ev.currentTarget;
@@ -404,6 +441,7 @@ function loadGameEngine(id, cb) {
 function launchGame(id) {
   const g = GAMES.find(x => x.id === id);
   if (!g) { toast('Game not found'); return; }
+  if (typeof window.playSfx === 'function') { try { window.playSfx('launch'); } catch (e) {} }
   const engine = window[GAME_ENGINE[id]];
   if (typeof engine === 'function') { bootGame(id, engine); return; }
   // engine not loaded yet — lazy load it (performance), show loading screen
@@ -452,6 +490,7 @@ function bootGame(id, engine) {
       state.coins += n;
       saveState(); updateCoinDisplay();
       document.getElementById('hudCoins').innerText = '0'; // updated at end
+      if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
     }
   );
 
@@ -486,6 +525,7 @@ function endGame(score, coinsEarned) {
   gameState.score = score;
   gameState.coinsEarned = coinsEarned || 0;
   if (currentGame) { try { currentGame.pause(); } catch (e) {} }
+  if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
 
   // award coins
   if (coinsEarned > 0) {
@@ -621,6 +661,10 @@ function toggleMute() {
   muted = !muted;
   const ic = document.getElementById('muteIcon');
   if (ic) ic.innerText = muted ? '🔇' : '🔊';
+  // suspend/resume synth audio context
+  try {
+    if (sfxCtx) { if (muted) sfxCtx.suspend(); else sfxCtx.resume(); }
+  } catch (e) {}
   // stop any game audio objects
   try {
     document.querySelectorAll('audio, video').forEach(a => { if (muted) a.pause(); });

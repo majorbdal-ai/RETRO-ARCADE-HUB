@@ -1,6 +1,6 @@
 /* RETRO ARCADE HUB — Service Worker for offline PWA support.
    Caches the app shell + game engines so the hub works offline. */
-const CACHE = 'retro-arcade-hub-v6.0.0';
+const CACHE = 'retro-arcade-hub-v6.1.0';
 const CORE = [
   './',
   './index.html',
