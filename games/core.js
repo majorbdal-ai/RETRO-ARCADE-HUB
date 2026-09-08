@@ -737,7 +737,8 @@ function endGame(score, coinsEarned) {
 
   // best score
   const prevBest = state.best[gameState.id] || 0;
-  if (score > prevBest) state.best[gameState.id] = score;
+  const isNewBest = score > prevBest;
+  if (isNewBest) state.best[gameState.id] = score;
 
   // stats
   state.stats.gamesPlayed++;
@@ -748,22 +749,93 @@ function endGame(score, coinsEarned) {
   state.coins += scoreCoins;
   saveState(); updateCoinDisplay();
 
+  // ==== PROGRESSION (v6.6) ====
+  // XP: score/100 base + new-best bonus + game-completed bonus
+  let xpGained = Math.max(1, Math.floor(score / 100)) + (isNewBest ? 25 : 0) + (score > 0 ? 10 : 0);
+  let leveledUp = false, newLevel = 0;
+  if (state.profile) {
+    const xpNeeded = lvl => Math.floor(100 * Math.pow(lvl, 1.35));
+    state.profile.xp = (state.profile.xp || 0) + xpGained;
+    while (state.profile.xp >= xpNeeded(state.profile.level || 1)) {
+      state.profile.xp -= xpNeeded(state.profile.level || 1);
+      state.profile.level = (state.profile.level || 1) + 1;
+      leveledUp = true; newLevel = state.profile.level;
+      // level-up bonus coins
+      state.coins += 50 * newLevel;
+    }
+    if (leveledUp && typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+  }
+
+  // Achievements (persist)
+  if (!state.achievements) state.achievements = [];
+  const ACH = [
+    { id: 'first',   ico: '🏆', name: 'First Blood',        test: () => state.stats.gamesPlayed >= 1 },
+    { id: 'win10',   ico: '⚡', name: 'Arcade Addict',      test: () => state.stats.gamesPlayed >= 10 },
+    { id: 'win50',   ico: '🔥', name: 'Fifty & Fierce',     test: () => state.stats.gamesPlayed >= 50 },
+    { id: 'score1k', ico: '💎', name: 'Four-Figure Score',  test: () => score >= 1000 },
+    { id: 'score10k',ico: '👑', name: 'High Roller',        test: () => score >= 10000 },
+    { id: 'combo8',  ico: '🌀', name: 'Combo Starter',      test: () => (state.stats.bestCombo || 0) >= 8 },
+    { id: 'master',  ico: '🎯', name: 'Game Master',        test: () => Object.keys(state.best).length >= 10 },
+    { id: 'coins500',ico: '💰', name: 'Rich Kid',           test: () => state.coins >= 500 }
+  ];
+  const newlyUnlocked = ACH.filter(a => !state.achievements.includes(a.id) && a.test());
+  newlyUnlocked.forEach(a => {
+    state.achievements.push(a.id);
+    state.coins += 100;
+    setTimeout(() => toast(a.ico + ' ACHIEVEMENT: ' + a.name + ' (+100 🪙)'), 300);
+    if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+  });
+
+  // Daily quests (rotating, 3 per day)
+  if (!state.dailyQuest) state.dailyQuest = {};
+  const today = new Date().toDateString();
+  if (!state.dailyQuest.date || state.dailyQuest.date !== today) {
+    // new day: pick 3 quests
+    const pool = [
+      { id: 'play1', ico: '🎮', desc: 'Play 1 game',            target: 1,  reward: 50,  prog: 0 },
+      { id: 'play5',  ico: '🎮', desc: 'Play 5 games',          target: 5,  reward: 120, prog: 0 },
+      { id: 'score1k',ico: '💯', desc: 'Score 1,000 pts',       target: 1,  reward: 80,  prog: 0 },
+      { id: 'score5k',ico: '💯', desc: 'Score 5,000 pts',       target: 1,  reward: 150, prog: 0 },
+      { id: 'collect',ico: '🪙', desc: 'Earn 100 coins total',  target: 100,reward: 100, prog: 0 }
+    ];
+    shuffle(pool);
+    state.dailyQuest = { date: today, list: pool.slice(0, 3), done: [] };
+  }
+  state.dailyQuest.list.forEach(q => {
+    if (q.id === 'play1' || q.id === 'play5') q.prog = Math.min(q.target, q.prog + 1);
+    else if (q.id === 'score1k') q.prog = Math.min(q.target, score >= 1000 ? 1 : q.prog);
+    else if (q.id === 'score5k') q.prog = Math.min(q.target, score >= 5000 ? 1 : q.prog);
+    else if (q.id === 'collect') q.prog = Math.min(q.target, q.prog + coinsEarned + Math.floor(score * 0.1));
+    // claim if reached & not claimed
+    if (q.prog >= q.target && !state.dailyQuest.done.includes(q.id)) {
+      state.dailyQuest.done.push(q.id);
+      state.coins += q.reward;
+      setTimeout(() => toast(q.ico + ' QUEST: ' + q.desc + ' — +' + q.reward + ' 🪙'), 800);
+      if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+    }
+  });
+
+  saveState(); updateCoinDisplay();
+
   // sync to backend if logged in
   syncScore(gameState.id, score);
 
   // show overlay
   document.getElementById('overScore').innerText = score.toLocaleString();
-  document.getElementById('overCoins').innerText = (coinsEarned + scoreCoins).toLocaleString();
+  document.getElementById('overCoins').innerText = (coinsEarned + scoreCoins + (leveledUp ? newLevel * 50 : 0)).toLocaleString();
   document.getElementById('overBest').innerText = (state.best[gameState.id] || 0).toLocaleString();
-  document.getElementById('overLevel').innerText = '1';
+  document.getElementById('overLevel').innerText = (state.profile ? state.profile.level : 1) + (leveledUp ? ' ⬆' : '') + ' · +' + xpGained + ' XP';
   // spring score pop on the overlay
   const ov = document.getElementById('gameOverOverlay');
   if (typeof window.popScore === 'function') {
     const r = (ov || document.body).getBoundingClientRect();
     window.popScore(r.left + r.width / 2 - 40, r.top + r.height / 2 - 30, '+' + score.toLocaleString());
   }
+  // refresh profile page if shown
+  if (document.getElementById('page-profile') && document.getElementById('page-profile').classList.contains('active')) renderProfile();
   document.getElementById('gameOverOverlay').classList.add('show');
 }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 // ---- restart ----
 function restartGame() {

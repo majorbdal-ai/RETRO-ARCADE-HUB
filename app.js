@@ -17,7 +17,11 @@ const K = {
   daily: 'rah_daily',
   theme: 'rah_theme',
   stats: 'rah_stats',
-  best: 'rah_best'
+  best: 'rah_best',
+  achievements: 'rah_achievements',
+  dailyQuest: 'rah_dailyQuest',
+  lastPlay: 'rah_lastPlay',
+  streak: 'rah_streak'
 };
 const store = {
   get(key, def) { try { const v = localStorage.getItem(key); return v === null ? def : JSON.parse(v); } catch (e) { return def; } },
@@ -33,7 +37,11 @@ let state = {
   equipped: store.get(K.equipped, { skin: null, vehicle: null, effect: null, theme: 'neon' }),
   daily: store.get(K.daily, {}),
   stats: store.get(K.stats, { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }),
-  best: store.get(K.best, {}) // { gameId: bestScore }
+  best: store.get(K.best, {}), // { gameId: bestScore }
+  achievements: store.get(K.achievements, []),
+  dailyQuest: store.get(K.dailyQuest, {}),
+  lastPlay: store.get(K.lastPlay, 0),
+  streak: store.get(K.streak, 0)
 };
 
 function saveState() {
@@ -45,6 +53,10 @@ function saveState() {
   store.set(K.daily, state.daily);
   store.set(K.stats, state.stats);
   store.set(K.best, state.best);
+  store.set(K.achievements, state.achievements);
+  store.set(K.dailyQuest, state.dailyQuest);
+  store.set(K.lastPlay, state.lastPlay);
+  store.set(K.streak, state.streak);
 }
 
 /* ==================== API LAYER (InfinityFree PHP backend) ==================== */
@@ -682,29 +694,56 @@ function renderBoard(range = 'weekly') {
 function renderProfile() {
   const p = state.profile;
   const skinsOwned = state.inventory.filter(id => id.startsWith('skin-') || id.startsWith('veh-')).length;
+  state.streak = state.streak || 0;
   document.getElementById('avatarBig').innerText = p.avatar || '👤';
   document.getElementById('playerName').innerText = p.username;
   document.getElementById('playerLevel').innerText = 'LVL ' + p.level + (p.level >= 30 ? ' VIP' : '');
-  document.getElementById('statWins').innerText = p.wins;
+  document.getElementById('statWins').innerText = state.stats.gamesPlayed;
   document.getElementById('statCoins').innerText = state.coins.toLocaleString();
   document.getElementById('statSkins').innerText = skinsOwned + '/24';
-  const achDone = Math.min(20, Math.round(p.wins * 0.5 + skinsOwned));
-  document.getElementById('achCount').innerText = achDone + '/20';
-  document.getElementById('achBar').style.width = (achDone / 20 * 100) + '%';
-  const achs = [
-    { ico: '🏆', name: 'FIRST WIN', done: p.wins >= 1 },
-    { ico: '⚡', name: 'SPEED DEMON', done: (state.stats.bestCombo || 0) >= 8 },
-    { ico: '💎', name: 'COLLECTOR', done: skinsOwned >= 5 },
-    { ico: '🔥', name: 'COMBO MASTER', done: (state.stats.bestCombo || 0) >= 12 },
-    { ico: '🎯', name: 'SHARPSHOOTER', done: p.wins >= 5 },
-    { ico: '👑', name: 'KING OF ARCADE', done: p.wins >= 10 }
+
+  // REAL achievements (persisted in state.achievements)
+  const ACH_META = [
+    { id: 'first',   ico: '🏆', name: 'FIRST BLOOD' },
+    { id: 'win10',   ico: '⚡', name: 'ARCADE ADDICT' },
+    { id: 'win50',   ico: '🔥', name: 'FIFTY & FIERCE' },
+    { id: 'score1k', ico: '💎', name: 'FOUR-FIGURE SCORE' },
+    { id: 'score10k',ico: '👑', name: 'HIGH ROLLER' },
+    { id: 'combo8',  ico: '🌀', name: 'COMBO STARTER' },
+    { id: 'master',  ico: '🎯', name: 'GAME MASTER' },
+    { id: 'coins500',ico: '💰', name: 'RICH KID' }
   ];
-  document.getElementById('achList').innerHTML = achs.map(a => `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)">
-      <span style="font-size:18px;opacity:${a.done ? 1 : .35}">${a.ico}</span>
-      <span style="flex:1;font-size:13px;color:${a.done ? '#fff' : 'var(--sub)'}">${a.name}</span>
-      <span style="font-size:10px;font-weight:700;color:${a.done ? 'var(--green)' : 'var(--sub)'}">${a.done ? 'DONE ✓' : 'LOCKED 🔒'}</span>
+  const achUnlocked = ACH_META.filter(a => (state.achievements || []).includes(a.id)).length;
+  document.getElementById('achCount').innerText = achUnlocked + '/' + ACH_META.length;
+  document.getElementById('achBar').style.width = (achUnlocked / ACH_META.length * 100) + '%';
+  document.getElementById('achList').innerHTML = ACH_META.map(a => `
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+      <span style="font-size:18px;opacity:${(state.achievements||[]).includes(a.id) ? 1 : .35}">${a.ico}</span>
+      <span style="flex:1;font-size:13px;color:${(state.achievements||[]).includes(a.id) ? '#fff' : 'var(--sub)'}">${a.name}</span>
+      <span style="font-size:10px;font-weight:700;color:${(state.achievements||[]).includes(a.id) ? 'var(--green)' : 'var(--sub)'}">${(state.achievements||[]).includes(a.id) ? 'DONE ✓' : '🔒'}</span>
     </div>`).join('');
+
+  // DAILY QUESTS
+  const dqWrap = document.getElementById('dailyQuestList');
+  if (dqWrap) {
+    const dq = state.dailyQuest || {};
+    if (dq.date && dq.list) {
+      dqWrap.innerHTML = dq.list.map(q => {
+        const done = (dq.done || []).includes(q.id);
+        const pct = Math.min(100, Math.round(q.prog / q.target * 100));
+        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+          <span style="font-size:18px;opacity:${done ? 1 : .5}">${q.ico}</span>
+          <div style="flex:1">
+            <div style="font-size:12px;color:${done ? 'var(--green)' : '#fff'}">${q.desc} ${done ? '✓' : `(${Math.min(q.prog,q.target)}/${q.target})`}</div>
+            <div style="height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:4px"><div style="height:100%;width:${pct}%;background:var(--green);border-radius:2px"></div></div>
+          </div>
+          <span style="font-size:10px;font-weight:700;color:var(--gold)">+${q.reward} 🪙</span>
+        </div>`;
+      }).join('');
+    } else {
+      dqWrap.innerHTML = '<div style="font-size:12px;color:var(--sub);padding:10px 0">Play your first game today to unlock quests!</div>';
+    }
+  }
 }
 
 /* ==================== COIN STORE ==================== */

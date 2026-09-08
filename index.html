@@ -804,10 +804,17 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
       <div class="widget">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <b style="font-size:13px;color:#fff">ACHIEVEMENTS</b>
-          <span style="font-size:11px;color:var(--sub)" id="achCount">0/20</span>
+          <span style="font-size:11px;color:var(--sub)" id="achCount">0/8</span>
         </div>
         <div class="progress"><div id="achBar" style="width:0%"></div></div>
         <div id="achList" style="margin-top:12px"></div>
+      </div>
+      <div class="widget">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <b style="font-size:13px;color:#fff">DAILY QUESTS</b>
+          <span style="font-size:11px;color:var(--gold)">3/day</span>
+        </div>
+        <div id="dailyQuestList" style="margin-top:8px"></div>
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-primary" style="flex:1;padding:12px;font-size:13px" onclick="openAuthModal('login')"><i class="fa-solid fa-right-to-bracket"></i> LOGIN / SIGN UP</button>
