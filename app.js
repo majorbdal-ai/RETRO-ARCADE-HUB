@@ -235,6 +235,30 @@ function navInit() {
     document.querySelectorAll('#boardTabs .tab').forEach(x => x.classList.remove('active'));
     t.classList.add('active'); renderBoard(t.dataset.range);
   }));
+  
+  // NEW UI: Home category tabs
+  document.querySelectorAll('#homeCatTabs .cat-tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('#homeCatTabs .cat-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active'); 
+    setHomeCat(t.dataset.cat);
+  }));
+  
+  // NEW UI: Arcade view toggle
+  document.querySelectorAll('.view-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.view-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    setArcadeView(b.dataset.view);
+  }));
+  
+  // NEW UI: Arcade sort/filter
+  const arcadeSort = document.getElementById('arcadeSort');
+  if (arcadeSort) arcadeSort.addEventListener('change', () => renderArcadeGrid());
+  
+  // NEW UI: Shop filter/sort
+  const shopFilter = document.getElementById('shopFilter');
+  const shopSort = document.getElementById('shopSort');
+  if (shopFilter) shopFilter.addEventListener('change', () => renderShop(currentShopTab || 'skins'));
+  if (shopSort) shopSort.addEventListener('change', () => renderShop(currentShopTab || 'skins'));
 }
 function updateCoinDisplay() {
   const c = document.getElementById('coinDisplay');
@@ -333,9 +357,77 @@ function renderHome() {
       <button class="btn btn-primary play-btn" style="padding:7px 14px;font-size:11px" onclick="playGame('${g.id}')">${engineReady(g.id) ? '▶ PLAY NOW' : 'COMING SOON'}</button>
     </div>`).join('');
   renderGameGrid('');
-}
-// current category filter
-let currentCatFilter = 'ALL';
+
+    // NEW UI: Featured Carousel (horizontal scroll with featured games)
+    renderFeaturedCarousel();
+  }
+
+  // NEW UI: Home Category Tabs
+  let currentHomeCat = 'ALL';
+  function setHomeCat(cat) {
+    currentHomeCat = cat;
+    document.querySelectorAll('#homeCatTabs .cat-tab').forEach(t => 
+      t.classList.toggle('active', t.dataset.cat === cat));
+    renderHomeGrid();
+  }
+
+  function renderHomeGrid() {
+    const q = ''.toLowerCase();
+    const c = currentHomeCat.toUpperCase();
+    let list = GAMES;
+    if (c !== 'ALL') list = list.filter(g => (g.cat || '').toUpperCase() === c);
+    const html = list.map(g => {
+      const ready = !!engineReady(g.id);
+      const badge = ready ? 'OPEN' : 'SOON';
+      return `<div class="card game-card" style="cursor:pointer;position:relative">
+        <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${badge}</span>
+        <div class="thumb" style="border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${g.icon}</div>
+        <h4>${g.name}</h4>
+        <p>${g.desc}</p>
+        <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
+      </div>`;
+    }).join('');
+    const g1 = document.getElementById('gameGrid');
+    if (g1) g1.innerHTML = html;
+  }
+
+  // NEW UI: Featured Carousel (horizontal scroll)
+  function renderFeaturedCarousel() {
+    const feat = liveFeatured() ? liveFeatured().map(id => GAMES.find(g => g.id === id)).filter(Boolean) 
+      : GAMES.filter(g => g.featured);
+    const carousel = document.getElementById('featuredCarousel');
+    if (!carousel) return;
+    carousel.innerHTML = feat.map((g, i) => `
+      <div class="featured-card" style="background:linear-gradient(145deg,${g.color}33,#0A0E16 65%);flex-shrink:0;scroll-snap-align:start;width:260px">
+        <div class="f-ico" style="color:${g.color}">${g.icon}</div>
+        <span class="badge" style="position:absolute;top:10px;right:10px">${engineReady(g.id) ? 'PLAY' : 'SOON'}</span>
+        <h3>${g.name}</h3>
+        <p style="font-size:var(--font-xs);color:var(--sub)">${g.desc}</p>
+        <button class="btn btn-primary play-btn" style="width:100%;padding:var(--space-sm);font-size:var(--font-xs);margin-top:var(--space-sm)" onclick="playGame('${g.id}')">${engineReady(g.id) ? '▶ PLAY NOW' : 'COMING SOON'}</button>
+      </div>`).join('');
+  }
+
+  // NEW UI: Home category filter
+  function setHomeCat(cat) {
+    currentHomeCat = cat;
+    document.querySelectorAll('#homeCatTabs .cat-tab').forEach(t => 
+      t.classList.toggle('active', t.dataset.cat === cat));
+    renderHomeGrid();
+  }
+
+  // current category filter
+  let currentCatFilter = 'ALL';
+
+  // NEW UI: Arcade view mode (grid/list)
+  let arcadeViewMode = 'grid';
+  function setArcadeView(mode) {
+    arcadeViewMode = mode;
+    document.querySelectorAll('.view-btn').forEach(b => 
+      b.classList.toggle('active', b.dataset.view === mode));
+    const grid = document.getElementById('arcadeGrid');
+    if (grid) grid.classList.toggle('list-view', mode === 'list');
+    renderArcadeGrid();
+  }
 
 function renderGameGrid(filter = '', cat = '') {
   const q = (filter || '').toLowerCase();
@@ -361,14 +453,67 @@ function renderGameGrid(filter = '', cat = '') {
 }
 
 function renderArcadeGrid(filter = '') {
-  renderGameGrid(filter);
+  const q = (filter || '').toLowerCase();
+  const c = currentCatFilter.toUpperCase();
+  const sort = (document.getElementById('arcadeSort') || {}).value || 'featured';
+  let list = GAMES;
+  if (q) list = list.filter(g => g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q));
+  if (c !== 'ALL') list = list.filter(g => (g.cat || '').toUpperCase() === c);
+  // sort
+  if (sort === 'name') list.sort((a,b) => a.name.localeCompare(b.name));
+  else if (sort === 'category') list.sort((a,b) => (a.cat||'').localeCompare(b.cat||''));
+  else if (sort === 'newest') list.reverse(); // assume newer games at end
+  // else featured first (default)
+  
+  const html = list.map(g => {
+    const ready = !!engineReady(g.id);
+    const badge = ready ? 'OPEN' : 'SOON';
+    // list view needs different structure
+    const isList = arcadeViewMode === 'list';
+    if (isList) {
+      return `<div class="card game-card" style="cursor:pointer;position:relative;display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);min-height:80px">
+        <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${badge}</span>
+        <div class="thumb" style="width:60px;height:60px;flex-shrink:0;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:24px;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${g.icon}</div>
+        <div class="info" style="flex:1;min-width:0">
+          <h4 style="font-size:var(--font-sm);font-weight:700;color:#fff;margin-bottom:var(--space-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.name}</h4>
+          <p style="font-size:var(--font-xs);color:var(--sub);margin-bottom:var(--space-xs);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.desc}</p>
+          <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap">
+            <span style="font-size:var(--font-xs);color:var(--sub);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:999px">${g.cat || '—'}</span>
+            <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">★ ${(Math.random()*4+1).toFixed(1)}</span>
+          </div>
+        </div>
+        <div class="actions" style="flex-shrink:0">
+          <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="padding:var(--space-xs) var(--space-md);font-size:var(--font-xs)" onclick="${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING'}</button>
+        </div>
+      </div>`;
+    } else {
+      return `<div class="card game-card" style="cursor:pointer;position:relative">
+        <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${ready ? 'OPEN' : 'SOON'}</span>
+        <div class="thumb" style="height:80px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${g.icon}</div>
+        <h4 style="font-size:var(--font-sm);font-weight:700;color:#fff;margin-bottom:var(--space-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.name}</h4>
+        <p style="font-size:var(--font-xs);color:var(--sub);margin-bottom:var(--space-sm);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.desc}</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm)">
+          <span style="font-size:var(--font-xs);color:var(--sub);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:999px">${g.cat || '—'}</span>
+          <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">★ ${(Math.random()*4+1).toFixed(1)}</span>
+        </div>
+        <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
+      </div>`;
+    }
+  }).join('');
+  const g1 = document.getElementById('gameGrid');
+  const g2 = document.getElementById('arcadeGrid');
+  if (g1) g1.innerHTML = html;
+  if (g2) g2.innerHTML = html;
+  // apply list view class
+  if (g2) g2.classList.toggle('list-view', arcadeViewMode === 'list');
+  
   // render category filter chips
   const wrap = document.getElementById('catFilter');
   if (!wrap) return;
   const cats = ['ALL', ...new Set(GAMES.map(g => g.cat).filter(Boolean).sort())];
   wrap.innerHTML = cats.map(c => {
     const active = currentCatFilter.toUpperCase() === c.toUpperCase();
-    return `<button class="cat-chip ${active ? 'active' : ''}" onclick="setCatFilter('${c}')" style="padding:6px 12px;border-radius:999px;font-size:10px;font-weight:700;border:none;cursor:pointer;background:${active ? 'var(--pink)' : 'rgba(255,255,255,.08)'};color:${active ? '#fff' : 'var(--text)'};white-space:nowrap">${c}</button>`;
+    return `<button class="cat-chip ${active ? 'active' : ''}" onclick="setCatFilter('${c}')" style="padding:6px 12px;border-radius:999px;font-size:var(--font-xs);font-weight:700;border:none;cursor:pointer;background:${active ? 'var(--pink)' : 'rgba(255,255,255,.08)'};color:${active ? '#fff' : 'var(--text)'};white-space:nowrap;transition:all var(--transition-fast)">${c}</button>`;
   }).join('');
 }
 
@@ -402,29 +547,73 @@ const SHOP_ITEMS = {
   ]
 };
 function renderShop(tab = 'skins') {
-  const items = SHOP_ITEMS[tab] || [];
-  const ownerType = tab === 'skins' ? 'skin' : tab === 'vehicles' ? 'vehicle' : tab === 'effects' ? 'effect' : 'booster';
+  currentShopTab = tab;
+  
+  // update tab active states
+  document.querySelectorAll('#shopTabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  
   // live daily deal banner (rotates 4x/day)
   const deal = liveDeal();
-  const dealBanner = deal && tab === 'skins' ? `
-    <div class="deal-banner" id="liveDealBanner">🔥 DAILY DEAL: ${deal.name} — ${deal.pct}% OFF — FIRST BUY TODAY!</div>` : '';
-  document.getElementById('shopItems').innerHTML = dealBanner + items.map(it => {
+  const dealEl = document.getElementById('liveDealBanner');
+  const dealText = document.getElementById('dealText');
+  if (dealEl && dealText) {
+    if (deal && tab === 'skins') {
+      dealEl.style.display = 'flex';
+      dealText.innerHTML = `${deal.name} — <b>${deal.pct}% OFF</b> — FIRST BUY TODAY!`;
+    } else {
+      dealEl.style.display = 'none';
+    }
+  }
+  
+  // update shop coin display
+  const shopCoin = document.getElementById('shopCoinDisplay');
+  if (shopCoin) shopCoin.innerText = state.coins.toLocaleString();
+  
+  // filter/sort values
+  const filter = (document.getElementById('shopFilter') || {}).value || 'all';
+  const sort = (document.getElementById('shopSort') || {}).value || 'price-asc';
+  
+  const ownerType = tab === 'skins' ? 'skin' : tab === 'vehicles' ? 'vehicle' : tab === 'effects' ? 'effect' : 'booster';
+  
+  let items = SHOP_ITEMS[tab] || [];
+  
+  // filter
+  if (filter === 'owned') items = items.filter(it => state.inventory.includes(it.id));
+  else if (filter === 'equipped') items = items.filter(it => state.equipped[ownerType] === it.id);
+  else if (filter === 'unowned') items = items.filter(it => !state.inventory.includes(it.id));
+  
+  // sort
+  if (sort === 'price-asc') items.sort((a,b) => a.price - b.price);
+  else if (sort === 'price-desc') items.sort((a,b) => b.price - a.price);
+  else if (sort === 'name') items.sort((a,b) => a.name.localeCompare(b.name));
+  
+  document.getElementById('shopItems').innerHTML = items.map(it => {
     const owned = state.inventory.includes(it.id);
     const equipped = state.equipped[ownerType] === it.id;
     return `
-    <div class="card shop-item">
-      <div class="s-ico" style="border-color:${it.price > 1000 ? '#FFE600' : 'rgba(255,255,255,.15)'}">${it.ico}</div>
-      <div class="s-info">
-        <h4>${it.name}</h4>
-        <p>${it.desc}</p>
-      </div>
-      <div>
-        ${owned
-          ? `<button class="btn ${equipped ? 'btn-ghost' : 'btn-primary'}" style="padding:8px 12px;font-size:11px" onclick="equipItem('${it.id}','${ownerType}')">${equipped ? 'EQUIPPED ✓' : 'EQUIP'}</button>`
-          : `<button class="btn btn-yellow" style="padding:8px 12px;font-size:11px" onclick="buyItem('${it.id}','${ownerType}',${it.price})"><i class="fa-solid fa-coins"></i>${it.price.toLocaleString()}</button>`}
+    <div class="shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}">
+      <div class="item-icon" style="color:${it.price > 1000 ? 'var(--yellow)' : 'var(--cyan)'}">${it.ico}</div>
+      <div class="item-name">${it.name}</div>
+      <div class="item-desc">${it.desc}</div>
+      <div class="item-price">
+        ${equipped 
+          ? `<span class="price-tag">EQUIPPED ✓</span>`
+          : owned 
+            ? `<button class="btn btn-small btn-ghost" onclick="equipItem('${it.id}','${ownerType}')">EQUIP</button>`
+            : `<button class="btn btn-small btn-yellow" onclick="buyItem('${it.id}','${ownerType}',${it.price})"><i class="fa-solid fa-coins"></i> ${it.price.toLocaleString()}</button>`
+        }
       </div>
     </div>`;
   }).join('');
+  
+  // update live deal banner text
+  if (document.getElementById('dealText')) {
+    const deal2 = liveDeal();
+    if (deal2 && deal2.item) {
+      const dealItem = SHOP_ITEMS.skins.find(s => s.id === deal2.item);
+      if (dealItem) document.getElementById('dealText').innerHTML = `${dealItem.name} — <b>${deal2.pct}% OFF</b> — FIRST BUY TODAY!`;
+    }
+  }
 }
 function buyItem(id, type, price) {
   if (state.inventory.includes(id)) { toast('Already owned'); return; }
