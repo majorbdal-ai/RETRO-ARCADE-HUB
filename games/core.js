@@ -66,11 +66,14 @@ const GAME_ENGINE = {
   'lucky-spin':          'luckySpin',
   'pinball':          'pinBall',
   'crossy-neon':          'crossyNeon',
+  'trash-sorter':          'trashSorter',
+  'ladder-climb':          'ladderClimb',
+  'math-dash':          'mathDash',
 };
 
-// true when the game's engine file is loaded (window[fn] is a function)
+// true when the game's engine file is available (all 60 are; lazy-loaded on launch)
 function engineReady(id) {
-  return typeof window[GAME_ENGINE[id]] === 'function';
+  return !!GAME_ENGINE[id];
 }
 
 // ---- game runtime state ----
@@ -197,6 +200,20 @@ function keyDown(e) {
   }
 }
 function keyUp(e) { gameState.keys[e.code] = false; }
+
+// ---- lock page scroll during gameplay (mobile) ----
+function lockGameScroll(lock) {
+  const lockFn = (e) => { e.preventDefault(); };
+  if (lock) {
+    if (!window.__scrollLock) {
+      window.__scrollLock = lockFn;
+      document.addEventListener('touchmove', lockFn, { passive: false });
+    }
+  } else if (window.__scrollLock) {
+    document.removeEventListener('touchmove', window.__scrollLock);
+    window.__scrollLock = null;
+  }
+}
 
 // ---- touch buttons ----
 function pressed(control, isDown, ev) {
@@ -352,18 +369,50 @@ function stopTouchKeySync() {
   touchedKeys = {};
 }
 
-// ---- launch a game by id ----
+// ---- on-demand engine loader (lazy load for mobile perf) ----
+function loadGameEngine(id, cb) {
+  const fn = GAME_ENGINE[id];
+  if (!fn) { cb(null); return; }
+  if (typeof window[fn] === 'function') { cb(window[fn]); return; }
+  const fname = fn.replace(/([A-Z])/g, m => '_' + m.toLowerCase()).replace(/^_/, '');
+  const file = fn === 'game2048' ? 'games/game2048.js'
+    : (fname === 'pin_ball' ? 'games/pin_ball.js' : 'games/' + fname + '.js');
+  const s = document.createElement('script');
+  s.src = file;
+  s.onload = () => cb(window[fn] || null);
+  s.onerror = () => cb(null);
+  document.head.appendChild(s);
+}
+
+// ---- launch a game by id (lazy-loads engine for mobile perf) ----
 function launchGame(id) {
   const g = GAMES.find(x => x.id === id);
   if (!g) { toast('Game not found'); return; }
   const engine = window[GAME_ENGINE[id]];
-  if (typeof engine !== 'function') { toast(g.name + ' — coming soon! 🔒'); return; }
+  if (typeof engine === 'function') { bootGame(id, engine); return; }
+  // engine not loaded yet — lazy load it (performance), show loading screen
+  const gl = document.getElementById('gameLoading');
+  if (gl) gl.classList.add('show');
+  loadGameEngine(id, (eng) => {
+    if (gl) gl.classList.remove('show');
+    if (typeof eng === 'function') bootGame(id, eng);
+    else toast(g.name + ' — coming soon! 🔒');
+  });
+}
+
+function bootGame(id, engine) {
+  const g = GAMES.find(x => x.id === id);
+  // browser back should exit the game
+  pushGameHistory();
 
   // switch to game page
   go('game');
   document.getElementById('hudGameTitle').innerText = g.name;
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('hudCoins').innerText = '0';
+
+  // lock page scroll during gameplay (mobile)
+  lockGameScroll(true);
 
   // reset game state
   gameState = { id, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
@@ -456,6 +505,7 @@ function restartGame() {
 // ---- exit to hub ----
 function exitToHub() {
   unbindGameTouch();
+  lockGameScroll(false);
   if (currentGame) { try { currentGame.destroy(); } catch (e) {} }
   currentGame = null;
   gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
@@ -473,11 +523,30 @@ function togglePause() {
   if (!gameState.id || gameState.over) return;
   if (gameState.paused) {
     gameState.paused = false;
+    document.getElementById('pauseOverlay').classList.remove('show');
     if (currentGame) { try { currentGame.resume(); } catch (e) {} }
   } else {
     gameState.paused = true;
+    document.getElementById('pauseOverlay').classList.add('show');
     if (currentGame) { try { currentGame.pause(); } catch (e) {} }
   }
+}
+
+// ---- auto-pause when call / backgrounded (mobile) ----
+function onVisibilityChange() {
+  if (document.hidden && gameState.id && !gameState.paused && !gameState.over) {
+    togglePause();
+  }
+}
+document.addEventListener('visibilitychange', onVisibilityChange);
+
+// ---- browser back button exits game instead of reloading ----
+window.addEventListener('popstate', () => {
+  if (gameState.id) { exitToHub(); }
+});
+// push a history entry when entering a game so back works
+function pushGameHistory() {
+  try { history.pushState({ game: true }, ''); } catch (e) {}
 }
 
 // ---- share ----
@@ -490,6 +559,76 @@ function shareGame() {
     toast('Try another platform to share');
   }
 }
+
+// ---- HOW TO PLAY (mobile) ----
+function toggleHelp() {
+  const h = document.getElementById('helpOverlay');
+  if (!h) return;
+  if (h.classList.contains('show')) { h.classList.remove('show'); return; }
+  // load per-game help from CONTROL_LAYOUT hint + engine instructions
+  const layout = (gameState.id && CONTROL_LAYOUT[gameState.id]) || {};
+  const name = (GAMES.find(g => g.id === gameState.id) || {}).name || '';
+  const hint = layout.hint || 'Tap to play this game.';
+  // if game has its own howto, show it; else generic
+  let desc = hint;
+  if (currentGame && typeof currentGame.getHelp === 'function') {
+    try { const hh = currentGame.getHelp(); if (hh) desc = hh; } catch (e) {}
+  }
+  document.getElementById('helpText').innerText = name + ' — ' + desc;
+  if (gameState.id && !gameState.paused && !gameState.over) {
+    // pause while showing help (non-destructively)
+    gameState.paused = true;
+    if (currentGame) { try { currentGame.pause(); } catch (e) {} }
+  }
+  h.classList.add('show');
+}
+
+// ---- MUTE toggle (mobile) ----
+let muted = false;
+function toggleMute() {
+  muted = !muted;
+  const ic = document.getElementById('muteIcon');
+  if (ic) ic.innerText = muted ? '🔇' : '🔊';
+  // stop any game audio objects
+  try {
+    document.querySelectorAll('audio, video').forEach(a => { if (muted) a.pause(); });
+  } catch (e) {}
+  toast(muted ? 'Sound OFF' : 'Sound ON');
+}
+function isMuted() { return muted; }
+
+// ---- CRT effect toggle ----
+function toggleCRT() {
+  const el = document.getElementById('crtOverlay');
+  if (!el) return;
+  const on = el.classList.toggle('on');
+  localStorage.setItem('rah_crt', on ? '1' : '0');
+  toast(on ? 'CRT ON' : 'CRT OFF');
+}
+function initCRT() {
+  const el = document.getElementById('crtOverlay');
+  if (el && localStorage.getItem('rah_crt') === '1') el.classList.add('on');
+}
+
+// ---- FULLSCREEN toggle (mobile) ----
+function toggleFullscreen() {
+  const el = document.documentElement;
+  const fsIcon = document.getElementById('fsIcon');
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || function(){};
+  const exit = document.exitFullscreen || document.webkitExitFullscreen || function(){};
+  if (!document.fullscreenElement) {
+    const p = req.call(el);
+    if (p && p.catch) p.catch(()=>{});
+    if (fsIcon) fsIcon.className = 'fa-solid fa-compress';
+  } else {
+    exit.call(document);
+    if (fsIcon) fsIcon.className = 'fa-solid fa-expand';
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  const fsIcon = document.getElementById('fsIcon');
+  if (fsIcon) fsIcon.className = document.fullscreenElement ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
+});
 
 // ---- wire card clicks to launch (replaces comingSoon) ----
 function playGame(id, e) {

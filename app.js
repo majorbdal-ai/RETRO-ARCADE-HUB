@@ -111,63 +111,66 @@ async function syncScore(gameId, score) {
 
 /* ==================== 20 GAMES ==================== */
 const GAMES = [
-  { id: 'neon-racer',    name: 'NEON RACER',    icon: '🏎️', color: '#00FFFF', desc: 'Dodge traffic, collect coins, nitro boost', featured: true, type: 'racer', controls: 'tilt-steer' },
-  { id: 'cyber-shooter',    name: 'CYBER SHOOTER',    icon: '🚀', color: '#FF10F0', desc: 'Blast alien armadas, combo kills, 3 lives', featured: true, type: 'shooter', controls: 'joystick-auto' },
-  { id: 'pixel-dungeon',    name: 'PIXEL DUNGEON',    icon: '🗡️', color: '#FFE600', desc: 'Descend, dodge traps, find key, open chest', featured: true, type: 'dungeon', controls: 'joystick-btn' },
-  { id: 'light-cycle',    name: 'LIGHT CYCLE',    icon: '🏍️', color: '#39FF88', desc: 'Tron-style grid duel — don\'t hit walls', featured: true, type: 'cycle', controls: 'swipe4' },
-  { id: 'neon-snake',    name: 'NEON SNAKE',    icon: '🐍', color: '#22D3EE', desc: 'Glowing classic, speed up each food', featured: false, type: 'snake', controls: 'swipe4' },
-  { id: 'brick-breaker',    name: 'BRICK BREAKER',    icon: '🧱', color: '#F59E0B', desc: 'Paddle-ball, clear all bricks, power-ups', featured: false, type: 'breaker', controls: 'drag-paddle' },
-  { id: 'tetris-blitz',    name: 'TETRIS BLITZ',    icon: '🧩', color: '#A855F7', desc: 'Fast Tetris, line clear, hold piece', featured: false, type: 'tetris', controls: 'swipe-move-tap-rotate' },
-  { id: 'flappy-neon',    name: 'FLAPPY NEON',    icon: '🐦', color: '#D946EF', desc: 'Flap through neon pipes, avoid crash', featured: false, type: 'flappy', controls: 'tap-flap' },
-  { id: 'pac-runner',    name: 'PAC-RUNNER',    icon: '🟡', color: '#FBBF24', desc: 'Eat coins, avoid ghosts, power pellets', featured: false, type: 'pac', controls: 'swipe4' },
-  { id: 'space-invaders',    name: 'SPACE INVADERS',    icon: '👾', color: '#F97316', desc: 'Clear alien waves, auto-shoot, shields', featured: false, type: 'invaders', controls: 'drag-move' },
-  { id: 'tank-battle',    name: 'TANK BATTLE',    icon: '🪖', color: '#84CC16', desc: 'Dual-stick tank duel — move + turret aim', featured: true, type: 'tank', controls: 'dual-joystick' },
-  { id: 'airstrike',    name: 'AIR STRIKE',    icon: '💣', color: '#EAB308', desc: 'Bomber run — hold to aim, release to drop', featured: false, type: 'bomber', controls: 'hold-aim-release' },
-  { id: 'water-sort',    name: 'WATER SORT',    icon: '🧪', color: '#38BDF8', desc: 'Color match puzzle, pour bottles', featured: false, type: 'watersort', controls: 'tap-to-pour' },
-  { id: 'triple-sort',    name: 'TRIPLE SORT',    icon: '📦', color: '#22D3EE', desc: 'Goods puzzle, match 3 on shelf', featured: false, type: 'triplesort', controls: 'tap-to-move' },
-  { id: 'fruit-slash',    name: 'FRUIT SLASH',    icon: '🍎', color: '#F87171', desc: 'Fruit Ninja style, swipe to slash', featured: false, type: 'fruitslash', controls: 'swipe-any' },
-  { id: 'fruit-merge',    name: 'FRUIT MERGE',    icon: '🍇', color: '#A3E635', desc: 'Drop fruits, merge same into bigger', featured: false, type: 'fruitmerge', controls: 'drag-drop' },
-  { id: 'bubble-shooter',    name: 'BUBBLE SHOOTER',    icon: '🫧', color: '#60A5FA', desc: 'Match 3 bubbles, clear the board', featured: true, type: 'bubble', controls: 'drag-aim-release' },
-  { id: 'piano-tiles',    name: 'PIANO TILES',    icon: '🎹', color: '#C084FC', desc: 'Tap black tiles, don\'t miss', featured: false, type: 'piano', controls: 'multi-tap' },
-  { id: 'ludo-king',    name: 'LUDO KING',    icon: '🎲', color: '#F59E0B', desc: '2-4 player, pass & play, vs bot', featured: false, type: 'ludo', controls: 'tap-roll-tap-piece' },
-  { id: 'carrom-pool',    name: 'CARROM POOL',    icon: '🎯', color: '#EAB308', desc: 'Striker drag & shoot, queen cover', featured: false, type: 'carrom', controls: 'drag-aim-release' },
-  { id: '2048',    name: '2048',    icon: '🔢', color: '#84CC16', desc: 'Swipe merge, reach 2048', featured: false, type: '2048', controls: 'swipe4' },
-  { id: 'hill-climb',    name: 'HILL CLIMB',    icon: '🚙', color: '#F97316', desc: 'Gas/brake, collect fuel, upgrade shop', featured: false, type: 'hillclimb', controls: 'hold-gas-brake' },
-  { id: 'temple-run',    name: 'TEMPLE RUN',    icon: '🏃', color: '#EF4444', desc: 'Endless runner, swipe jump/slide/turn', featured: false, type: 'templerun', controls: 'swipe4' },
-  { id: 'candy-crush',    name: 'CANDY CRUSH',    icon: '🍬', color: '#EC4899', desc: '3-match blast, line/color bombs', featured: false, type: 'candy', controls: 'drag-swap' },
-  { id: 'snake-classic',    name: 'SNAKE CLASSIC',    icon: '🐍', color: '#22C55E', desc: 'Nokia 1100 style, keypad + swipe', featured: false, type: 'snakeclassic', controls: 'dpad+swipe' },
-  { id: 'duck-hunt',    name: 'DUCK HUNT',    icon: '🦆', color: '#FBBF24', desc: 'Tap the ducks before they fly away', featured: false, type: 'duckhunt', controls: 'tap-target' },
-  { id: 'neon-dash',    name: 'NEON DASH',    icon: '⚡', color: '#22D3EE', desc: 'Geometry-Dash style, hold to jump', featured: true, type: 'dash', controls: 'tap-hold-jump' },
-  { id: 'color-switch',    name: 'COLOR SWITCH',    icon: '🎨', color: '#F472B6', desc: 'Match the ball color, one-tap switch', featured: false, type: 'colorswitch', controls: 'tap-switch' },
-  { id: 'neon-jumper',    name: 'NEON JUMPER',    icon: '🦘', color: '#4ADE80', desc: 'Doodle-Jump style, hold L/R to bounce', featured: false, type: 'jumper', controls: 'hold-lr' },
-  { id: 'stack-drop',    name: 'STACK DROP',    icon: '🧱', color: '#F59E0B', desc: 'Tap to drop blocks, build the tower', featured: false, type: 'stack', controls: 'tap-drop' },
-  { id: 'helix-drop',    name: 'HELIX DROP',    icon: '🌀', color: '#38BDF8', desc: 'Swipe to rotate, hold to fall', featured: false, type: 'helix', controls: 'swipe-rotate-tap' },
-  { id: 'traffic-racer',    name: 'TRAFFIC RACER',    icon: '🏁', color: '#F97316', desc: 'Lane-steer endless highway racer', featured: false, type: 'traffic', controls: 'tap-steer' },
-  { id: 'dino-run',    name: 'DINO RUN',    icon: '🦖', color: '#A3E635', desc: 'Chrome dino — jump & duck the cacti', featured: false, type: 'dino', controls: 'tap-jump-drag-duck' },
-  { id: 'sling-birds',    name: 'SLING BIRDS',    icon: '🐦', color: '#FB923C', desc: 'Angry-Birds style slingshot mayhem', featured: true, type: 'sling', controls: 'slingshot-drag' },
-  { id: 'pong',    name: 'NEON PONG',    icon: '🏓', color: '#00FFFF', desc: 'Classic pong vs AI — drag paddle', featured: false, type: 'pong', controls: 'drag-paddle' },
-  { id: 'table-tennis',    name: 'TABLE TENNIS',    icon: '🏓', color: '#FF10F0', desc: 'Drag paddle rally, timing smashes', featured: false, type: 'pingpong', controls: 'drag-paddle' },
-  { id: 'bowling-strike',    name: 'BOWLING STRIKE',    icon: '🎳', color: '#60A5FA', desc: 'Swipe to bowl — power & curve', featured: false, type: 'bowling', controls: 'swipe-bowl' },
-  { id: 'cricket-sixer',    name: 'CRICKET SIXER',    icon: '🏏', color: '#FBBF24', desc: 'Timing tap — smash every ball for six', featured: true, type: 'cricket', controls: 'timing-tap' },
-  { id: 'hoop-dunk',    name: 'HOOP DUNK',    icon: '🏀', color: '#FB923C', desc: 'Drag-aim the basketball into the hoop', featured: false, type: 'basket', controls: 'drag-aim-release' },
-  { id: 'archery-master',    name: 'ARCHERY MASTER',    icon: '🏹', color: '#4ADE80', desc: 'Drag-aim with wind — hit the bullseye', featured: false, type: 'archery', controls: 'drag-aim-wind' },
-  { id: 'soccer-penalty',    name: 'PENALTY KICK',    icon: '⚽', color: '#22C55E', desc: 'Drag-aim & power the penalty kick', featured: false, type: 'soccer', controls: 'drag-aim-power' },
-  { id: 'athletics-sprint',    name: 'SPRINT KING',    icon: '🏃', color: '#F59E0B', desc: 'Tap-tap-tap to sprint, time the start', featured: false, type: 'sprint', controls: 'rapid-tap' },
-  { id: 'flow-free',    name: 'FLOW FREE',    icon: '🔗', color: '#22D3EE', desc: 'Connect matching dots, fill the grid', featured: false, type: 'flow', controls: 'drag-path' },
-  { id: 'word-search',    name: 'WORD SEARCH',    icon: '🔤', color: '#F472B6', desc: 'Drag over letters to find words', featured: false, type: 'wordsearch', controls: 'drag-path' },
-  { id: 'memory-match',    name: 'MEMORY MATCH',    icon: '🃏', color: '#C084FC', desc: 'Flip cards, match pairs', featured: false, type: 'memory', controls: 'tap-flip' },
-  { id: 'mine-sweeper',    name: 'MINE SWEEPER',    icon: '💣', color: '#F97316', desc: 'Reveal cells, flag the mines', featured: false, type: 'minesweeper', controls: 'tap+longpress' },
-  { id: 'sudoku',    name: 'SUDOKU',    icon: '🧮', color: '#38BDF8', desc: 'Classic sudoku — place 1-9', featured: false, type: 'sudoku', controls: 'tap-cell-number' },
-  { id: 'mastermind',    name: 'MASTERMIND',    icon: '🧠', color: '#FF10F0', desc: 'Crack the color code in 10 tries', featured: false, type: 'mastermind', controls: 'tap-colors' },
-  { id: 'simon-says',    name: 'SIMON SAYS',    icon: '🔴', color: '#F87171', desc: 'Repeat the light sequence', featured: false, type: 'simon', controls: 'tap-sequencing' },
-  { id: 'tic-tac-toe',    name: 'TIC TAC TOE',    icon: '⭕', color: '#00FFFF', desc: 'Classic 3-in-a-row vs bot', featured: false, type: 'tictactoe', controls: 'tap-cell' },
-  { id: 'connect-four',    name: 'CONNECT FOUR',    icon: '🟡', color: '#FBBF24', desc: 'Drop discs, 4-in-a-row vs bot', featured: false, type: 'connect4', controls: 'tap-column' },
-  { id: 'checkers',    name: 'CHECKERS',    icon: '♟️', color: '#4ADE80', desc: 'Jump the pieces, capture all', featured: false, type: 'checkers', controls: 'tap-piece-move' },
-  { id: 'slide-puzzle',    name: 'SLIDE PUZZLE',    icon: '🧩', color: '#A855F7', desc: '15-puzzle — slide tiles in order', featured: false, type: 'slide', controls: 'tap-adjacent' },
-  { id: 'nonogram',    name: 'NONOGRAM',    icon: '🎲', color: '#60A5FA', desc: 'Picross — fill cells by the clues', featured: false, type: 'nonogram', controls: 'tap-fill-longpress' },
-  { id: 'lucky-spin',    name: 'LUCKY SPIN',    icon: '🎡', color: '#FF10F0', desc: 'Spin the wheel — win coins & prizes', featured: false, type: 'spin', controls: 'tap-spin' },
-  { id: 'pinball',       name: 'NEON PINBALL',   icon: '🎰', color: '#F97316', desc: 'Classic pinball — flippers, bumpers, combos', featured: false, type: 'pinball', controls: 'flipper-dual' },
-  { id: 'crossy-neon',   name: 'CROSSY NEON',    icon: '🐸', color: '#4ADE80', desc: 'Cross the road — dodge cars, logs & water', featured: false, type: 'crossy', controls: 'swipe4' }
+  { id: 'neon-racer',    name: 'NEON RACER',    icon: '🏎️', color: '#00FFFF', desc: 'Dodge traffic, collect coins, nitro boost', featured: true, type: 'racer', cat: 'Action', controls: 'tilt-steer' },
+  { id: 'cyber-shooter',    name: 'CYBER SHOOTER',    icon: '🚀', color: '#FF10F0', desc: 'Blast alien armadas, combo kills, 3 lives', featured: true, type: 'shooter', cat: 'Action', controls: 'joystick-auto' },
+  { id: 'pixel-dungeon',    name: 'PIXEL DUNGEON',    icon: '🗡️', color: '#FFE600', desc: 'Descend, dodge traps, find key, open chest', featured: true, type: 'dungeon', cat: 'Action', controls: 'joystick-btn' },
+  { id: 'light-cycle',    name: 'LIGHT CYCLE',    icon: '🏍️', color: '#39FF88', desc: 'Tron-style grid duel — don\'t hit walls', featured: true, type: 'cycle', cat: 'Action', controls: 'swipe4' },
+  { id: 'neon-snake',    name: 'NEON SNAKE',    icon: '🐍', color: '#22D3EE', desc: 'Glowing classic, speed up each food', featured: false, type: 'snake', cat: 'Arcade', controls: 'swipe4' },
+  { id: 'brick-breaker',    name: 'BRICK BREAKER',    icon: '🧱', color: '#F59E0B', desc: 'Paddle-ball, clear all bricks, power-ups', featured: false, type: 'breaker', cat: 'Arcade', controls: 'drag-paddle' },
+  { id: 'tetris-blitz',    name: 'TETRIS BLITZ',    icon: '🧩', color: '#A855F7', desc: 'Fast Tetris, line clear, hold piece', featured: false, type: 'tetris', cat: 'Puzzle', controls: 'swipe-move-tap-rotate' },
+  { id: 'flappy-neon',    name: 'FLAPPY NEON',    icon: '🐦', color: '#D946EF', desc: 'Flap through neon pipes, avoid crash', featured: false, type: 'flappy', cat: 'Arcade', controls: 'tap-flap' },
+  { id: 'pac-runner',    name: 'PAC-RUNNER',    icon: '🟡', color: '#FBBF24', desc: 'Eat coins, avoid ghosts, power pellets', featured: false, type: 'pac', cat: 'Arcade', controls: 'swipe4' },
+  { id: 'space-invaders',    name: 'SPACE INVADERS',    icon: '👾', color: '#F97316', desc: 'Clear alien waves, auto-shoot, shields', featured: false, type: 'invaders', cat: 'Arcade', controls: 'drag-move' },
+  { id: 'tank-battle',    name: 'TANK BATTLE',    icon: '🪖', color: '#84CC16', desc: 'Dual-stick tank duel — move + turret aim', featured: true, type: 'tank', cat: 'Action', controls: 'dual-joystick' },
+  { id: 'airstrike',    name: 'AIR STRIKE',    icon: '💣', color: '#EAB308', desc: 'Bomber run — hold to aim, release to drop', featured: false, type: 'bomber', cat: 'Action', controls: 'hold-aim-release' },
+  { id: 'water-sort',    name: 'WATER SORT',    icon: '🧪', color: '#38BDF8', desc: 'Color match puzzle, pour bottles', featured: false, type: 'watersort', cat: 'Puzzle', controls: 'tap-to-pour' },
+  { id: 'triple-sort',    name: 'TRIPLE SORT',    icon: '📦', color: '#22D3EE', desc: 'Goods puzzle, match 3 on shelf', featured: false, type: 'triplesort', cat: 'Puzzle', controls: 'tap-to-move' },
+  { id: 'fruit-slash',    name: 'FRUIT SLASH',    icon: '🍎', color: '#F87171', desc: 'Fruit Ninja style, swipe to slash', featured: false, type: 'fruitslash', cat: 'Arcade', controls: 'swipe-any' },
+  { id: 'fruit-merge',    name: 'FRUIT MERGE',    icon: '🍇', color: '#A3E635', desc: 'Drop fruits, merge same into bigger', featured: false, type: 'fruitmerge', cat: 'Puzzle', controls: 'drag-drop' },
+  { id: 'bubble-shooter',    name: 'BUBBLE SHOOTER',    icon: '🫧', color: '#60A5FA', desc: 'Match 3 bubbles, clear the board', featured: true, type: 'bubble', cat: 'Puzzle', controls: 'drag-aim-release' },
+  { id: 'piano-tiles',    name: 'PIANO TILES',    icon: '🎹', color: '#C084FC', desc: 'Tap black tiles, don\'t miss', featured: false, type: 'piano', cat: 'Arcade', controls: 'multi-tap' },
+  { id: 'ludo-king',    name: 'LUDO KING',    icon: '🎲', color: '#F59E0B', desc: '2-4 player, pass & play, vs bot', featured: false, type: 'ludo', cat: 'Board', controls: 'tap-roll-tap-piece' },
+  { id: 'carrom-pool',    name: 'CARROM POOL',    icon: '🎯', color: '#EAB308', desc: 'Striker drag & shoot, queen cover', featured: false, type: 'carrom', cat: 'Board', controls: 'drag-aim-release' },
+  { id: '2048',    name: '2048',    icon: '🔢', color: '#84CC16', desc: 'Swipe merge, reach 2048', featured: false, type: '2048', cat: 'Arcade', controls: 'swipe4' },
+  { id: 'hill-climb',    name: 'HILL CLIMB',    icon: '🚙', color: '#F97316', desc: 'Gas/brake, collect fuel, upgrade shop', featured: false, type: 'hillclimb', cat: 'Action', controls: 'hold-gas-brake' },
+  { id: 'temple-run',    name: 'TEMPLE RUN',    icon: '🏃', color: '#EF4444', desc: 'Endless runner, swipe jump/slide/turn', featured: false, type: 'templerun', cat: 'Action', controls: 'swipe4' },
+  { id: 'candy-crush',    name: 'CANDY CRUSH',    icon: '🍬', color: '#EC4899', desc: '3-match blast, line/color bombs', featured: false, type: 'candy', cat: 'Arcade', controls: 'drag-swap' },
+  { id: 'snake-classic',    name: 'SNAKE CLASSIC',    icon: '🐍', color: '#22C55E', desc: 'Nokia 1100 style, keypad + swipe', featured: false, type: 'snakeclassic', cat: 'Arcade', controls: 'dpad+swipe' },
+  { id: 'duck-hunt',    name: 'DUCK HUNT',    icon: '🦆', color: '#FBBF24', desc: 'Tap the ducks before they fly away', featured: false, type: 'duckhunt', cat: 'Arcade', controls: 'tap-target' },
+  { id: 'neon-dash',    name: 'NEON DASH',    icon: '⚡', color: '#22D3EE', desc: 'Geometry-Dash style, hold to jump', featured: true, type: 'dash', cat: 'Action', controls: 'tap-hold-jump' },
+  { id: 'color-switch',    name: 'COLOR SWITCH',    icon: '🎨', color: '#F472B6', desc: 'Match the ball color, one-tap switch', featured: false, type: 'colorswitch', cat: 'Arcade', controls: 'tap-switch' },
+  { id: 'neon-jumper',    name: 'NEON JUMPER',    icon: '🦘', color: '#4ADE80', desc: 'Doodle-Jump style, hold L/R to bounce', featured: false, type: 'jumper', cat: 'Arcade', controls: 'hold-lr' },
+  { id: 'stack-drop',    name: 'STACK DROP',    icon: '🧱', color: '#F59E0B', desc: 'Tap to drop blocks, build the tower', featured: false, type: 'stack', cat: 'Arcade', controls: 'tap-drop' },
+  { id: 'helix-drop',    name: 'HELIX DROP',    icon: '🌀', color: '#38BDF8', desc: 'Swipe to rotate, hold to fall', featured: false, type: 'helix', cat: 'Arcade', controls: 'swipe-rotate-tap' },
+  { id: 'traffic-racer',    name: 'TRAFFIC RACER',    icon: '🏁', color: '#F97316', desc: 'Lane-steer endless highway racer', featured: false, type: 'traffic', cat: 'Action', controls: 'tap-steer' },
+  { id: 'dino-run',    name: 'DINO RUN',    icon: '🦖', color: '#A3E635', desc: 'Chrome dino — jump & duck the cacti', featured: false, type: 'dino', cat: 'Action', controls: 'tap-jump-drag-duck' },
+  { id: 'sling-birds',    name: 'SLING BIRDS',    icon: '🐦', color: '#FB923C', desc: 'Angry-Birds style slingshot mayhem', featured: true, type: 'sling', cat: 'Action', controls: 'slingshot-drag' },
+  { id: 'pong',    name: 'NEON PONG',    icon: '🏓', color: '#00FFFF', desc: 'Classic pong vs AI — drag paddle', featured: false, type: 'pong', cat: 'Sports', controls: 'drag-paddle' },
+  { id: 'table-tennis',    name: 'TABLE TENNIS',    icon: '🏓', color: '#FF10F0', desc: 'Drag paddle rally, timing smashes', featured: false, type: 'pingpong', cat: 'Sports', controls: 'drag-paddle' },
+  { id: 'bowling-strike',    name: 'BOWLING STRIKE',    icon: '🎳', color: '#60A5FA', desc: 'Swipe to bowl — power & curve', featured: false, type: 'bowling', cat: 'Sports', controls: 'swipe-bowl' },
+  { id: 'cricket-sixer',    name: 'CRICKET SIXER',    icon: '🏏', color: '#FBBF24', desc: 'Timing tap — smash every ball for six', featured: true, type: 'cricket', cat: 'Sports', controls: 'timing-tap' },
+  { id: 'hoop-dunk',    name: 'HOOP DUNK',    icon: '🏀', color: '#FB923C', desc: 'Drag-aim the basketball into the hoop', featured: false, type: 'basket', cat: 'Sports', controls: 'drag-aim-release' },
+  { id: 'archery-master',    name: 'ARCHERY MASTER',    icon: '🏹', color: '#4ADE80', desc: 'Drag-aim with wind — hit the bullseye', featured: false, type: 'archery', cat: 'Sports', controls: 'drag-aim-wind' },
+  { id: 'soccer-penalty',    name: 'PENALTY KICK',    icon: '⚽', color: '#22C55E', desc: 'Drag-aim & power the penalty kick', featured: false, type: 'soccer', cat: 'Sports', controls: 'drag-aim-power' },
+  { id: 'athletics-sprint',    name: 'SPRINT KING',    icon: '🏃', color: '#F59E0B', desc: 'Tap-tap-tap to sprint, time the start', featured: false, type: 'sprint', cat: 'Sports', controls: 'rapid-tap' },
+  { id: 'flow-free',    name: 'FLOW FREE',    icon: '🔗', color: '#22D3EE', desc: 'Connect matching dots, fill the grid', featured: false, type: 'flow', cat: 'Puzzle', controls: 'drag-path' },
+  { id: 'word-search',    name: 'WORD SEARCH',    icon: '🔤', color: '#F472B6', desc: 'Drag over letters to find words', featured: false, type: 'wordsearch', cat: 'Puzzle', controls: 'drag-path' },
+  { id: 'memory-match',    name: 'MEMORY MATCH',    icon: '🃏', color: '#C084FC', desc: 'Flip cards, match pairs', featured: false, type: 'memory', cat: 'Puzzle', controls: 'tap-flip' },
+  { id: 'mine-sweeper',    name: 'MINE SWEEPER',    icon: '💣', color: '#F97316', desc: 'Reveal cells, flag the mines', featured: false, type: 'minesweeper', cat: 'Puzzle', controls: 'tap+longpress' },
+  { id: 'sudoku',    name: 'SUDOKU',    icon: '🧮', color: '#38BDF8', desc: 'Classic sudoku — place 1-9', featured: false, type: 'sudoku', cat: 'Puzzle', controls: 'tap-cell-number' },
+  { id: 'mastermind',    name: 'MASTERMIND',    icon: '🧠', color: '#FF10F0', desc: 'Crack the color code in 10 tries', featured: false, type: 'mastermind', cat: 'Puzzle', controls: 'tap-colors' },
+  { id: 'simon-says',    name: 'SIMON SAYS',    icon: '🔴', color: '#F87171', desc: 'Repeat the light sequence', featured: false, type: 'simon', cat: 'Puzzle', controls: 'tap-sequencing' },
+  { id: 'tic-tac-toe',    name: 'TIC TAC TOE',    icon: '⭕', color: '#00FFFF', desc: 'Classic 3-in-a-row vs bot', featured: false, type: 'tictactoe', cat: 'Puzzle', controls: 'tap-cell' },
+  { id: 'connect-four',    name: 'CONNECT FOUR',    icon: '🟡', color: '#FBBF24', desc: 'Drop discs, 4-in-a-row vs bot', featured: false, type: 'connect4', cat: 'Puzzle', controls: 'tap-column' },
+  { id: 'checkers',    name: 'CHECKERS',    icon: '♟️', color: '#4ADE80', desc: 'Jump the pieces, capture all', featured: false, type: 'checkers', cat: 'Puzzle', controls: 'tap-piece-move' },
+  { id: 'slide-puzzle',    name: 'SLIDE PUZZLE',    icon: '🧩', color: '#A855F7', desc: '15-puzzle — slide tiles in order', featured: false, type: 'slide', cat: 'Puzzle', controls: 'tap-adjacent' },
+  { id: 'nonogram',    name: 'NONOGRAM',    icon: '🎲', color: '#60A5FA', desc: 'Picross — fill cells by the clues', featured: false, type: 'nonogram', cat: 'Puzzle', controls: 'tap-fill-longpress' },
+  { id: 'lucky-spin',    name: 'LUCKY SPIN',    icon: '🎡', color: '#FF10F0', desc: 'Spin the wheel — win coins & prizes', featured: false, type: 'spin', cat: 'Casino', controls: 'tap-spin' },
+  { id: 'pinball',       name: 'NEON PINBALL',   icon: '🎰', color: '#F97316', desc: 'Classic pinball — flippers, bumpers, combos', featured: false, type: 'pinball', cat: 'Retro', controls: 'flipper-dual' },
+  { id: 'crossy-neon',   name: 'CROSSY NEON',    icon: '🐸', color: '#4ADE80', desc: 'Cross the road — dodge cars, logs & water', featured: false, type: 'crossy', cat: 'Retro', controls: 'swipe4' },
+  { id: 'trash-sorter',  name: 'TRASH SORTER',   icon: '🗑️', color: '#38BDF8', desc: 'Sort waste into the right recycle bin', featured: false, type: 'trash', cat: 'Retro', controls: 'tap-3bin' },
+  { id: 'ladder-climb',  name: 'LADDER CLIMB',   icon: '⛰️', color: '#F59E0B', desc: 'Tap to grab holds, climb the mountain', featured: false, type: 'climb', cat: 'Retro', controls: 'tap-grab' },
+  { id: 'math-dash',     name: 'MATH DASH',      icon: '🧮', color: '#22D3EE', desc: 'Solve fast math under the timer', featured: false, type: 'math', cat: 'Retro', controls: 'tap-4' }
 ];
 
 
@@ -280,14 +283,20 @@ function renderHome() {
     </div>`).join('');
   renderGameGrid('');
 }
-function renderGameGrid(filter = '') {
+// current category filter
+let currentCatFilter = 'ALL';
+
+function renderGameGrid(filter = '', cat = '') {
   const q = (filter || '').toLowerCase();
-  const list = GAMES.filter(g => !q || g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q));
+  const c = (cat || currentCatFilter).toUpperCase();
+  let list = GAMES;
+  if (q) list = list.filter(g => g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q));
+  if (c !== 'ALL') list = list.filter(g => (g.cat || '').toUpperCase() === c);
   const html = list.map(g => {
     const ready = !!engineReady(g.id);
-    return `
-    <div class="card game-card" style="cursor:pointer;position:relative">
-      <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${ready ? 'OPEN' : 'SOON'}</span>
+    const badge = ready ? 'OPEN' : 'SOON';
+    return `<div class="card game-card" style="cursor:pointer;position:relative">
+      <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${badge}</span>
       <div class="thumb" style="border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${g.icon}</div>
       <h4>${g.name}</h4>
       <p>${g.desc}</p>
@@ -300,9 +309,22 @@ function renderGameGrid(filter = '') {
   if (g2) g2.innerHTML = html;
 }
 
-/* ==================== RENDER: ARCADE ==================== */
 function renderArcadeGrid(filter = '') {
   renderGameGrid(filter);
+  // render category filter chips
+  const wrap = document.getElementById('catFilter');
+  if (!wrap) return;
+  const cats = ['ALL', ...new Set(GAMES.map(g => g.cat).filter(Boolean).sort())];
+  wrap.innerHTML = cats.map(c => {
+    const active = currentCatFilter.toUpperCase() === c.toUpperCase();
+    return `<button class="cat-chip ${active ? 'active' : ''}" onclick="setCatFilter('${c}')" style="padding:6px 12px;border-radius:999px;font-size:10px;font-weight:700;border:none;cursor:pointer;background:${active ? 'var(--pink)' : 'rgba(255,255,255,.08)'};color:${active ? '#fff' : 'var(--text)'};white-space:nowrap">${c}</button>`;
+  }).join('');
+}
+
+function setCatFilter(c) {
+  currentCatFilter = c;
+  renderArcadeGrid();
+  document.getElementById('arcadeSearch').value = '';
 }
 
 /* ==================== SHOP ==================== */
@@ -507,6 +529,13 @@ let game = { id: null, running: false, paused: false, over: false, score: 0, tou
 function init() {
   openAuth();
   navInit();
+  initCRT();
+  // PWA offline support
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
   // hide boot, show UI
   document.getElementById('bootLoader').style.display = 'none';
   document.getElementById('topBar').style.display = 'flex';
@@ -514,5 +543,19 @@ function init() {
   document.getElementById('app').style.display = 'block';
   go('home');
   updateCoinDisplay();
+  // version badge
+  showVersionBadge();
 }
 document.addEventListener('DOMContentLoaded', init);
+
+// version badge
+function showVersionBadge() {
+  try {
+    fetch('version.json').then(r => r.json()).then(d => {
+      const badge = document.createElement('div');
+      badge.style.cssText = 'position:fixed;bottom:8px;right:8px;z-index:5;font-size:9px;opacity:.4;color:var(--sub);font-family:monospace';
+      badge.innerText = `v${d.version} · ${d.games} games`;
+      document.body.appendChild(badge);
+    });
+  } catch (e) {}
+}

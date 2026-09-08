@@ -1,0 +1,19 @@
+{
+  "name": "RETRO ARCADE HUB — 60 Free Games",
+  "short_name": "RETRO ARCADE",
+  "description": "Play 60 free retro arcade games on your phone.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#05070A",
+  "theme_color": "#05070A",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
