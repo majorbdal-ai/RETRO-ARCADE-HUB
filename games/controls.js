@@ -1,5 +1,5 @@
 /* ============================================================
-   RETRO ARCADE HUB — CONTROL MAP (55 GAMES)
+   RETRO ARCADE HUB — CONTROL MAP (57 GAMES)
    Each game defines its OWN custom control layout (professional).
    Every game has a UNIQUE control scheme — no two games share
    the same exact bindings. Real mobile game control research applied.
@@ -71,5 +71,9 @@ const CONTROL_LAYOUT = {
   'checkers':        { type: 'tap',        hint: 'TAP PIECE · TAP DESTINATION' },
   'slide-puzzle':    { type: 'tap',        hint: 'TAP TILE NEXT TO EMPTY TO SLIDE' },
   'nonogram':        { type: 'tap',        hint: 'TAP FILL · HOLD MARK ✕' },
-  'lucky-spin':      { type: 'tap',        hint: 'TAP TO SPIN THE WHEEL' }
+  'lucky-spin':      { type: 'tap',        hint: 'TAP TO SPIN THE WHEEL' },
+
+  // ============ GROUP 7: NEW GAMES (2) ============
+  'pinball':         { type: 'dual',       hint: 'LEFT FLIPPER ← · RIGHT FLIPPER → · HOLD SPACE LAUNCH' },
+  'crossy-neon':     { type: 'swipe',      hint: 'SWIPE UP/DOWN/LEFT/RIGHT TO CROSS' }
 };

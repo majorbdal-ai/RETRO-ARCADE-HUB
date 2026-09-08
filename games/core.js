@@ -64,6 +64,8 @@ const GAME_ENGINE = {
   'slide-puzzle':          'slidePuzzle',
   'nonogram':          'nonogram',
   'lucky-spin':          'luckySpin',
+  'pinball':          'pinBall',
+  'crossy-neon':          'crossyNeon',
 };
 
 // true when the game's engine file is loaded (window[fn] is a function)
