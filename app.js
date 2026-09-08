@@ -177,9 +177,16 @@ const GAMES = [
 /* ==================== NAVIGATION ==================== */
 const PAGES = ['home', 'arcade', 'shop', 'board', 'profile', 'store', 'themes', 'game'];
 function go(page) {
+  // animate current page out smoothly, then switch (premium feel)
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('page-' + page);
-  if (el) el.classList.add('active');
+  if (el) {
+    el.classList.add('active');
+    // replay slide-in animation for each switch
+    el.style.animation = 'none';
+    void el.offsetWidth; // reflow to restart CSS animation
+    el.style.animation = '';
+  }
   if (page === 'game') {
     document.body.classList.add('game-active');
   } else {
@@ -240,8 +247,13 @@ function popScore(x, y, text) {
   el.className = 'score-pop';
   el.style.left = x + 'px'; el.style.top = y + 'px';
   el.innerText = text;
+  // spring: start tiny → overshoot → settle (cubic-bezier handles it)
+  el.style.transform = 'scale(.4)';
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 900);
+  // force reflow to restart animation for rapid pops (multi-score combo)
+  void el.offsetWidth;
+  el.style.animation = 'scorePop .9s cubic-bezier(.22,1.61,.36,1) forwards';
+  setTimeout(() => el.remove(), 950);
 }
 /* Login/Register modal (local) */
 function openAuth() {
@@ -473,21 +485,180 @@ function renderCoinStore() {
     </div>`).join('');
 }
 
+/* Per-game skin mapping — each game gets its own palette (skin-by-game).
+   Map game type/category → theme id. Individual games can be overridden below. */
+const GAME_SKIN = {
+  // Action neon
+  'neon-racer': 'neon', 'cyber-shooter': 'neon2', 'pixel-dungeon': 'void',
+  'light-cycle': 'neon', 'neon-snake': 'neon', 'tank-battle': 'matrix',
+  'airstrike': 'sunset', 'neon-dash': 'neon', 'traffic-racer': 'sunset',
+  'dino-run': 'sunset', 'sling-birds': 'void', 'hill-climb': 'sunset',
+  'temple-run': 'void', 'helix-drop': 'matrix',
+  // Arcade vibrant
+  'flappy-neon': 'neon', 'pac-runner': 'void', 'space-invaders': 'matrix',
+  'brick-breaker': 'neon2', 'tetris-blitz': 'neon2',
+  'fruit-slash': 'sunset', 'piano-tiles': 'void', 'candy-crush': 'sunset',
+  'snake-classic': 'matrix', 'duck-hunt': 'void', 'color-switch': 'neon2',
+  'neon-jumper': 'neon', 'stack-drop': 'neon', 'lucky-spin': 'royal',
+  '2048': 'void',
+  // Puzzle / brain
+  'water-sort': 'neon2', 'triple-sort': 'neon2', 'fruit-merge': 'sunset',
+  'bubble-shooter': 'neon2', 'flow-free': 'neon', 'word-search': 'sunset',
+  'memory-match': 'neon2', 'mine-sweeper': 'matrix', 'sudoku': 'void',
+  'mastermind': 'neon', 'simon-says': 'sunset', 'tic-tac-toe': 'void',
+  'connect-four': 'sunset', 'checkers': 'royal', 'slide-puzzle': 'neon2',
+  'nonogram': 'void',
+  // Sports
+  'pong': 'neon', 'table-tennis': 'neon2', 'bowling-strike': 'void',
+  'cricket-sixer': 'royal', 'hoop-dunk': 'sunset', 'archery-master': 'matrix',
+  'soccer-penalty': 'neon', 'athletics-sprint': 'sunset',
+  // Retro / classic
+  'pinball': 'neon', 'crossy-neon': 'void', 'trash-sorter': 'matrix',
+  'ladder-climb': 'sunset', 'math-dash': 'neon2',
+  // Board
+  'ludo-king': 'royal', 'carrom-pool': 'sunset',
+  // default
+  '_default': 'neon'
+};
+/* Apply a game's skin palette while playing (skin-by-game). Falls back to global. */
+function applyGameSkin(gameId) {
+  const themeId = GAME_SKIN[gameId] || GAME_SKIN._default || 'neon';
+  // remember the user's chosen theme as the "global" — game skin is transient
+  if (!globalTheme || globalTheme === 'game') globalTheme = state.equipped.theme || 'neon';
+  applyTheme(themeId, true);
+}
+
 /* ==================== THEMES ==================== */
+/* 6 full theme palettes — each sets the ENTIRE CSS variable set.
+   Applied via applyTheme() → CSS custom properties → instant skin change. */
 const THEMES = [
-  { id: 'neon', name: 'NEON CYBER', ico: '🌆', desc: 'Default cyan/pink glow', price: 0 },
-  { id: 'void', name: 'VOID DARK', ico: '🌑', desc: 'Pure black, minimal neon', price: 0 },
-  { id: 'sunset', name: 'RETRO SUNSET', ico: '🌇', desc: 'Orange/purple retro vibe', price: 400 },
-  { id: 'matrix', name: 'MATRIX GREEN', ico: '💚', desc: 'Green rain terminal look', price: 600 },
-  { id: 'royal', name: 'GOLD ROYAL', ico: '👑', desc: 'Gold & black luxury', price: 1000 }
+  { id: 'neon',   name: 'NEON CYBER',   ico: '🌆', desc: 'Default cyan/pink glow',   price: 0, palette: {
+    bg:'#05070A', glow1:'rgba(0,255,255,.08)', glow2:'rgba(255,16,240,.07)',
+    grid:'rgba(0,255,255,.05)', gridv:'rgba(255,16,240,.05)',
+    cyan:'#00FFFF', cyan2:'#00b8ff', pink:'#FF10F0', pink2:'#b900ff',
+    yellow:'#FFE600', yellow2:'#ff9d00', green:'#39FF88', red:'#FF3B6B',
+    accent:'#00FFFF', accent2:'#FF10F0', glass:'rgba(255,255,255,.06)',
+    glassBorder:'rgba(0,255,255,.35)', panel:'#0A0E16', sub:'#8A93A6',
+    bgGridSize:'44px 44px' } },
+  { id: 'void',   name: 'VOID DARK',   ico: '🌑', desc: 'Pure black, minimal neon',  price: 0, palette: {
+    bg:'#000000', glow1:'rgba(139,92,246,.07)', glow2:'rgba(0,0,0,0)',
+    grid:'rgba(139,92,246,.04)', gridv:'rgba(99,102,241,.04)',
+    cyan:'#A78BFA', cyan2:'#6D28D9', pink:'#C084FC', pink2:'#7C3AED',
+    yellow:'#E9D5FF', yellow2:'#a78bfa', green:'#34D399', red:'#F87171',
+    accent:'#A78BFA', accent2:'#C084FC', glass:'rgba(255,255,255,.05)',
+    glassBorder:'rgba(167,139,250,.35)', panel:'#050508', sub:'#9CA3AF',
+    bgGridSize:'44px 44px' } },
+  { id: 'sunset', name: 'RETRO SUNSET', ico: '🌇', desc: 'Orange/purple retro vibe', price: 400, palette: {
+    bg:'#0B0608', glow1:'rgba(255,107,53,.09)', glow2:'rgba(255,0,128,.07)',
+    grid:'rgba(255,107,53,.05)', gridv:'rgba(255,0,128,.05)',
+    cyan:'#FFB347', cyan2:'#ff8c00', pink:'#FF6B6B', pink2:'#FF2E63',
+    yellow:'#FFD166', yellow2:'#ff9d00', green:'#06D6A0', red:'#FF4D4D',
+    accent:'#FFB347', accent2:'#FF6B6B', glass:'rgba(255,255,255,.06)',
+    glassBorder:'rgba(255,107,53,.35)', panel:'#12090C', sub:'#B08968',
+    bgGridSize:'44px 44px' } },
+  { id: 'matrix', name: 'MATRIX GREEN', ico: '💚', desc: 'Green rain terminal look', price: 600, palette: {
+    bg:'#020804', glow1:'rgba(34,255,136,.08)', glow2:'rgba(0,255,100,.05)',
+    grid:'rgba(34,255,136,.05)', gridv:'rgba(0,255,100,.04)',
+    cyan:'#22FF88', cyan2:'#00CC66', pink:'#00FFAA', pink2:'#00B366',
+    yellow:'#B8FF5C', yellow2:'#7FDB39', green:'#39FF88', red:'#FF5C5C',
+    accent:'#22FF88', accent2:'#00FFAA', glass:'rgba(255,255,255,.05)',
+    glassBorder:'rgba(34,255,136,.35)', panel:'#02130A', sub:'#7BCBA0',
+    bgGridSize:'0 0' } },
+  { id: 'royal',  name: 'GOLD ROYAL',  ico: '👑', desc: 'Gold & black luxury',      price: 1000, palette: {
+    bg:'#070600', glow1:'rgba(255,215,0,.09)', glow2:'rgba(128,0,128,.06)',
+    grid:'rgba(255,215,0,.05)', gridv:'rgba(128,0,128,.04)',
+    cyan:'#FFD700', cyan2:'#FFB300', pink:'#E6B800', pink2:'#B8860B',
+    yellow:'#FFD700', yellow2:'#FFAA00', green:'#FFC107', red:'#E53935',
+    accent:'#FFD700', accent2:'#E6B800', glass:'rgba(255,255,255,.06)',
+    glassBorder:'rgba(255,215,0,.4)', panel:'#0E0B00', sub:'#A89060',
+    bgGridSize:'44px 44px' } },
+  { id: 'neon2',  name: 'NEON VOID',   ico: '🌌', desc: 'Deep purple-blue neon',     price: 200, palette: {
+    bg:'#030510', glow1:'rgba(99,102,241,.1)', glow2:'rgba(0,255,255,.06)',
+    grid:'rgba(99,102,241,.06)', gridv:'rgba(0,255,255,.05)',
+    cyan:'#38BDF8', cyan2:'#0EA5E9', pink:'#818CF8', pink2:'#6366F1',
+    yellow:'#A5F3FC', yellow2:'#22D3EE', green:'#4ADE80', red:'#FB7185',
+    accent:'#38BDF8', accent2:'#818CF8', glass:'rgba(255,255,255,.06)',
+    glassBorder:'rgba(99,102,241,.4)', panel:'#05071A', sub:'#8E9BBF',
+    bgGridSize:'44px 44px' } }
 ];
+/* Active global theme + quick-cycle helper */
+let globalTheme = 'neon';
+function cycleTheme() {
+  const order = THEMES.map(t => t.id);
+  const i = order.indexOf(globalTheme);
+  const next = order[(i + 1) % order.length];
+  applyTheme(next);
+  toast('Theme: ' + THEMES.find(t => t.id === next).name + ' ' + THEMES.find(t => t.id === next).ico);
+}
+
+/* Dynamic particle / neon-arc background canvas — theme-aware */
+let themeBgCtx = null, themeBgRaf = null, themeParticles = [];
+function initThemeCanvas() {
+  const c = document.getElementById('themeCanvas');
+  if (!c || !c.getContext) return;
+  themeBgCtx = c.getContext('2d');
+  const size = () => { c.width = innerWidth; c.height = innerHeight; };
+  size();
+  addEventListener('resize', size);
+  // spawn particles (arcs + dots) based on current palette — capped for perf
+  themeParticles = [];
+  const n = Math.min(24, Math.floor(innerWidth / 40)); // fewer particles = smoother on mobile
+  for (let i = 0; i < n; i++) {
+    themeParticles.push({
+      x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+      vx: (Math.random() - .5) * .4, vy: (Math.random() - .5) * .4,
+      r: 1 + Math.random() * 2,
+      hue: Math.random() < .5 ? 'accent' : 'accent2',
+      a: .3 + Math.random() * .4, pulse: Math.random() * Math.PI * 2
+    });
+  }
+  // pause the canvas when tab hidden (perf)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopThemeCanvas();
+    else if (!themeBgRaf) themeBgRaf = requestAnimationFrame(themeBgLoop);
+  });
+  themeBgRaf = requestAnimationFrame(themeBgLoop);
+}
+function themeBgLoop() {
+  const ctx = themeBgCtx; if (!ctx) return;
+  const c = document.getElementById('themeCanvas');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00FFFF';
+  const accent2 = getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim() || '#FF10F0';
+  // draw connecting lines between near particles (neon web)
+  ctx.lineWidth = .6;
+  for (let i = 0; i < themeParticles.length; i++) {
+    const p = themeParticles[i];
+    p.x += p.vx; p.y += p.vy; p.pulse += .02;
+    if (p.x < -20) p.x = W + 20; if (p.x > W + 20) p.x = -20;
+    if (p.y < -20) p.y = H + 20; if (p.y > H + 20) p.y = -20;
+    for (let j = i + 1; j < themeParticles.length; j++) {
+      const q = themeParticles[j];
+      const d = Math.hypot(p.x - q.x, p.y - q.y);
+      if (d < 130) {
+        ctx.strokeStyle = (p.hue === 'accent' ? accent : accent2);
+        ctx.globalAlpha = (1 - d / 130) * .18;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+      }
+    }
+    const col = p.hue === 'accent' ? accent : accent2;
+    ctx.globalAlpha = .4 + .3 * Math.sin(p.pulse);
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  themeBgRaf = requestAnimationFrame(themeBgLoop);
+}
+function stopThemeCanvas() { if (themeBgRaf) { cancelAnimationFrame(themeBgRaf); themeBgRaf = null; } }
+
 function renderThemes() {
   document.getElementById('themeList').innerHTML = THEMES.map(t => {
     const owned = t.price === 0 || state.inventory.includes('theme-' + t.id);
     const active = state.equipped.theme === t.id;
     return `
     <div class="card shop-item">
-      <div class="s-ico" style="border-color:${active ? '#00FFFF' : 'rgba(255,255,255,.15)'};box-shadow:${active ? '0 0 16px rgba(0,255,255,.4)' : 'none'}">${t.ico}</div>
+      <div class="s-ico" style="border-color:${active ? t.palette.accent : 'rgba(255,255,255,.15)'};box-shadow:${active ? '0 0 16px ' + t.palette.accent : 'none'}">${t.ico}</div>
       <div class="s-info">
         <h4>${t.name}</h4>
         <p>${t.desc}</p>
@@ -509,17 +680,57 @@ function buyTheme(id, price) {
   saveState(); updateCoinDisplay(); renderThemes(); renderShop();
   toast('Theme applied! 🌆');
 }
+/* Apply a full theme palette to CSS variables (6 themes + per-game skins) */
 function applyTheme(id, silent) {
+  // resolve: exact theme, or a game id → its palette, else default neon
+  let t = THEMES.find(x => x.id === id);
+  if (!t) t = THEMES[0];
   state.equipped.theme = id;
   saveState();
-  if (!silent) toast('Theme applied!');
+  if (!silent) {
+    globalTheme = id;
+    toast('Theme: ' + t.name + ' ' + t.ico);
+  }
   const root = document.documentElement.style;
-  if (id === 'neon') { root.setProperty('--bg', '#05070A'); root.setProperty('--pink', '#FF10F0'); }
-  else if (id === 'void') { root.setProperty('--bg', '#000000'); root.setProperty('--pink', '#8B5CF6'); }
-  else if (id === 'sunset') { root.setProperty('--bg', '#0B0608'); root.setProperty('--pink', '#FF6B35'); }
-  else if (id === 'matrix') { root.setProperty('--bg', '#020804'); root.setProperty('--pink', '#22FF88'); }
-  else if (id === 'royal') { root.setProperty('--bg', '#070600'); root.setProperty('--pink', '#FFD700'); }
-  document.getElementById('bgGrid').style.backgroundSize = id === 'matrix' ? '0 0' : '44px 44px';
+  const p = t.palette;
+  root.setProperty('--bg', p.bg);
+  root.setProperty('--bg-glow-1', p.glow1);
+  root.setProperty('--bg-glow-2', p.glow2);
+  root.setProperty('--bg-grid', p.grid);
+  root.setProperty('--bg-grid-v', p.gridv);
+  root.setProperty('--cyan', p.cyan);
+  root.setProperty('--cyan2', p.cyan2);
+  root.setProperty('--pink', p.pink);
+  root.setProperty('--pink2', p.pink2);
+  root.setProperty('--yellow', p.yellow);
+  root.setProperty('--yellow2', p.yellow2);
+  root.setProperty('--green', p.green);
+  root.setProperty('--red', p.red);
+  root.setProperty('--accent', p.accent);
+  root.setProperty('--accent2', p.accent2);
+  root.setProperty('--glass', p.glass);
+  root.setProperty('--glass-border', '1px solid ' + p.glassBorder);
+  root.setProperty('--panel', p.panel);
+  root.setProperty('--sub', p.sub);
+  root.setProperty('--btn-grad', 'linear-gradient(135deg,' + p.accent + ',' + p.cyan2 + ')');
+  root.setProperty('--btn-grad-2', 'linear-gradient(135deg,' + p.accent2 + ',' + p.pink2 + ')');
+  root.setProperty('--card-hover-glow', p.accent + '44');
+  root.setProperty('--glow', p.accent + '59');
+  root.setProperty('--nav-bg', 'rgba(10,14,22,.75)');
+  root.setProperty('--hud-bg', 'rgba(5,7,10,.85)');
+  // grid size (matrix uses 0 0 = hidden grid)
+  document.getElementById('bgGrid').style.backgroundSize = p.bgGridSize || '44px 44px';
+  // theme color meta (PWA)
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', p.bg);
+  const manifestLink = document.querySelector('link[rel="manifest"]');
+  if (manifestLink && location.protocol !== 'file:') {
+    try {
+      fetch('manifest.webmanifest').then(r => r.json()).then(m => {
+        if (m) { m.theme_color = p.bg; m.background_color = p.bg; }
+      }).catch(() => {});
+    } catch (e) {}
+  }
 }
 
 /* ==================== GAME CORE (disabled — pick favourites later) ==================== */
@@ -530,6 +741,10 @@ function init() {
   openAuth();
   navInit();
   initCRT();
+  // theme system — apply saved theme + start dynamic particle bg
+  globalTheme = state.equipped.theme || 'neon';
+  if (typeof applyTheme === 'function') applyTheme(state.equipped.theme || 'neon', true);
+  if (typeof initThemeCanvas === 'function') initThemeCanvas();
   // PWA offline support
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -551,6 +766,7 @@ document.addEventListener('DOMContentLoaded', init);
 // version badge
 function showVersionBadge() {
   try {
+    if (location.protocol === 'file:') return;
     fetch('version.json').then(r => r.json()).then(d => {
       const badge = document.createElement('div');
       badge.style.cssText = 'position:fixed;bottom:8px;right:8px;z-index:5;font-size:9px;opacity:.4;color:var(--sub);font-family:monospace';

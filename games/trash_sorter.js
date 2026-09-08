@@ -65,6 +65,13 @@ function trashSorter(canvas, ctx, onScore, onGameOver, onCoins) {
       bins[i].fill += 1;
       coins++; callCoins();
       if (typeof onCoins === 'function') onCoins(coins);
+      // spring score pop at the bin (canvas → screen coords)
+      try {
+        const c = document.getElementById('gameCanvas');
+        const r = c.getBoundingClientRect();
+        const sx = r.left + r.width * (bx / W), sy = r.top + r.height * 0.45;
+        if (typeof window.popScore === 'function') window.popScore(sx, sy, '+' + pts);
+      } catch (e) {}
       // next item
       item = null;
       nextIn = 0.25;

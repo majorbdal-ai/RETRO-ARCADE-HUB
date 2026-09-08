@@ -52,6 +52,13 @@ function mathDash(canvas, ctx, onScore, onGameOver, onCoins) {
       coins++; callCoins();
       timeLeft = Math.min(timeLeft + 1, 30);
       flash = 'correct';
+      // spring score pop (canvas → screen coords)
+      try {
+        const c = document.getElementById('gameCanvas');
+        const r = c.getBoundingClientRect();
+        const sx = r.left + r.width * (0.5), sy = r.top + r.height * 0.35;
+        if (typeof window.popScore === 'function') window.popScore(sx, sy, '+' + pts);
+      } catch (e) {}
       newQuestion();
     } else {
       combo = 0;

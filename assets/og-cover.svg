@@ -37,6 +37,15 @@
   <text x="560" y="180" font-size="80" filter="url(#glow)">🎮</text>
   <!-- title -->
   <text x="600" y="370" text-anchor="middle" font-family="Arial, sans-serif" font-size="96" font-weight="900" fill="#0ff" filter="url(#glow)">RETRO ARCADE HUB</text>
-  <text x="600" y="440" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#ff10f0" filter="url(#glow)">60 FREE GAMES · PLAY ON YOUR PHONE</text>
+  <text x="600" y="440" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#ff10f0" filter="url(#glow)">60 FREE GAMES · 6 THEMES · PLAY ON YOUR PHONE</text>
   <text x="600" y="500" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#ffe600">SNAKE · TETRIS · PINBALL · RACING · PUZZLE · SPORTS</text>
+  <!-- theme swatches (6 themes) -->
+  <g>
+    <rect x="470" y="540" width="20" height="20" rx="4" fill="#00FFFF"/>
+    <rect x="497" y="540" width="20" height="20" rx="4" fill="#A78BFA"/>
+    <rect x="524" y="540" width="20" height="20" rx="4" fill="#FF6B6B"/>
+    <rect x="551" y="540" width="20" height="20" rx="4" fill="#22FF88"/>
+    <rect x="578" y="540" width="20" height="20" rx="4" fill="#FFD700"/>
+    <rect x="605" y="540" width="20" height="20" rx="4" fill="#38BDF8"/>
+  </g>
 </svg>

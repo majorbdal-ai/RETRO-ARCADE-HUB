@@ -31,17 +31,37 @@
 <style>
 /* ==================== PART 1: HD DESIGN SYSTEM ==================== */
 :root{
+  /* Theme base (Neo default) — full palette, overridable at runtime */
   --bg:#05070A;
+  --bg-glow-1:rgba(0,255,255,.08);
+  --bg-glow-2:rgba(255,16,240,.07);
+  --bg-grid:rgba(0,255,255,.05);
+  --bg-grid-v:rgba(255,16,240,.05);
   --cyan:#00FFFF;
+  --cyan2:#00b8ff;
   --pink:#FF10F0;
+  --pink2:#b900ff;
   --yellow:#FFE600;
+  --yellow2:#ff9d00;
+  --green:#39FF88;
+  --red:#FF3B6B;
   --glass:rgba(255,255,255,0.06);
   --glass-border:1px solid rgba(0,255,255,0.35);
   --text:#E9EDF5;
   --sub:#8A93A6;
-  --red:#FF3B6B;
-  --green:#39FF88;
+  --panel:#0A0E16;
+  --accent:var(--cyan);
+  --accent2:var(--pink);
+  --glow:rgba(0,255,255,.35);
+  --btn-grad:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  --btn-grad-2:linear-gradient(135deg,var(--pink),var(--pink2));
+  --card-hover-glow:rgba(0,255,255,.25);
+  --nav-bg:rgba(10,14,22,.75);
+  --hud-bg:rgba(5,7,10,.85);
+  --theme-transition:.4s;
 }
+/* Smooth theme cross-fade on everything color-related */
+body,*{transition:background-color var(--theme-transition) ease,border-color var(--theme-transition) ease,box-shadow var(--theme-transition) ease,color var(--theme-transition) ease}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
 body{
@@ -53,23 +73,35 @@ body{
 .font-arcade{font-family:'Press Start 2P',monospace}
 .font-orbitron{font-family:'Orbitron',sans-serif;font-weight:900}
 
-/* Animated Neon Grid Background */
+/* Animated Neon Grid Background (theme-responsive) */
 #bgGrid{
   position:fixed;inset:0;z-index:-2;
   background:
-    linear-gradient(rgba(0,255,255,0.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,16,240,0.05) 1px,transparent 1px);
+    linear-gradient(var(--bg-grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--bg-grid-v) 1px,transparent 1px);
   background-size:44px 44px;
   animation:gridScroll 3.2s linear infinite;
 }
 @keyframes gridScroll{from{background-position:0 0}to{background-position:44px 44px}}
 #glowOrb{
   position:fixed;z-index:-1;width:60vmax;height:60vmax;border-radius:50%;
-  background:radial-gradient(circle,rgba(0,255,255,0.08),transparent 60%);
+  background:radial-gradient(circle,var(--bg-glow-1),transparent 60%);
   top:-20vmax;left:-10vmax;filter:blur(40px);
   animation:orbFloat 9s ease-in-out infinite alternate;
 }
+#glowOrb2{
+  position:fixed;z-index:-1;width:55vmax;height:55vmax;border-radius:50%;
+  background:radial-gradient(circle,var(--bg-glow-2),transparent 60%);
+  bottom:-18vmax;right:-12vmax;filter:blur(44px);
+  animation:orbFloat2 11s ease-in-out infinite alternate;
+}
 @keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(10vmax,8vmax) scale(1.15)}}
+@keyframes orbFloat2{from{transform:translate(0,0) scale(1.1)}to{transform:translate(-8vmax,-6vmax) scale(.95)}}
+/* Dynamic particle / neon-arc background canvas */
+#themeCanvas{
+  position:fixed;inset:0;z-index:-1;width:100%;height:100%;
+  pointer-events:none;opacity:.55;
+}
 
 /* Glass Panels */
 .glass{
@@ -86,9 +118,9 @@ body{
   position:relative;overflow:hidden;color:var(--text);
 }
 .btn:active{transform:scale(.95)}
-.btn-primary{background:linear-gradient(135deg,var(--cyan),#00b8ff);color:#000}
-.btn-pink{background:linear-gradient(135deg,var(--pink),#b900ff);color:#fff}
-.btn-yellow{background:linear-gradient(135deg,var(--yellow),#ff9d00);color:#000}
+.btn-primary{background:var(--btn-grad);color:#000}
+.btn-pink{background:var(--btn-grad-2);color:#fff}
+.btn-yellow{background:linear-gradient(135deg,var(--yellow),var(--yellow2));color:#000}
 .btn-ghost{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 /* Ripple */
@@ -97,26 +129,31 @@ body{
   transform:scale(0);animation:rippleAnim .6s ease-out forwards;pointer-events:none;
 }
 @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
-/* Cards */
+/* Cards — hover glow + lift (desktop) / press (mobile) */
 .card{
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
   border-radius:18px;padding:14px;transition:transform .18s ease,box-shadow .25s ease,border-color .25s;
   cursor:pointer;position:relative;overflow:hidden;transform-style:preserve-3d;
 }
 .card:hover{
-  box-shadow:0 0 24px rgba(0,255,255,.25),0 12px 30px rgba(0,0,0,.5);
-  border-color:var(--cyan);
+  box-shadow:0 0 24px var(--card-hover-glow),0 12px 30px rgba(0,0,0,.5);
+  border-color:var(--accent);
+  transform:translateY(-3px);
 }
 .card:active{transform:scale(.97)}
-/* Score popup */
+/* Featured card hover glow */
+.featured-card:hover{box-shadow:0 0 30px var(--card-hover-glow),0 16px 40px rgba(0,0,0,.6);transform:translateY(-3px)}
+/* Score popup — spring */
 .score-pop{
   position:fixed;z-index:99;font-family:'Press Start 2P',monospace;color:var(--yellow);
   font-size:16px;text-shadow:0 0 12px var(--yellow);pointer-events:none;
-  animation:scorePop .9s ease-out forwards;
+  animation:scorePop .9s cubic-bezier(.22,1.61,.36,1) forwards;
 }
 @keyframes scorePop{
-  0%{transform:translateY(0) scale(.6);opacity:1}
-  100%{transform:translateY(-60px) scale(1.35);opacity:0}
+  0%{transform:translateY(0) scale(.4);opacity:1}
+  55%{transform:translateY(-30px) scale(1.45);opacity:1}
+  75%{transform:translateY(-46px) scale(.95);opacity:.9}
+  100%{transform:translateY(-60px) scale(1);opacity:0}
 }
 /* Coin display */
 .coin-badge{
@@ -124,9 +161,10 @@ body{
   background:rgba(255,230,0,.12);border:1px solid rgba(255,230,0,.4);
   color:var(--yellow);border-radius:999px;padding:4px 12px;font-weight:700;font-size:13px;
 }
-/* App Pages */
+/* App Pages — slide/fade transition on switch */
 .page{display:none;height:100%;flex-direction:column;overflow:hidden}
-.page.active{display:flex}
+.page.active{display:flex;animation:pageIn .32s ease}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .scroll-area{flex:1;overflow-y:auto;padding:14px 14px 110px;-webkit-overflow-scrolling:touch}
 /* ==================== SEARCH ==================== */
 .search-bar{
@@ -141,9 +179,9 @@ body{
   position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
   display:flex;align-items:center;justify-content:space-around;
   width:min(92%,420px);padding:10px 6px;border-radius:22px;
-  background:rgba(10,14,22,.75);backdrop-filter:blur(20px);
+  background:var(--nav-bg);backdrop-filter:blur(20px);
   border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 10px 40px rgba(0,0,0,.7),0 0 20px rgba(0,255,255,.08);
+  box-shadow:0 10px 40px rgba(0,0,0,.7),0 0 20px var(--glow);
   z-index:50;
 }
 .nav-item{
@@ -152,10 +190,10 @@ body{
   cursor:pointer;padding:6px 10px;border-radius:14px;transition:all .2s;
 }
 .nav-item i{font-size:19px}
-.nav-item.active{color:var(--cyan);text-shadow:0 0 12px rgba(0,255,255,.9)}
-.nav-item.active i{filter:drop-shadow(0 0 8px var(--cyan))}
+.nav-item.active{color:var(--accent);text-shadow:0 0 12px var(--glow)}
+.nav-item.active i{filter:drop-shadow(0 0 8px var(--accent))}
 /* ==================== TOP BAR ==================== */
-#topBar{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(5,7,10,.8);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08);z-index:40}
+#topBar{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--hud-bg);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08);z-index:40}
 .logo{font-family:'Press Start 2P',monospace;font-size:13px;color:#fff;white-space:nowrap}
 .logo b{color:var(--cyan);text-shadow:0 0 14px var(--cyan)}
 /* Glitch */
@@ -186,8 +224,8 @@ body{
 .featured-card h3{font-family:'Orbitron',sans-serif;font-weight:900;font-size:15px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.8)}
 .featured-card .play-btn{margin-top:8px}
 /* ==================== HUD (game screen) ==================== */
-#gameScreen .hud{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(5,7,10,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.1);z-index:30}
-#gameScreen .hud .hud-title{flex:1;text-align:center;font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;color:var(--cyan);text-shadow:0 0 10px rgba(0,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gameScreen .hud{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--hud-bg);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.1);z-index:30}
+#gameScreen .hud .hud-title{flex:1;text-align:center;font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;color:var(--accent);text-shadow:0 0 10px var(--glow);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hud-chip{font-size:12px;font-weight:700;color:var(--yellow);background:rgba(255,230,0,.1);border:1px solid rgba(255,230,0,.3);padding:5px 10px;border-radius:999px;white-space:nowrap}
 .hud-btn{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hud-btn:active{transform:scale(.92)}
@@ -223,7 +261,7 @@ body.game-active main{display:none}
 /* ==================== SHOP ==================== */
 .tab-row{display:flex;gap:8px;margin:12px 0}
 .tab{flex:1;padding:9px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--sub);font-weight:700;font-size:12px;cursor:pointer;text-align:center;transition:all .2s}
-.tab.active{background:linear-gradient(135deg,rgba(0,255,255,.2),rgba(255,16,240,.15));border-color:var(--cyan);color:#fff;box-shadow:0 0 14px rgba(0,255,255,.2)}
+.tab.active{background:linear-gradient(135deg,rgba(0,255,255,.2),rgba(255,16,240,.15));border-color:var(--accent);color:#fff;box-shadow:0 0 14px var(--glow)}
 .shop-item{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:10px}
 .shop-item .s-ico{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(145deg,rgba(0,255,255,.15),rgba(255,16,240,.12));border:1px solid rgba(255,255,255,.15);flex-shrink:0}
 .shop-item .s-info{flex:1;min-width:0}
@@ -261,16 +299,29 @@ body.game-active main{display:none}
   transition:transform .3s ease;box-shadow:0 0 24px rgba(0,255,255,.3);text-align:center;max-width:90vw;pointer-events:none;
 }
 #toast.show{transform:translateX(-50%) translateY(0)}
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-backdrop.show{display:flex}
-.modal{width:min(400px,100%);background:#0A0E16;border:1px solid rgba(0,255,255,.35);border-radius:22px;padding:22px;box-shadow:0 0 40px rgba(0,255,255,.2);max-height:84vh;overflow-y:auto}
+/* Modal — spring open / fade close + blur backdrop */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);
+  z-index:150;display:none;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .3s ease;
+}
+.modal-backdrop.show{display:flex;opacity:1}
+.modal{
+  width:min(400px,100%);background:var(--panel);border:1px solid var(--glass-border);border-radius:22px;
+  padding:22px;box-shadow:0 0 40px var(--glow);max-height:84vh;overflow-y:auto;
+  transform:scale(.85) translateY(16px);opacity:0;
+  transition:transform .38s cubic-bezier(.34,1.56,.64,1),opacity .3s ease,box-shadow .3s;
+}
+.modal-backdrop.show .modal{transform:scale(1) translateY(0);opacity:1}
 .modal h2{font-family:'Orbitron',sans-serif;font-size:18px;color:#fff;margin-bottom:12px;text-align:center}
-/* Game over overlay */
-#gameOverOverlay{position:absolute;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:120}
-#gameOverOverlay.show{display:flex}
-/* Pause + help overlays (mobile) */
-#pauseOverlay,#helpOverlay{position:absolute;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:110;padding:24px;box-sizing:border-box}
-#pauseOverlay.show,#helpOverlay.show{display:flex}
+/* Pause / help / game-over overlays — spring pop */
+#gameOverOverlay,#pauseOverlay,#helpOverlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:120;
+}
+#gameOverOverlay.show,#pauseOverlay.show,#helpOverlay.show{display:flex}
+#gameOverOverlay.show,#pauseOverlay.show,#helpOverlay.show{animation:overlayPop .45s cubic-bezier(.34,1.56,.64,1)}
+@keyframes overlayPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 /* Fixed BACK TO HUB over canvas (mobile) */
 #backToHub{position:absolute;top:10px;left:10px;z-index:95;display:flex;align-items:center;gap:6px;background:rgba(255,16,240,.85);color:#fff;border:none;border-radius:999px;padding:8px 14px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 4px 16px rgba(255,16,240,.4)}
 #backToHub:active{transform:scale(.94)}
@@ -293,6 +344,8 @@ body.game-active main{display:none}
 <body>
 <div id="bgGrid"></div>
 <div id="glowOrb"></div>
+<div id="glowOrb2"></div>
+<canvas id="themeCanvas"></canvas>
 <div id="crtOverlay"></div>
 <div id="gameLoading"><div class="spin"></div><div style="font-family:'Press Start 2P',monospace;color:#fff;font-size:13px">LOADING...</div></div>
 
@@ -306,6 +359,7 @@ body.game-active main{display:none}
   <div class="logo glitch" data-text="RETRO<b>ARCADE</b>"><span>RETRO<b>ARCADE</b></span></div>
   <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search games..."></div>
   <div class="coin-badge"><i class="fa-solid fa-coins"></i><span id="coinDisplay">0</span></div>
+  <button class="hud-btn" id="themeQuickBtn" onclick="cycleTheme()" title="Theme"><i class="fa-solid fa-palette"></i></button>
 </div>
 
 <!-- ============ SCREENS ============ -->

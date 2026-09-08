@@ -71,6 +71,13 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
           const pts = 5 + (combo >= 4 ? 3 : 0);
           score += pts; callScore();
           coins++; callCoins();
+          // spring score pop at the hold (canvas → screen coords)
+          try {
+            const c = document.getElementById('gameCanvas');
+            const r = c.getBoundingClientRect();
+            const sx = r.left + r.width * (target.x / W), sy = r.top + r.height * (target.y / H);
+            if (typeof window.popScore === 'function') window.popScore(sx, sy, '+' + pts);
+          } catch (e) {}
         } else {
           // too far — miss
           combo = 0;

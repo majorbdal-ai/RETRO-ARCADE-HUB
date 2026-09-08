@@ -215,11 +215,27 @@ function lockGameScroll(lock) {
   }
 }
 
-// ---- touch buttons ----
+// ---- touch buttons (with ripple visual feedback) ----
+let lastRippleAt = 0;
 function pressed(control, isDown, ev) {
   if (ev && ev.preventDefault) ev.preventDefault();
   gameState.touches[control] = isDown;
   if (isDown && navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
+  // touch ripple — visual press feedback on the control (throttled)
+  const now = Date.now();
+  const btn = ev && ev.currentTarget;
+  if (isDown && btn && btn.getBoundingClientRect && now - lastRippleAt > 90) {
+    lastRippleAt = now;
+    try {
+      const r = btn.getBoundingClientRect();
+      const ink = document.createElement('span');
+      ink.className = 'ripple-ink';
+      ink.style.cssText = `position:absolute;border-radius:50%;background:rgba(255,255,255,.35);width:${r.width}px;height:${r.width}px;left:0;top:0;transform:scale(0);animation:rippleAnim .5s ease-out forwards;pointer-events:none`;
+      btn.style.position = btn.style.position || 'relative';
+      btn.appendChild(ink);
+      setTimeout(() => ink.remove(), 550);
+    } catch (e) {}
+  }
 }
 
 // ---- draw per-game custom control panel ----
@@ -405,6 +421,12 @@ function bootGame(id, engine) {
   // browser back should exit the game
   pushGameHistory();
 
+  // per-game skin: apply the game's theme palette if it has one (skin-by-game)
+  // (palettes map lives in app.js; if the game has a theme, use it during play)
+  if (typeof window.applyGameSkin === 'function') {
+    try { window.applyGameSkin(id); } catch (e) {}
+  }
+
   // switch to game page
   go('game');
   document.getElementById('hudGameTitle').innerText = g.name;
@@ -457,7 +479,7 @@ function bootGame(id, engine) {
   startTouchKeySync();
 }
 
-// ---- end game ----
+// ---- end game ---- (spring score pop + theme accent on overlay)
 function endGame(score, coinsEarned) {
   gameState.over = true;
   gameState.running = false;
@@ -492,6 +514,12 @@ function endGame(score, coinsEarned) {
   document.getElementById('overCoins').innerText = (coinsEarned + scoreCoins).toLocaleString();
   document.getElementById('overBest').innerText = (state.best[gameState.id] || 0).toLocaleString();
   document.getElementById('overLevel').innerText = '1';
+  // spring score pop on the overlay
+  const ov = document.getElementById('gameOverOverlay');
+  if (typeof window.popScore === 'function') {
+    const r = (ov || document.body).getBoundingClientRect();
+    window.popScore(r.left + r.width / 2 - 40, r.top + r.height / 2 - 30, '+' + score.toLocaleString());
+  }
   document.getElementById('gameOverOverlay').classList.add('show');
 }
 
@@ -506,6 +534,10 @@ function restartGame() {
 function exitToHub() {
   unbindGameTouch();
   lockGameScroll(false);
+  // restore the user's global theme when leaving a game (skin-by-game off)
+  if (typeof window.applyTheme === 'function' && typeof window.globalTheme === 'string') {
+    try { window.applyTheme(window.globalTheme, true); } catch (e) {}
+  }
   if (currentGame) { try { currentGame.destroy(); } catch (e) {} }
   currentGame = null;
   gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
