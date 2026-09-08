@@ -281,6 +281,71 @@ body.game-active main{display:none}
 .ctrl-boost:active{background:var(--yellow);color:#000}
 .ctrl-drift{border-color:var(--pink);color:var(--pink);box-shadow:0 0 14px rgba(255,16,240,.2)}
 .ctrl-drift:active{background:var(--pink);color:#fff}
+
+/* ===== NEW CONTROL TYPES (v6.3+) ===== */
+/* D-pad */
+.ctrl-dpad,.ctrl-dpad-center{display:flex;align-items:center;gap:14px;justify-content:center;flex:1}
+.dpad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:4px;flex-shrink:0}
+.dp-up{grid-column:2;grid-row:1}
+.dp-left{grid-column:1;grid-row:2}
+.dp-down{grid-column:2;grid-row:3}
+.dp-right{grid-column:3;grid-row:2}
+.ctrl-dpad .dpad .ctrl-btn,.ctrl-dpad-center .dpad .ctrl-btn{width:54px;height:54px;border-radius:12px;border-color:rgba(0,255,255,.5);font-size:10px}
+.ctrl-dpad .ctrl-btn i{font-size:16px}
+.ctrl-mine{border-color:var(--yellow);color:var(--yellow);box-shadow:0 0 14px rgba(255,230,0,.2)}
+.ctrl-mine:active{background:var(--yellow);color:#000}
+/* Radial 4-button */
+.ctrl-radial{position:relative;width:190px;height:190px;margin:0 auto;flex-shrink:0}
+.ctrl-radial .ctrl-btn{position:absolute;width:64px;height:64px;border-radius:50%;border-color:var(--accent);font-size:14px}
+.ctrl-radial .r-top{top:0;left:50%;transform:translateX(-50%)}
+.ctrl-radial .r-left{top:50%;left:0;transform:translateY(-50%)}
+.ctrl-radial .r-bottom{bottom:0;left:50%;transform:translateX(-50%)}
+.ctrl-radial .r-right{top:50%;right:0;transform:translateY(-50%)}
+/* Steering wheel row */
+.ctrl-steer{display:flex;gap:12px;align-items:center;justify-content:center;flex:1}
+.ctrl-steer .ctrl-btn{width:64px;height:64px}
+.steer-left{border-color:#39FF88;color:#39FF88}
+.steer-left:active{background:#39FF88;color:#000}
+.steer-right{border-color:#FF3B6B;color:#FF3B6B}
+.steer-right:active{background:#FF3B6B;color:#fff}
+.steer-boost{border-color:var(--yellow);color:var(--yellow);box-shadow:0 0 14px rgba(255,230,0,.25)}
+.steer-boost:active{background:var(--yellow);color:#000}
+/* Swipe zone */
+.ctrl-swipe-zone{flex:1;height:110px;border-radius:18px;border:2px dashed rgba(0,255,255,.45);background:rgba(0,255,255,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--accent);font-weight:900;font-size:13px;letter-spacing:1px;touch-action:none}
+.ctrl-swipe-zone i{font-size:26px}
+/* Tap + hold */
+.ctrl-taphold{display:flex;gap:12px;align-items:center;justify-content:center;flex:1}
+.ctrl-taphold .ctrl-btn{width:76px;height:76px}
+.th-tap{border-color:var(--accent);color:var(--accent)}
+.th-tap:active{background:var(--accent);color:#000}
+.th-hold{border-color:#FF3B6B;color:#FF3B6B}
+.th-hold:active{background:#FF3B6B;color:#fff}
+/* Pinch */
+.ctrl-pinch{flex:1;height:110px;border-radius:18px;border:2px dashed rgba(123,97,255,.5);background:rgba(123,97,255,.07);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#7B61FF;font-weight:900;font-size:13px}
+.ctrl-pinch i{font-size:28px}
+/* Gyro */
+.ctrl-tilt{flex:1;height:110px;border-radius:18px;border:2px dashed rgba(0,255,255,.4);background:rgba(0,255,255,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--accent);font-weight:900;font-size:13px;letter-spacing:1px;touch-action:none}
+.ctrl-tilt i{font-size:26px}
+/* Wheel */
+.ctrl-wheel{width:110px;height:110px;border-radius:50%;border:3px solid rgba(0,255,255,.6);background:radial-gradient(circle,rgba(0,255,255,.12),rgba(0,255,255,.03));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--accent);font-weight:900;font-size:11px;touch-action:none;cursor:grab;flex-shrink:0}
+.ctrl-wheel:active{cursor:grabbing}
+.ctrl-wheel i{font-size:28px}
+/* Swap */
+.ctrl-swap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center}
+.ctrl-swap .ctrl-btn{width:80px;height:64px}
+.ctrl-swap-hint{font-size:10px;color:var(--sub);letter-spacing:.5px}
+
+/* Accessibility mode: bigger touch targets + high contrast */
+body.acc-mode .ctrl-btn{width:92px;height:92px;font-size:14px;border-width:3px;background:rgba(255,255,255,.14)}
+body.acc-mode .ctrl-btn i{font-size:24px}
+body.acc-mode .ctrl-swipe-zone,body.acc-mode .ctrl-pinch,body.acc-mode .ctrl-tilt{height:140px;font-size:16px;border-width:3px}
+body.acc-mode .ctrl-radial .ctrl-btn{width:84px;height:84px}
+body.acc-mode .ctrl-dpad .dpad .ctrl-btn,body.acc-mode .ctrl-dpad-center .dpad .ctrl-btn{width:70px;height:70px}
+body.acc-mode .dpad{grid-template-columns:repeat(3,72px);grid-template-rows:repeat(3,72px)}
+body.acc-mode .ctrl-wheel{width:140px;height:140px;font-size:14px}
+body.acc-mode .joystick{width:140px;height:140px}
+body.acc-mode .ctrl-hint{font-size:13px}
+body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 /* ==================== SHOP ==================== */
 .tab-row{display:flex;gap:8px;margin:12px 0}
 .tab{flex:1;padding:9px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--sub);font-weight:700;font-size:12px;cursor:pointer;text-align:center;transition:all .2s}

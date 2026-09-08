@@ -10,12 +10,12 @@ const CONTROL_LAYOUT = {
   'neon-racer':      { type: 'tilt',       hint: 'TILT LEFT/RIGHT TO STEER · HOLD BOOST' },
   'cyber-shooter':   { type: 'joystick',   hint: 'JOYSTICK MOVE · AUTO FIRE' },
   'pixel-dungeon':   { type: 'joystick2',  hint: 'JOYSTICK MOVE · ATTACK' },
-  'light-cycle':     { type: 'swipe',      hint: 'SWIPE TO TURN' },
-  'neon-snake':      { type: 'swipe',      hint: 'SWIPE TO TURN' },
+  'light-cycle':     { type: 'swipe-zone', hint: 'SWIPE TO TURN · EDGE FLASH = CRASH' },
+  'neon-snake':      { type: 'swipe-zone', hint: 'SWIPE ANYWHERE TO STEER' },
   'brick-breaker':   { type: 'drag',       hint: 'DRAG PADDLE · TAP SERVE' },
   'tetris-blitz':    { type: 'swipe+drag', hint: 'SWIPE MOVE · TAP ROTATE' },
   'flappy-neon':     { type: 'tap',        hint: 'TAP TO FLAP' },
-  'pac-runner':      { type: 'swipe',      hint: 'SWIPE TO TURN' },
+  'pac-runner':      { type: 'dpad',       hint: 'D-PAD TO MOVE · COLLECT DOTS' },
   'space-invaders':  { type: 'drag',       hint: 'DRAG MOVE · AUTO SHOOT' },
   'tank-battle':     { type: 'dual',       hint: 'LEFT JOYSTICK MOVE · RIGHT JOYSTICK AIM' },
   'airstrike':       { type: 'canvas',     hint: 'HOLD TO AIM · RELEASE TO DROP BOMB' },
@@ -31,11 +31,11 @@ const CONTROL_LAYOUT = {
   // ============ GROUP 3: BANGLADESH VIRAL (8) ============
   'ludo-king':       { type: 'tap',        hint: 'TAP TO ROLL · TAP PIECE TO MOVE' },
   'carrom-pool':     { type: 'canvas',     hint: 'DRAG AIM · RELEASE SHOOT' },
-  '2048':            { type: 'swipe',      hint: 'SWIPE TO MERGE' },
+  '2048':            { type: 'swipe-zone', hint: 'SWIPE ANYWHERE TO MERGE' },
   'hill-climb':      { type: 'touch',      hint: 'HOLD LEFT = GAS · HOLD RIGHT = BRAKE' },
-  'temple-run':      { type: 'swipe',      hint: 'SWIPE UP JUMP · DOWN SLIDE · L/R TURN' },
+  'temple-run':      { type: 'swipe-zone', hint: 'SWIPE UP JUMP · DOWN SLIDE · L/R TURN' },
   'candy-crush':     { type: 'canvas',     hint: 'DRAG TO SWAP CANDIES' },
-  'snake-classic':   { type: 'swipe',      hint: 'SWIPE OR DPAD ARROWS' },
+  'snake-classic':   { type: 'dpad',       hint: 'D-PAD ARROWS TO STEER' },
   'duck-hunt':       { type: 'canvas',     hint: 'TAP THE DUCKS BEFORE THEY FLY' },
 
   // ============ GROUP 4: ARCADE SKILL (8) ============
@@ -58,7 +58,7 @@ const CONTROL_LAYOUT = {
   'pong':            { type: 'drag',       hint: 'DRAG PADDLE UP/DOWN' },
   'table-tennis':    { type: 'drag',       hint: 'DRAG PADDLE · TIMING SMASH' },
   'bowling-strike':  { type: 'canvas',     hint: 'SWIPE UP TO BOWL · CURVE WITH ANGLE' },
-  'cricket-sixer':   { type: 'tap',        hint: 'TAP AT THE RIGHT MOMENT TO SIX' },
+  'cricket-sixer':   { type: 'tap-hold',   hint: 'TAP = BAT · HOLD = POWER SHOT' },
   'hoop-dunk':       { type: 'canvas',     hint: 'DRAG AIM · RELEASE TO SHOOT' },
   'archery-master':  { type: 'canvas',     hint: 'DRAG AIM → WIND AFFECTS ARROW' },
   'soccer-penalty':  { type: 'canvas',     hint: 'DRAG AIM · POWER BAR · RELEASE KICK' },
@@ -72,7 +72,7 @@ const CONTROL_LAYOUT = {
   'sudoku':          { type: 'tap',        hint: 'TAP CELL · TAP NUMBER' },
   'mastermind':      { type: 'tap',        hint: 'TAP 4 COLORS · AUTO CHECK' },
   'simon-says':      { type: 'tap',        hint: 'WATCH · REPEAT THE SEQUENCE' },
-  'tic-tac-toe':     { type: 'tap',        hint: 'TAP CELL TO PLACE X' },
+  'tic-tac-toe':     { type: 'radial',     hint: 'RADIAL A/B/X/Y · TAP TO PLACE X' },
   'connect-four':    { type: 'tap',        hint: 'TAP COLUMN TO DROP DISC' },
   'checkers':        { type: 'tap',        hint: 'TAP PIECE · TAP DESTINATION' },
   'slide-puzzle':    { type: 'tap',        hint: 'TAP TILE NEXT TO EMPTY TO SLIDE' },
@@ -80,8 +80,8 @@ const CONTROL_LAYOUT = {
   'lucky-spin':      { type: 'tap',        hint: 'TAP TO SPIN THE WHEEL' },
 
   // ============ GROUP 7: NEW GAMES (2) ============
-  'pinball':         { type: 'dual',       hint: 'LEFT FLIPPER ← · RIGHT FLIPPER → · HOLD SPACE LAUNCH' },
-  'crossy-neon':     { type: 'swipe',      hint: 'SWIPE UP/DOWN/LEFT/RIGHT TO CROSS' },
+  'pinball':         { type: 'wheel',      hint: 'ROTATE WHEEL = FLIPPERS · HOLD SPACE LAUNCH' },
+  'crossy-neon':     { type: 'swipe-zone', hint: 'SWIPE UP/DOWN/LEFT/RIGHT TO CROSS' },
 
   // ============ GROUP 8: NEW UNIQUE GAMES (3) ============
   'trash-sorter':    { type: 'tap',        hint: 'TAP 1/2/3 (OR ←↑→) TO SORT INTO BIN' },

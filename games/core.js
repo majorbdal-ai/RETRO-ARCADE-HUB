@@ -257,6 +257,113 @@ window.playSfx = (n) => { try { SFX[n] && SFX[n](); } catch (e) {} };
 
 // ---- touch buttons (with ripple visual feedback) ----
 let lastRippleAt = 0;
+// Haptic patterns: tap=20ms, action=30ms, boom=80ms double, win=3 pulses
+function haptic(pattern) {
+  if (!navigator || !navigator.vibrate) return;
+  try {
+    if (pattern === 'tap') navigator.vibrate(20);
+    else if (pattern === 'action') navigator.vibrate(30);
+    else if (pattern === 'boom') navigator.vibrate([30, 40, 80]);
+    else if (pattern === 'win') navigator.vibrate([20, 30, 20, 30, 60]);
+    else if (pattern === 'over') navigator.vibrate([60, 40, 120]);
+    else navigator.vibrate(25);
+  } catch (e) {}
+}
+window.hapticVibe = haptic;
+
+// Radial press (A/B/X/Y arcade buttons) — fires a tap + haptic
+function radialPress(dir, ev) {
+  if (ev && ev.preventDefault) ev.preventDefault();
+  pressed(dir, true, ev);
+  setTimeout(() => pressed(dir, false, ev), 80);
+  haptic('tap');
+}
+
+// Swipe-zone: captures touch direction and sets touches
+function initSwipeZone() {
+  const zone = document.getElementById('swipeZone');
+  if (!zone) return;
+  let sx = 0, sy = 0, active = false;
+  const clear = () => {
+    active = false; sx = 0; sy = 0;
+    gameState.touches.up = gameState.touches.down = gameState.touches.left = gameState.touches.right = false;
+  };
+  zone.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    sx = t.clientX; sy = t.clientY; active = true;
+  }, { passive: false });
+  zone.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!active) return;
+    const t = e.touches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    const TH = 24;
+    gameState.touches.left = dx < -TH;
+    gameState.touches.right = dx > TH;
+    gameState.touches.up = dy < -TH;
+    gameState.touches.down = dy > TH;
+    // track magnitude for analog feel
+    gameState.touches.swipeMag = Math.min(1, Math.hypot(dx, dy) / 80);
+  }, { passive: false });
+  zone.addEventListener('touchend', clear, { passive: false });
+  zone.addEventListener('touchcancel', clear, { passive: false });
+  // mouse
+  zone.addEventListener('mousedown', (e) => { sx = e.clientX; sy = e.clientY; active = true; });
+  zone.addEventListener('mousemove', (e) => {
+    if (!active) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    gameState.touches.left = dx < -24;
+    gameState.touches.right = dx > 24;
+    gameState.touches.up = dy < -24;
+    gameState.touches.down = dy > 24;
+  });
+  zone.addEventListener('mouseup', clear);
+  zone.addEventListener('mouseleave', clear);
+}
+
+// Rotary wheel: drag to rotate (converts angle → touches.left/right)
+function initWheel() {
+  const w = document.getElementById('ctrlWheel');
+  if (!w) return;
+  let startAngle = 0, active = false;
+  const angleOf = (e) => {
+    const r = w.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    const x = e.clientX, y = e.clientY;
+    return Math.atan2(y - cy, x - cx);
+  };
+  w.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    startAngle = angleOf(t); active = true;
+  }, { passive: false });
+  w.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!active) return;
+    const t = e.touches[0];
+    const a = angleOf(t);
+    let d = a - startAngle;
+    if (d > Math.PI) d -= Math.PI*2;
+    if (d < -Math.PI) d += Math.PI*2;
+    if (d > 0.2) { gameState.touches.left = false; gameState.touches.right = true; haptic('tap'); startAngle = a; }
+    else if (d < -0.2) { gameState.touches.left = true; gameState.touches.right = false; haptic('tap'); startAngle = a; }
+  }, { passive: false });
+  w.addEventListener('touchend', () => { active = false; gameState.touches.left = gameState.touches.right = false; }, { passive: false });
+  // mouse
+  w.addEventListener('mousedown', (e) => { startAngle = angleOf(e); active = true; });
+  w.addEventListener('mousemove', (e) => {
+    if (!active) return;
+    const a = angleOf(e);
+    let d = a - startAngle;
+    if (d > Math.PI) d -= Math.PI*2;
+    if (d < -Math.PI) d += Math.PI*2;
+    if (d > 0.2) { gameState.touches.right = true; gameState.touches.left = false; startAngle = a; }
+    else if (d < -0.2) { gameState.touches.left = true; gameState.touches.right = false; startAngle = a; }
+  });
+  w.addEventListener('mouseup', () => { active = false; gameState.touches.left = gameState.touches.right = false; });
+}
+
 function pressed(control, isDown, ev) {
   if (ev && ev.preventDefault) ev.preventDefault();
   gameState.touches[control] = isDown;
@@ -281,7 +388,21 @@ function pressed(control, isDown, ev) {
   }
 }
 
-// ---- draw per-game custom control panel ----
+// ---- per-game custom control panel ----
+let accMode = false;  // accessibility mode: bigger buttons, high contrast
+function setAccMode(on) {
+  accMode = !!on;
+  document.body.classList.toggle('acc-mode', accMode);
+  // re-render controls if a game is open
+  const ctrlWrap = document.getElementById('touchControls');
+  if (ctrlWrap && ctrlWrap.classList.contains('show') && typeof gameState !== 'undefined' && gameState.currentGame) {
+    drawControls(gameState.currentGame);
+  }
+  localStorage.setItem('accMode', accMode ? '1' : '0');
+}
+// init from saved prefs
+try { if (localStorage.getItem('accMode') === '1') setAccMode(true); } catch (e) {}
+
 function drawControls(gameId) {
   const layout = CONTROL_LAYOUT[gameId] || { type: 'tap', hint: 'TAP' };
   const wrap = document.getElementById('touchControls');
@@ -329,6 +450,64 @@ function drawControls(gameId) {
       <button class="ctrl-btn ctrl-mine" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-bolt"></i>MINE</button>
     </div></div>`;
   }
+  // Classic 4-way D-pad (no action)
+  else if (type === 'dpad') {
+    html += `<div class="ctrl-dpad-center"><div class="dpad">
+      <button class="ctrl-btn dp-up" ontouchstart="pressed('up',true,event)" ontouchend="pressed('up',false,event)" ontouchcancel="pressed('up',false,event)" onmousedown="pressed('up',true,event)" onmouseup="pressed('up',false,event)" onmouseleave="pressed('up',false,event)"><i class="fa-solid fa-chevron-up"></i></button>
+      <button class="ctrl-btn dp-left" ontouchstart="pressed('left',true,event)" ontouchend="pressed('left',false,event)" ontouchcancel="pressed('left',false,event)" onmousedown="pressed('left',true,event)" onmouseup="pressed('left',false,event)" onmouseleave="pressed('left',false,event)"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="ctrl-btn dp-down" ontouchstart="pressed('down',true,event)" ontouchend="pressed('down',false,event)" ontouchcancel="pressed('down',false,event)" onmousedown="pressed('down',true,event)" onmouseup="pressed('down',false,event)" onmouseleave="pressed('down',false,event)"><i class="fa-solid fa-chevron-down"></i></button>
+      <button class="ctrl-btn dp-right" ontouchstart="pressed('right',true,event)" ontouchend="pressed('right',false,event)" ontouchcancel="pressed('right',false,event)" onmousedown="pressed('right',true,event)" onmouseup="pressed('right',false,event)" onmouseleave="pressed('right',false,event)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div></div>`;
+  }
+  // Radial button menu (A/B/X/Y — arcade face buttons)
+  else if (type === 'radial') {
+    html += `<div class="ctrl-radial">
+      <button class="ctrl-btn r-top" onclick="radialPress('up',event)"><i class="fa-solid fa-caret-up"></i></button>
+      <button class="ctrl-btn r-left" onclick="radialPress('left',event)"><i class="fa-solid fa-caret-left"></i></button>
+      <button class="ctrl-btn r-bottom" onclick="radialPress('down',event)"><i class="fa-solid fa-caret-down"></i></button>
+      <button class="ctrl-btn r-right" onclick="radialPress('right',event)"><i class="fa-solid fa-caret-right"></i></button>
+    </div>`;
+  }
+  // Steering wheel: left/right steer + boost
+  else if (type === 'steer') {
+    html += `<div class="ctrl-steer">
+      <button class="ctrl-btn steer-left" ontouchstart="pressed('left',true,event)" ontouchend="pressed('left',false,event)" ontouchcancel="pressed('left',false,event)" onmousedown="pressed('left',true,event)" onmouseup="pressed('left',false,event)" onmouseleave="pressed('left',false,event)"><i class="fa-solid fa-arrow-left"></i>L</button>
+      <button class="ctrl-btn steer-boost" ontouchstart="pressed('boost',true,event)" ontouchend="pressed('boost',false,event)" ontouchcancel="pressed('boost',false,event)" onmousedown="pressed('boost',true,event)" onmouseup="pressed('boost',false,event)" onmouseleave="pressed('boost',false,event)"><i class="fa-solid fa-gauge-high"></i>BOOST</button>
+      <button class="ctrl-btn steer-right" ontouchstart="pressed('right',true,event)" ontouchend="pressed('right',false,event)" ontouchcancel="pressed('right',false,event)" onmousedown="pressed('right',true,event)" onmouseup="pressed('right',false,event)" onmouseleave="pressed('right',false,event)"><i class="fa-solid fa-arrow-right"></i>R</button>
+    </div>`;
+  }
+  // Swipe-zone: swipe anywhere on the pad = direction (with on-screen compass)
+  else if (type === 'swipe-zone') {
+    html += `<div class="ctrl-swipe-zone" id="swipeZone"><i class="fa-solid fa-arrows-up-down-left-right"></i><span>SWIPE</span></div>`;
+  }
+  // Tap + Hold (tap = action, hold = alt power)
+  else if (type === 'tap-hold') {
+    html += `<div class="ctrl-taphold">
+      <button class="ctrl-btn th-tap" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-hand-pointer"></i>TAP</button>
+      <button class="ctrl-btn th-hold" ontouchstart="pressed('power',true,event)" ontouchend="pressed('power',false,event)" ontouchcancel="pressed('power',false,event)" onmousedown="pressed('power',true,event)" onmouseup="pressed('power',false,event)" onmouseleave="pressed('power',false,event)"><i class="fa-solid fa-bolt"></i>HOLD</button>
+    </div>`;
+  }
+  // Pinch (zoom / scale control)
+  else if (type === 'pinch') {
+    html += `<div class="ctrl-pinch"><i class="fa-solid fa-hand-fist"></i><span>PINCH</span></div>`;
+  }
+  // Gyro display (device orientation; buttons fallback)
+  else if (type === 'gyro') {
+    html += `<div class="ctrl-tilt"><i class="fa-solid fa-compass"></i><span>GYRO</span></div>`;
+    html += `<div class="ctrl-group">
+      <button class="ctrl-btn" ontouchstart="pressed('left',true,event)" ontouchend="pressed('left',false,event)" ontouchcancel="pressed('left',false,event)" onmousedown="pressed('left',true,event)" onmouseup="pressed('left',false,event)" onmouseleave="pressed('left',false,event)"><i class="fa-solid fa-arrow-left"></i></button>
+      <button class="ctrl-btn ctrl-boost" ontouchstart="pressed('boost',true,event)" ontouchend="pressed('boost',false,event)" ontouchcancel="pressed('boost',false,event)" onmousedown="pressed('boost',true,event)" onmouseup="pressed('boost',false,event)" onmouseleave="pressed('boost',false,event)"><i class="fa-solid fa-gauge-high"></i></button>
+      <button class="ctrl-btn" ontouchstart="pressed('right',true,event)" ontouchend="pressed('right',false,event)" ontouchcancel="pressed('right',false,event)" onmousedown="pressed('right',true,event)" onmouseup="pressed('right',false,event)" onmouseleave="pressed('right',false,event)"><i class="fa-solid fa-arrow-right"></i></button>
+    </div>`;
+  }
+  // Rotary wheel dial
+  else if (type === 'wheel') {
+    html += `<div class="ctrl-wheel" id="ctrlWheel"><i class="fa-solid fa-dial"></i><span>ROTATE</span></div>`;
+  }
+  // Swap (two-tap item swap for match games)
+  else if (type === 'swap') {
+    html += `<div class="ctrl-swap"><button class="ctrl-btn" onclick="pressed('action',true,event);setTimeout(()=>pressed('action',false,event),80)"><i class="fa-solid fa-arrows-rotate"></i>SWAP</button><span class="ctrl-swap-hint">TAP ITEM · TAP TARGET</span></div>`;
+  }
   // Tilt display (accelerometer-based on device; buttons fallback)
   else if (type === 'tilt') {
     html += `<div class="ctrl-tilt"><i class="fa-solid fa-mobile-screen-button"></i><span>TILT</span></div>`;
@@ -352,7 +531,11 @@ function drawControls(gameId) {
   wrap.innerHTML = html;
   // wire joystick(s)
   if (type === 'joystick') initJoystick('joystick', 'jKnob', 'main');
+  else if (type === 'joystick2') { initJoystick('joystick', 'jKnob', 'main'); }
   else if (type === 'dual') { initJoystick('joyL', 'jKnobL', 'left'); initJoystick('joyR', 'jKnobR', 'right'); }
+  // wire new control types
+  else if (type === 'swipe-zone') initSwipeZone();
+  else if (type === 'wheel') initWheel();
 }
 
 // ---- joystick (virtual) — multi-instance (main / left / right) ----
