@@ -48,6 +48,11 @@ const CONTROL_LAYOUT = {
   'dino-run':        { type: 'tap',        hint: 'TAP JUMP · HOLD DOWN SLIDE' },
   'sling-birds':     { type: 'canvas',     hint: 'DRAG BACK · RELEASE TO SLING' },
   'space-miner':     { type: 'move-mine',  hint: 'ARROWS/WASD MOVE · HOLD SPACE/E TO MINE' },
+  'neon-slam':       { type: 'drag',       hint: 'DRAG PADDLE · TAP/SPACE LAUNCH' },
+  'neon-tower':      { type: 'tap',        hint: 'TAP/SPACE TO DROP BLOCK' },
+  'cosmic-dash':     { type: 'tap',        hint: 'TAP/SPACE TO THRUST · PORTALS FLIP GRAVITY' },
+  'lazer-maze':      { type: 'tap',        hint: 'TAP MIRROR TO ROTATE · ROTATE TO HIT TARGET' },
+  'time-rush':       { type: 'tap',        hint: 'TAP/SPACE JUMP · HOLD ↓/Z REWIND' },
 
   // ============ GROUP 5: SPORTS ARENA (8) ============
   'pong':            { type: 'drag',       hint: 'DRAG PADDLE UP/DOWN' },
