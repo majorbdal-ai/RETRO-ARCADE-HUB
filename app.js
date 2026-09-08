@@ -145,6 +145,7 @@ const GAMES = [
   { id: 'traffic-racer',    name: 'TRAFFIC RACER',    icon: '🏁', color: '#F97316', desc: 'Lane-steer endless highway racer', featured: false, type: 'traffic', cat: 'Action', controls: 'tap-steer' },
   { id: 'dino-run',    name: 'DINO RUN',    icon: '🦖', color: '#A3E635', desc: 'Chrome dino — jump & duck the cacti', featured: false, type: 'dino', cat: 'Action', controls: 'tap-jump-drag-duck' },
   { id: 'sling-birds',    name: 'SLING BIRDS',    icon: '🐦', color: '#FB923C', desc: 'Angry-Birds style slingshot mayhem', featured: true, type: 'sling', cat: 'Action', controls: 'slingshot-drag' },
+  { id: 'space-miner',    name: 'SPACE MINER',    icon: '⛏️', color: '#FFD700', desc: 'Mine asteroids, upgrade ship, defeat bosses', featured: true, type: 'miner', cat: 'Action', controls: 'move-mine' },
   { id: 'pong',    name: 'NEON PONG',    icon: '🏓', color: '#00FFFF', desc: 'Classic pong vs AI — drag paddle', featured: false, type: 'pong', cat: 'Sports', controls: 'drag-paddle' },
   { id: 'table-tennis',    name: 'TABLE TENNIS',    icon: '🏓', color: '#FF10F0', desc: 'Drag paddle rally, timing smashes', featured: false, type: 'pingpong', cat: 'Sports', controls: 'drag-paddle' },
   { id: 'bowling-strike',    name: 'BOWLING STRIKE',    icon: '🎳', color: '#60A5FA', desc: 'Swipe to bowl — power & curve', featured: false, type: 'bowling', cat: 'Sports', controls: 'swipe-bowl' },
@@ -726,7 +727,7 @@ const GAME_SKIN = {
   'neon-racer': 'neon', 'cyber-shooter': 'neon2', 'pixel-dungeon': 'void',
   'light-cycle': 'neon', 'neon-snake': 'neon', 'tank-battle': 'matrix',
   'airstrike': 'sunset', 'neon-dash': 'neon', 'traffic-racer': 'sunset',
-  'dino-run': 'sunset', 'sling-birds': 'void', 'hill-climb': 'sunset',
+  'dino-run': 'sunset', 'sling-birds': 'void', 'space-miner': 'royal', 'hill-climb': 'sunset',
   'temple-run': 'void', 'helix-drop': 'matrix',
   // Arcade vibrant
   'flappy-neon': 'neon', 'pac-runner': 'void', 'space-invaders': 'matrix',

@@ -47,6 +47,7 @@ const CONTROL_LAYOUT = {
   'traffic-racer':   { type: 'tap',        hint: 'TAP LEFT/RIGHT LANE' },
   'dino-run':        { type: 'tap',        hint: 'TAP JUMP · HOLD DOWN SLIDE' },
   'sling-birds':     { type: 'canvas',     hint: 'DRAG BACK · RELEASE TO SLING' },
+  'space-miner':     { type: 'move-mine',  hint: 'ARROWS/WASD MOVE · HOLD SPACE/E TO MINE' },
 
   // ============ GROUP 5: SPORTS ARENA (8) ============
   'pong':            { type: 'drag',       hint: 'DRAG PADDLE UP/DOWN' },

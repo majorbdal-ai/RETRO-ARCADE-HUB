@@ -43,6 +43,7 @@ const GAME_ENGINE = {
   'traffic-racer':          'trafficRacer',
   'dino-run':          'dinoRun',
   'sling-birds':          'slingBirds',
+  'space-miner':          'spaceMiner',
   'pong':          'pong',
   'table-tennis':          'tableTennis',
   'bowling-strike':          'bowlingStrike',
@@ -311,6 +312,18 @@ function drawControls(gameId) {
     html += `<div class="joystick" id="joyL"><div class="knob" id="jKnobL"></div></div>`;
     html += `<div class="joystick" id="joyR"><div class="knob" id="jKnobR"></div></div>`;
   }
+  // Move (D-pad) + Mine action (space miner)
+  else if (type === 'move-mine') {
+    html += `<div class="ctrl-dpad"><div class="dpad">
+      <button class="ctrl-btn dp-up" ontouchstart="pressed('up',true,event)" ontouchend="pressed('up',false,event)" ontouchcancel="pressed('up',false,event)" onmousedown="pressed('up',true,event)" onmouseup="pressed('up',false,event)" onmouseleave="pressed('up',false,event)"><i class="fa-solid fa-chevron-up"></i></button>
+      <button class="ctrl-btn dp-left" ontouchstart="pressed('left',true,event)" ontouchend="pressed('left',false,event)" ontouchcancel="pressed('left',false,event)" onmousedown="pressed('left',true,event)" onmouseup="pressed('left',false,event)" onmouseleave="pressed('left',false,event)"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="ctrl-btn dp-down" ontouchstart="pressed('down',true,event)" ontouchend="pressed('down',false,event)" ontouchcancel="pressed('down',false,event)" onmousedown="pressed('down',true,event)" onmouseup="pressed('down',false,event)" onmouseleave="pressed('down',false,event)"><i class="fa-solid fa-chevron-down"></i></button>
+      <button class="ctrl-btn dp-right" ontouchstart="pressed('right',true,event)" ontouchend="pressed('right',false,event)" ontouchcancel="pressed('right',false,event)" onmousedown="pressed('right',true,event)" onmouseup="pressed('right',false,event)" onmouseleave="pressed('right',false,event)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <div class="ctrl-group">
+      <button class="ctrl-btn ctrl-mine" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-bolt"></i>MINE</button>
+    </div></div>`;
+  }
   // Tilt display (accelerometer-based on device; buttons fallback)
   else if (type === 'tilt') {
     html += `<div class="ctrl-tilt"><i class="fa-solid fa-mobile-screen-button"></i><span>TILT</span></div>`;
@@ -326,6 +339,7 @@ function drawControls(gameId) {
   }
   // Tap-only: single big action button (or just hint)
   else if (type === 'tap') {
+    html += `<div class="ctrl-spacer"></div>`;
     html += `<div class="ctrl-tap-area" id="ctrlTap" onclick="pressed('action',true,event);setTimeout(()=>pressed('action',false,event),80)"><i class="fa-solid fa-hand-pointer"></i><span>TAP</span></div>`;
   } else {
     html += `<div class="ctrl-spacer"></div>`;
