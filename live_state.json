@@ -1,0 +1,8 @@
+{
+  "rot": 0,
+  "updated": "2026-09-08T12:00:00Z",
+  "featured": ["neon-racer", "cyber-shooter", "pixel-dungeon", "light-cycle", "tank-battle", "bubble-shooter"],
+  "deal": { "item": "skin-dragon", "name": "DRAGON SKIN", "pct": 20 },
+  "challenge": "neon-racer",
+  "botBoost": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+}
