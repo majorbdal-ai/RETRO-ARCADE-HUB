@@ -433,15 +433,18 @@ function renderHome() {
         <span style="font-size:13px">▶</span>
       </div>`;
   }
-  document.getElementById('featuredGrid').insertAdjacentHTML('beforebegin', challHtml);
-  document.getElementById('featuredGrid').innerHTML = feat.map((g, i) => `
+  const featGrid = document.getElementById('featuredCarousel') || document.getElementById('featuredGrid');
+  if (featGrid) {
+    featGrid.insertAdjacentHTML('beforebegin', challHtml);
+    featGrid.innerHTML = feat.map((g, i) => `
     <div class="featured-card" style="background:linear-gradient(145deg,${g.color}33,#0A0E16 65%)">
-      <div class="f-ico" style="color:${g.color}">${g.icon}</div>
+      <div class="f-ico" style="color:${g.color};width:44px;height:44px;display:flex">${gameLogo(g.id)}</div>
       <span class="badge" style="position:absolute;top:10px;right:10px">${engineReady(g.id) ? 'PLAY' : 'SOON'}</span>
       <h3>${g.name}</h3>
       <p style="font-size:10px;color:var(--sub)">${g.desc}</p>
       <button class="btn btn-primary play-btn" style="padding:7px 14px;font-size:11px" onclick="playGame('${g.id}')">${engineReady(g.id) ? '▶ PLAY NOW' : 'COMING SOON'}</button>
     </div>`).join('');
+  }
   renderGameGrid('');
 
     // NEW UI: Featured Carousel (horizontal scroll with featured games)
@@ -485,7 +488,7 @@ function renderHome() {
     if (!carousel) return;
     carousel.innerHTML = feat.map((g, i) => `
       <div class="featured-card" style="background:linear-gradient(145deg,${g.color}33,#0A0E16 65%);flex-shrink:0;scroll-snap-align:start;width:260px">
-        <div class="f-ico" style="color:${g.color}">${g.icon}</div>
+        <div class="f-ico" style="color:${g.color};width:44px;height:44px;display:flex">${gameLogo(g.id)}</div>
         <span class="badge" style="position:absolute;top:10px;right:10px">${engineReady(g.id) ? 'PLAY' : 'SOON'}</span>
         <h3>${g.name}</h3>
         <p style="font-size:var(--font-xs);color:var(--sub)">${g.desc}</p>
@@ -515,6 +518,13 @@ function renderHome() {
     renderArcadeGrid();
   }
 
+function gameLogo(id, size = 120) {
+  const svg = (window.GAME_LOGOS && window.GAME_LOGOS[id]) || '';
+  if (svg) return `<svg viewBox="0 0 120 120" style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg">${svg.replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>`;
+  const g = GAMES.find(x => x.id === id);
+  return `<span style="font-size:${size * 0.28}px;filter:drop-shadow(0 4px 12px ${g ? g.color : '#fff'}66)">${g ? g.icon : '🎮'}</span>`;
+}
+
 function renderGameGrid(filter = '', cat = '') {
   const q = (filter || '').toLowerCase();
   const c = (cat || currentCatFilter).toUpperCase();
@@ -533,9 +543,10 @@ function renderGameGrid(filter = '', cat = '') {
     let h = 0; for (let k = 0; k < g.id.length; k++) h = (h * 31 + g.id.charCodeAt(k)) >>> 0;
     const daySeed = h % 7;
     const plays = 1200 + ((h + daySeed * 310) % 9800); // 1.2k–11k fake-plays
+    const logo = gameLogo(g.id);
     return `<div class="card game-card" style="cursor:pointer;position:relative" onclick="playGame('${g.id}')">
       <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px;background:${badgeColor}22;color:${badgeColor};border:1px solid ${badgeColor}55">${badge}</span>
-      <div class="thumb" style="border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22"><span style="font-size:34px;filter:drop-shadow(0 4px 12px ${g.color}66)">${g.icon}</span></div>
+      <div class="thumb" style="border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${logo}</div>
       <h4>${g.name}</h4>
       <p>${g.desc}</p>
       <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:var(--sub)">
@@ -573,7 +584,7 @@ function renderArcadeGrid(filter = '') {
     if (isList) {
       return `<div class="card game-card" style="cursor:pointer;position:relative;display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);min-height:80px">
         <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${badge}</span>
-        <div class="thumb" style="width:60px;height:60px;flex-shrink:0;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:24px;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${g.icon}</div>
+        <div class="thumb" style="width:60px;height:60px;flex-shrink:0;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${gameLogo(g.id)}</div>
         <div class="info" style="flex:1;min-width:0">
           <h4 style="font-size:var(--font-sm);font-weight:700;color:#fff;margin-bottom:var(--space-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.name}</h4>
           <p style="font-size:var(--font-xs);color:var(--sub);margin-bottom:var(--space-xs);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.desc}</p>
@@ -589,7 +600,7 @@ function renderArcadeGrid(filter = '') {
     } else {
       return `<div class="card game-card" style="cursor:pointer;position:relative">
         <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${ready ? 'OPEN' : 'SOON'}</span>
-        <div class="thumb" style="height:80px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${g.icon}</div>
+        <div class="thumb" style="height:80px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${gameLogo(g.id)}</div>
         <h4 style="font-size:var(--font-sm);font-weight:700;color:#fff;margin-bottom:var(--space-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.name}</h4>
         <p style="font-size:var(--font-xs);color:var(--sub);margin-bottom:var(--space-sm);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.desc}</p>
         <div style="display:flex;align-items:center;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm)">
