@@ -86,5 +86,9 @@ const CONTROL_LAYOUT = {
   // ============ GROUP 8: NEW UNIQUE GAMES (3) ============
   'trash-sorter':    { type: 'tap',        hint: 'TAP 1/2/3 (OR ←↑→) TO SORT INTO BIN' },
   'ladder-climb':    { type: 'tap',        hint: 'TAP / SPACE TO GRAB NEXT HOLD' },
-  'math-dash':       { type: 'tap',        hint: 'TAP 1/2/3/4 (OR SWIPE) TO PICK ANSWER' }
+  'math-dash':       { type: 'tap',        hint: 'TAP 1/2/3/4 (OR SWIPE) TO PICK ANSWER' },
+  'bounce':          { type: 'dpad',       hint: 'D-PAD = MOVE PADDLE · TAP TO LAUNCH' },
+  'space-impact':    { type: 'dpad',       hint: 'D-PAD MOVE · TAP SHOOT · SPACE BOSS' },
+  'bantumi':         { type: 'tap',        hint: 'TAP YOUR PIT TO SOW STONES' },
+  'reversi':         { type: 'tap',        hint: 'TAP CELL TO PLACE DISC' },
 };

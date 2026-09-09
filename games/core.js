@@ -75,6 +75,10 @@ const GAME_ENGINE = {
   'trash-sorter':          'trashSorter',
   'ladder-climb':          'ladderClimb',
   'math-dash':          'mathDash',
+  'bounce':             'bounce',
+  'space-impact':       'spaceImpact',
+  'bantumi':            'bantumi',
+  'reversi':            'reversi',
 };
 
 // true when the game's engine file is available (all 60 are; lazy-loaded on launch)

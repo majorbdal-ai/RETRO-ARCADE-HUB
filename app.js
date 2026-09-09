@@ -188,7 +188,11 @@ const GAMES = [
   { id: 'crossy-neon',   name: 'CROSSY NEON',    icon: '🐸', color: '#4ADE80', desc: 'Cross the road — dodge cars, logs & water', featured: false, type: 'crossy', cat: 'Retro', controls: 'swipe4' },
   { id: 'trash-sorter',  name: 'TRASH SORTER',   icon: '🗑️', color: '#38BDF8', desc: 'Sort waste into the right recycle bin', featured: false, type: 'trash', cat: 'Retro', controls: 'tap-3bin' },
   { id: 'ladder-climb',  name: 'LADDER CLIMB',   icon: '⛰️', color: '#F59E0B', desc: 'Tap to grab holds, climb the mountain', featured: false, type: 'climb', cat: 'Retro', controls: 'tap-grab' },
-  { id: 'math-dash',     name: 'MATH DASH',      icon: '🧮', color: '#22D3EE', desc: 'Solve fast math under the timer', featured: false, type: 'math', cat: 'Retro', controls: 'tap-4' }
+  { id: 'math-dash',     name: 'MATH DASH',      icon: '🧮', color: '#22D3EE', desc: 'Solve fast math under the timer', featured: false, type: 'math', cat: 'Retro', controls: 'tap-4' },
+  { id: 'bounce',        name: 'BOUNCE',         icon: '🔴', color: '#FF3B3B', desc: 'Nokia classic — red ball, break all bricks', featured: true, type: 'bounce', cat: 'Retro', controls: 'dpad+swipe' },
+  { id: 'space-impact',  name: 'SPACE IMPACT',   icon: '👾', color: '#00FF44', desc: 'Nokia side-scrolling shooter — waves + bosses', featured: true, type: 'impact', cat: 'Retro', controls: 'dpad+btn-fire' },
+  { id: 'bantumi',       name: 'BANTUMI',        icon: '🪨', color: '#D4A574', desc: 'Nokia Mancala — sow seeds, capture stones', featured: false, type: 'bantumi', cat: 'Board', controls: 'tap-pit' },
+  { id: 'reversi',       name: 'REVERSI',        icon: '⚫', color: '#4ADE80', desc: 'Nokia Othello — flip discs, outsmart AI', featured: false, type: 'reversi', cat: 'Board', controls: 'tap-cell' }
 ];
 
 
