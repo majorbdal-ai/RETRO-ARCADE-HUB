@@ -794,31 +794,41 @@ function endGame(score, coinsEarned) {
     if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
   });
 
-  // Daily quests (rotating, 3 per day)
+  // Daily missions (rotating, 3 per day) — game-specific "Nokia-era" goals
   if (!state.dailyQuest) state.dailyQuest = {};
   const today = new Date().toDateString();
   if (!state.dailyQuest.date || state.dailyQuest.date !== today) {
-    // new day: pick 3 quests
-    const pool = [
-      { id: 'play1', ico: '🎮', desc: 'Play 1 game',            target: 1,  reward: 50,  prog: 0 },
-      { id: 'play5',  ico: '🎮', desc: 'Play 5 games',          target: 5,  reward: 120, prog: 0 },
-      { id: 'score1k',ico: '💯', desc: 'Score 1,000 pts',       target: 1,  reward: 80,  prog: 0 },
-      { id: 'score5k',ico: '💯', desc: 'Score 5,000 pts',       target: 1,  reward: 150, prog: 0 },
-      { id: 'collect',ico: '🪙', desc: 'Earn 100 coins total',  target: 100,reward: 100, prog: 0 }
+    // new day: pick 3 game-specific missions (1 play + 2 score, known-score games)
+    const playPool = [
+      { id: 'mp-tetris',   ico: '🧱', game: 'tetris-blitz',   desc: 'Play Tetris once',        target: 1, reward: 40, prog: 0 },
+      { id: 'mp-sudoku',   ico: '🧩', game: 'sudoku',         desc: 'Play Sudoku once',        target: 1, reward: 45, prog: 0 },
+      { id: 'mp-pinball',  ico: '🪩', game: 'pinball-fever',  desc: 'Play Pinball once',       target: 1, reward: 40, prog: 0 },
+      { id: 'mp-mines',    ico: '💣', game: 'mine-sweeper',   desc: 'Play Minesweeper once',   target: 1, reward: 45, prog: 0 },
+      { id: 'mp-2048',     ico: '🔢', game: '2048',           desc: 'Play 2048 once',          target: 1, reward: 40, prog: 0 },
+      { id: 'mp-ludo',     ico: '🎲', game: 'ludo-king',      desc: 'Play Ludo once',          target: 1, reward: 45, prog: 0 }
     ];
-    shuffle(pool);
-    state.dailyQuest = { date: today, list: pool.slice(0, 3), done: [] };
+    const scorePool = [
+      { id: 'ms-flappy50',  ico: '🐤', game: 'flappy-neon',    desc: 'Flappy: score 50',       target: 50,  reward: 60, prog: 0 },
+      { id: 'ms-snake100',  ico: '🐍', game: 'snake-classic',  desc: 'Snake: eat 100',         target: 100, reward: 60, prog: 0 },
+      { id: 'ms-dino300',   ico: '🦖', game: 'dino-run',       desc: 'Dino: run 300m',         target: 300, reward: 60, prog: 0 },
+      { id: 'ms-pinball7',  ico: '🪩', game: 'pinball-fever',  desc: 'Pinball: 7 pts',         target: 7,   reward: 55, prog: 0 },
+      { id: 'ms-break60',   ico: '🧨', game: 'brick-breaker',  desc: 'Breakout: 60 pts',       target: 60,  reward: 55, prog: 0 },
+      { id: 'ms-invaders20',ico: '👾', game: 'space-invaders', desc: 'Invaders: 20 kills',     target: 20,  reward: 60, prog: 0 },
+      { id: 'ms-pac30',     ico: '👻', game: 'pac-runner',     desc: 'Pac: eat 30 dots',       target: 30,  reward: 60, prog: 0 },
+      { id: 'ms-neon100',   ico: '⚡', game: 'neon-dash',      desc: 'Neon Dash: 100 pts',     target: 100, reward: 55, prog: 0 }
+    ];
+    shuffle(playPool); shuffle(scorePool);
+    state.dailyQuest = { date: today, list: [playPool[0], scorePool[0], scorePool[1]], done: [] };
   }
   state.dailyQuest.list.forEach(q => {
-    if (q.id === 'play1' || q.id === 'play5') q.prog = Math.min(q.target, q.prog + 1);
-    else if (q.id === 'score1k') q.prog = Math.min(q.target, score >= 1000 ? 1 : q.prog);
-    else if (q.id === 'score5k') q.prog = Math.min(q.target, score >= 5000 ? 1 : q.prog);
-    else if (q.id === 'collect') q.prog = Math.min(q.target, q.prog + coinsEarned + Math.floor(score * 0.1));
+    if (!q.game || gameState.id !== q.game) return; // only the specific game progresses it
+    if (q.target === 1) q.prog = 1;                       // play missions: done by playing
+    else q.prog = Math.min(q.target, Math.max(q.prog, score)); // score missions
     // claim if reached & not claimed
     if (q.prog >= q.target && !state.dailyQuest.done.includes(q.id)) {
       state.dailyQuest.done.push(q.id);
       state.coins += q.reward;
-      setTimeout(() => toast(q.ico + ' QUEST: ' + q.desc + ' — +' + q.reward + ' 🪙'), 800);
+      setTimeout(() => toast(q.ico + ' MISSION: ' + q.desc + ' — +' + q.reward + ' 🪙'), 800);
       if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
     }
   });

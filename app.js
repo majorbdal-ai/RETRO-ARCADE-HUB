@@ -787,7 +787,7 @@ function renderProfile() {
       <span style="font-size:10px;font-weight:700;color:${(state.achievements||[]).includes(a.id) ? 'var(--green)' : 'var(--sub)'}">${(state.achievements||[]).includes(a.id) ? 'DONE ✓' : '🔒'}</span>
     </div>`).join('');
 
-  // DAILY QUESTS
+  // DAILY MISSIONS
   const dqWrap = document.getElementById('dailyQuestList');
   if (dqWrap) {
     const dq = state.dailyQuest || {};
@@ -805,7 +805,7 @@ function renderProfile() {
         </div>`;
       }).join('');
     } else {
-      dqWrap.innerHTML = '<div style="font-size:12px;color:var(--sub);padding:10px 0">Play your first game today to unlock quests!</div>';
+      dqWrap.innerHTML = '<div style="font-size:12px;color:var(--sub);padding:10px 0">Play any mission game today to unlock!</div>';
     }
   }
 }
