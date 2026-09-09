@@ -2,3 +2,8 @@
 node_modules/
 *.log
 .DS_Store
+
+# API files — DO NOT COMMIT (has DB credentials)
+api/
+*.env
+
