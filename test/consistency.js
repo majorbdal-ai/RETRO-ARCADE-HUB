@@ -12,7 +12,9 @@ const ctrl = fs.readFileSync(path.join(root, 'games/controls.js'), 'utf8');
 const GAMES_BLOCK = app.match(/const GAMES\s*=\s*\[([\s\S]*?)\n\];/);
 if (!GAMES_BLOCK) { console.error('Could not locate GAMES array in app.js'); process.exit(1); }
 const ids = [...GAMES_BLOCK[1].matchAll(/id: '([a-z0-9-]+)'/g)].map(m => m[1]);
-const engineIds = [...core.matchAll(/^\s*'([a-z0-9-]+)':/gm)].map(m => m[1]);
+const engineBlock = core.match(/const GAME_ENGINE\s*=\s*\{([\s\S]*?)\n\};/);
+if (!engineBlock) { console.error('Could not locate GAME_ENGINE in core.js'); process.exit(1); }
+const engineIds = [...engineBlock[1].matchAll(/^\s*'([a-z0-9-]+)':/gm)].map(m => m[1]);
 const ctrlIds = [...ctrl.matchAll(/^\s*'([a-z0-9-]+)':/gm)].map(m => m[1]);
 
 let fail = false;

@@ -773,19 +773,21 @@ function renderProfile() {
   const p = state.profile;
   const skinsOwned = state.inventory.filter(id => id.startsWith('skin-') || id.startsWith('veh-')).length;
   state.streak = state.streak || 0;
+  const xpCur = p.xp || 0, xpNeed = 100 * Math.pow(p.level, 1.35);
+  const xpPct = Math.min(100, Math.round(xpCur / xpNeed * 100));
   document.getElementById('avatarBig').innerText = p.avatar || '👤';
   document.getElementById('playerName').innerText = p.username;
-  document.getElementById('playerLevel').innerText = 'LVL ' + p.level + (p.level >= 30 ? ' VIP' : '');
+  document.getElementById('playerLevel').innerHTML = 'LVL ' + p.level + (p.level >= 30 ? ' <span style="color:var(--gold)">VIP</span>' : '') + `<div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div><span class="xp-label">${Math.round(xpCur)}/${Math.round(xpNeed)}</span></div>`;
   document.getElementById('statWins').innerText = state.stats.gamesPlayed;
   document.getElementById('statCoins').innerText = state.coins.toLocaleString();
   document.getElementById('statSkins').innerText = skinsOwned + '/24';
 
-  // REAL achievements (persisted in state.achievements)
+  // ACHIEVEMENTS (visual grid, v7.5 redesign)
   const ACH_META = [
     { id: 'first',   ico: '🏆', name: 'FIRST BLOOD' },
     { id: 'win10',   ico: '⚡', name: 'ARCADE ADDICT' },
     { id: 'win50',   ico: '🔥', name: 'FIFTY & FIERCE' },
-    { id: 'score1k', ico: '💎', name: 'FOUR-FIGURE SCORE' },
+    { id: 'score1k', ico: '💎', name: 'FOUR-FIGURE' },
     { id: 'score10k',ico: '👑', name: 'HIGH ROLLER' },
     { id: 'combo8',  ico: '🌀', name: 'COMBO STARTER' },
     { id: 'master',  ico: '🎯', name: 'GAME MASTER' },
@@ -794,14 +796,16 @@ function renderProfile() {
   const achUnlocked = ACH_META.filter(a => (state.achievements || []).includes(a.id)).length;
   document.getElementById('achCount').innerText = achUnlocked + '/' + ACH_META.length;
   document.getElementById('achBar').style.width = (achUnlocked / ACH_META.length * 100) + '%';
-  document.getElementById('achList').innerHTML = ACH_META.map(a => `
-    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">
-      <span style="font-size:18px;opacity:${(state.achievements||[]).includes(a.id) ? 1 : .35}">${a.ico}</span>
-      <span style="flex:1;font-size:13px;color:${(state.achievements||[]).includes(a.id) ? '#fff' : 'var(--sub)'}">${a.name}</span>
-      <span style="font-size:10px;font-weight:700;color:${(state.achievements||[]).includes(a.id) ? 'var(--green)' : 'var(--sub)'}">${(state.achievements||[]).includes(a.id) ? 'DONE ✓' : '🔒'}</span>
-    </div>`).join('');
+  document.getElementById('achList').innerHTML = ACH_META.map(a => {
+    const done = (state.achievements || []).includes(a.id);
+    return `<div class="ach-card${done ? ' done' : ''}">
+      <div class="ach-ico" style="opacity:${done ? 1 : .3}">${a.ico}</div>
+      <div class="ach-name">${a.name}</div>
+      <div class="ach-status">${done ? '<span style="color:var(--green)">✓ DONE</span>' : '🔒'}</div>
+    </div>`;
+  }).join('');
 
-  // DAILY MISSIONS
+  // DAILY MISSIONS (v7.5: card style with progress)
   const dqWrap = document.getElementById('dailyQuestList');
   if (dqWrap) {
     const dq = state.dailyQuest || {};
@@ -809,13 +813,18 @@ function renderProfile() {
       dqWrap.innerHTML = dq.list.map(q => {
         const done = (dq.done || []).includes(q.id);
         const pct = Math.min(100, Math.round(q.prog / q.target * 100));
-        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">
-          <span style="font-size:18px;opacity:${done ? 1 : .5}">${q.ico}</span>
-          <div style="flex:1">
-            <div style="font-size:12px;color:${done ? 'var(--green)' : '#fff'}">${q.desc} ${done ? '✓' : `(${Math.min(q.prog,q.target)}/${q.target})`}</div>
-            <div style="height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:4px"><div style="height:100%;width:${pct}%;background:var(--green);border-radius:2px"></div></div>
+        return `<div class="mission-card${done ? ' done' : ''}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:18px;opacity:${done ? 1 : .5}">${q.ico}</span>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:700;color:${done ? 'var(--green)' : '#fff'}">${q.desc}</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${done ? 'var(--green)' : 'var(--accent)'}"></div></div>
+                <span style="font-size:10px;color:var(--sub)">${Math.min(q.prog,q.target)}/${q.target}</span>
+              </div>
+            </div>
+            <span style="font-size:11px;font-weight:800;color:var(--gold);white-space:nowrap">+${q.reward} 🪙</span>
           </div>
-          <span style="font-size:10px;font-weight:700;color:var(--gold)">+${q.reward} 🪙</span>
         </div>`;
       }).join('');
     } else {
@@ -917,9 +926,9 @@ const THEMES = [
     bg:'#020804', glow1:'rgba(34,255,136,.08)', glow2:'rgba(0,255,100,.05)',
     grid:'rgba(34,255,136,.05)', gridv:'rgba(0,255,100,.04)',
     cyan:'#22FF88', cyan2:'#00CC66', pink:'#00FFAA', pink2:'#00B366',
-    yellow:'#B8FF5C', yellow2:'#7FDB39', green:'#39FF88', red:'#FF5C5C',
-    accent:'#22FF88', accent2:'#00FFAA', glass:'rgba(255,255,255,.05)',
-    glassBorder:'rgba(34,255,136,.35)', panel:'#02130A', sub:'#7BCBA0',
+    yellow:'#B8FF5C', yellow2:'#7FDB39', green:'#39FF88', red:'#FF4D4D',
+    accent:'#22FF88', accent2:'#00FFAA', glass:'rgba(255,255,255,.06)',
+    glassBorder:'rgba(34,255,136,.4)', panel:'#02130A', sub:'#86D9AC',
     bgGridSize:'0 0' } },
   { id: 'royal',  name: 'GOLD ROYAL',  ico: '👑', desc: 'Gold & black luxury',      price: 1000, palette: {
     bg:'#070600', glow1:'rgba(255,215,0,.09)', glow2:'rgba(128,0,128,.06)',
@@ -927,7 +936,7 @@ const THEMES = [
     cyan:'#FFD700', cyan2:'#FFB300', pink:'#E6B800', pink2:'#B8860B',
     yellow:'#FFD700', yellow2:'#FFAA00', green:'#FFC107', red:'#E53935',
     accent:'#FFD700', accent2:'#E6B800', glass:'rgba(255,255,255,.06)',
-    glassBorder:'rgba(255,215,0,.4)', panel:'#0E0B00', sub:'#A89060',
+    glassBorder:'rgba(255,215,0,.4)', panel:'#0E0B00', sub:'#C4A870',
     bgGridSize:'44px 44px' } },
   { id: 'neon2',  name: 'NEON VOID',   ico: '🌌', desc: 'Deep purple-blue neon',     price: 200, palette: {
     bg:'#030510', glow1:'rgba(99,102,241,.1)', glow2:'rgba(0,255,255,.06)',

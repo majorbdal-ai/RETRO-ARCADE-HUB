@@ -802,7 +802,7 @@ function endGame(score, coinsEarned) {
     const playPool = [
       { id: 'mp-tetris',   ico: '🧱', game: 'tetris-blitz',   desc: 'Play Tetris once',        target: 1, reward: 40, prog: 0 },
       { id: 'mp-sudoku',   ico: '🧩', game: 'sudoku',         desc: 'Play Sudoku once',        target: 1, reward: 45, prog: 0 },
-      { id: 'mp-pinball',  ico: '🪩', game: 'pinball-fever',  desc: 'Play Pinball once',       target: 1, reward: 40, prog: 0 },
+      { id: 'mp-pinball',  ico: '🪩', game: 'pinball',  desc: 'Play Pinball once',       target: 1, reward: 40, prog: 0 },
       { id: 'mp-mines',    ico: '💣', game: 'mine-sweeper',   desc: 'Play Minesweeper once',   target: 1, reward: 45, prog: 0 },
       { id: 'mp-2048',     ico: '🔢', game: '2048',           desc: 'Play 2048 once',          target: 1, reward: 40, prog: 0 },
       { id: 'mp-ludo',     ico: '🎲', game: 'ludo-king',      desc: 'Play Ludo once',          target: 1, reward: 45, prog: 0 }
@@ -811,7 +811,7 @@ function endGame(score, coinsEarned) {
       { id: 'ms-flappy50',  ico: '🐤', game: 'flappy-neon',    desc: 'Flappy: score 50',       target: 50,  reward: 60, prog: 0 },
       { id: 'ms-snake100',  ico: '🐍', game: 'snake-classic',  desc: 'Snake: eat 100',         target: 100, reward: 60, prog: 0 },
       { id: 'ms-dino300',   ico: '🦖', game: 'dino-run',       desc: 'Dino: run 300m',         target: 300, reward: 60, prog: 0 },
-      { id: 'ms-pinball7',  ico: '🪩', game: 'pinball-fever',  desc: 'Pinball: 7 pts',         target: 7,   reward: 55, prog: 0 },
+      { id: 'ms-pinball7',  ico: '🪩', game: 'pinball',  desc: 'Pinball: 7 pts',         target: 7,   reward: 55, prog: 0 },
       { id: 'ms-break60',   ico: '🧨', game: 'brick-breaker',  desc: 'Breakout: 60 pts',       target: 60,  reward: 55, prog: 0 },
       { id: 'ms-invaders20',ico: '👾', game: 'space-invaders', desc: 'Invaders: 20 kills',     target: 20,  reward: 60, prog: 0 },
       { id: 'ms-pac30',     ico: '👻', game: 'pac-runner',     desc: 'Pac: eat 30 dots',       target: 30,  reward: 60, prog: 0 },
@@ -860,7 +860,7 @@ function endGame(score, coinsEarned) {
   }
   requestAnimationFrame(tick);
   // star rating: 1 star for beating score 0, 2 for 60% of target, 3 for beating target
-  const TGT = { 'flappy-neon':50,'neon-dash':100,'neon-jumper':100,'snake-classic':100,'dino-run':300,'temple-run':500,'traffic-racer':500,'helix-drop':200,'cyber-shooter':100,'space-invaders':20,'pac-runner':30,'brick-breaker':60,'pinball-fever':7,'2048':512,'tetris-blitz':4,'space-miner':1000,'neon-slam':500 };
+  const TGT = { 'flappy-neon':50,'neon-dash':100,'neon-jumper':100,'snake-classic':100,'dino-run':300,'temple-run':500,'traffic-racer':500,'helix-drop':200,'cyber-shooter':100,'space-invaders':20,'pac-runner':30,'brick-breaker':60,'pinball':7,'2048':512,'tetris-blitz':4,'space-miner':1000,'neon-slam':500 };
   const t = TGT[gameState.id];
   const stars = finalScore <= 0 ? 0 : (!t ? (finalScore > 0 ? 1 : 0) : finalScore >= t ? 3 : finalScore >= t * 0.6 ? 2 : 1);
   const starEls = document.querySelectorAll('#overStars span');
@@ -888,7 +888,7 @@ function endGame(score, coinsEarned) {
       'flappy-neon': 50, 'neon-dash': 100, 'neon-jumper': 100, 'snake-classic': 100,
       'dino-run': 300, 'temple-run': 500, 'traffic-racer': 500, 'helix-drop': 200,
       'cyber-shooter': 100, 'space-invaders': 20, 'pac-runner': 30, 'brick-breaker': 60,
-      'pinball-fever': 7, '2048': 512, 'tetris-blitz': 4, 'space-miner': 1000, 'neon-slam': 500
+      'pinball': 7, '2048': 512, 'tetris-blitz': 4, 'space-miner': 1000, 'neon-slam': 500
     };
     const tgt = TARGETS[gameState.id];
     let msg = '';
