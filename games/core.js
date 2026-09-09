@@ -838,11 +838,38 @@ function endGame(score, coinsEarned) {
   // sync to backend if logged in
   syncScore(gameState.id, score);
 
-  // show overlay
-  document.getElementById('overScore').innerText = score.toLocaleString();
+  // show overlay — REDESIGN v7.2: stars, new-best glow, level label
+  const scoreEl = document.getElementById('overScore');
+  const prevBestTxt = (state.best[gameState.id] || 0).toLocaleString();
   document.getElementById('overCoins').innerText = (coinsEarned + scoreCoins + (leveledUp ? newLevel * 50 : 0)).toLocaleString();
-  document.getElementById('overBest').innerText = (state.best[gameState.id] || 0).toLocaleString();
-  document.getElementById('overLevel').innerText = (state.profile ? state.profile.level : 1) + (leveledUp ? ' ⬆' : '') + ' · +' + xpGained + ' XP';
+  document.getElementById('overBest').innerText = prevBestTxt;
+  document.getElementById('overLevel').innerText = 'LVL ' + (state.profile ? state.profile.level : 1) + (leveledUp ? ' ⬆' : '') + ' · +' + xpGained + ' XP';
+  // score count-up + label
+  scoreEl.classList.toggle('newbest', isNewBest && score > 0);
+  const finalScore = score;
+  scoreEl.innerText = '0';
+  let animStart = null;
+  const dur = Math.min(1200, 500 + finalScore.toString().length * 90);
+  function tick(ts) {
+    if (!animStart) animStart = ts;
+    const p = Math.min(1, (ts - animStart) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    scoreEl.innerText = Math.floor(finalScore * eased).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+    else scoreEl.innerText = finalScore.toLocaleString();
+  }
+  requestAnimationFrame(tick);
+  // star rating: 1 star for beating score 0, 2 for 60% of target, 3 for beating target
+  const TGT = { 'flappy-neon':50,'neon-dash':100,'neon-jumper':100,'snake-classic':100,'dino-run':300,'temple-run':500,'traffic-racer':500,'helix-drop':200,'cyber-shooter':100,'space-invaders':20,'pac-runner':30,'brick-breaker':60,'pinball-fever':7,'2048':512,'tetris-blitz':4,'space-miner':1000,'neon-slam':500 };
+  const t = TGT[gameState.id];
+  const stars = finalScore <= 0 ? 0 : (!t ? (finalScore > 0 ? 1 : 0) : finalScore >= t ? 3 : finalScore >= t * 0.6 ? 2 : 1);
+  const starEls = document.querySelectorAll('#overStars span');
+  starEls.forEach((s, i) => {
+    if (i < stars) {
+      s.classList.add('on');
+      setTimeout(() => { if (typeof window.popScore === 'function') window.popScore(innerWidth / 2 - 40 + i * 28, innerHeight / 2 - 40, '★'); }, 500 + i * 180);
+    }
+  });
   // spring score pop on the overlay
   const ov = document.getElementById('gameOverOverlay');
   if (typeof window.popScore === 'function') {
