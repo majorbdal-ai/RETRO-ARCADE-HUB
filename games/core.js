@@ -852,6 +852,31 @@ function endGame(score, coinsEarned) {
   // refresh profile page if shown
   if (document.getElementById('page-profile') && document.getElementById('page-profile').classList.contains('active')) renderProfile();
   document.getElementById('gameOverOverlay').classList.add('show');
+
+  // ==== RETRY FUEL (quality update #2): near-miss nudge — "only X more!" ====
+  const nearEl = document.getElementById('overNearMiss');
+  if (nearEl) {
+    // Per-game "next milestone" targets (rounded, forgiving)
+    const TARGETS = {
+      'flappy-neon': 50, 'neon-dash': 100, 'neon-jumper': 100, 'snake-classic': 100,
+      'dino-run': 300, 'temple-run': 500, 'traffic-racer': 500, 'helix-drop': 200,
+      'cyber-shooter': 100, 'space-invaders': 20, 'pac-runner': 30, 'brick-breaker': 60,
+      'pinball-fever': 7, '2048': 512, 'tetris-blitz': 4, 'space-miner': 1000, 'neon-slam': 500
+    };
+    const tgt = TARGETS[gameState.id];
+    let msg = '';
+    if (tgt && score < tgt) {
+      const left = tgt - score;
+      const ratio = score / tgt;
+      if (ratio >= 0.6) msg = '😤 JUST ' + left + ' MORE TO GO! ONE MORE TRY?';
+      else if (ratio >= 0.35) msg = '🔥 GETTING THERE — ' + left + ' TO GO!';
+    } else if (score > 0 && tgt) {
+      msg = '🎉 TARGET CRUSHED!';
+    } else if (score > 0 && !tgt) {
+      msg = '💪 NICE RUN! BEAT YOUR BEST?';
+    }
+    nearEl.innerText = msg;
+  }
 }
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
