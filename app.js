@@ -32,16 +32,18 @@ const store = {
 let state = {
   coins: store.get(K.coins, 0),
   profile: store.get(K.profile, { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }),
-  scores: store.get(K.scores, {}), // { gameId: [ {score, at}, ... ] }
-  inventory: store.get(K.inventory, []), // owned item ids
+  scores: store.get(K.scores, {}),
+  inventory: store.get(K.inventory, []),
   equipped: store.get(K.equipped, { skin: null, vehicle: null, effect: null, theme: 'neon' }),
   daily: store.get(K.daily, {}),
   stats: store.get(K.stats, { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }),
-  best: store.get(K.best, {}), // { gameId: bestScore }
+  best: store.get(K.best, {}),
   achievements: store.get(K.achievements, []),
   dailyQuest: store.get(K.dailyQuest, {}),
   lastPlay: store.get(K.lastPlay, 0),
-  streak: store.get(K.streak, 0)
+  streak: store.get(K.streak, 0),
+  favorites: store.get('rh_favorites', []),
+  recentlyPlayed: store.get('rh_recently', [])
 };
 
 function saveState() {
@@ -57,6 +59,8 @@ function saveState() {
   store.set(K.dailyQuest, state.dailyQuest);
   store.set(K.lastPlay, state.lastPlay);
   store.set(K.streak, state.streak);
+  store.set('rh_favorites', state.favorites);
+  store.set('rh_recently', state.recentlyPlayed);
 }
 
 /* ==================== API LAYER (InfinityFree PHP backend) ==================== */
@@ -404,10 +408,66 @@ function confirmDelete() {
   const v = document.getElementById('deleteInput').value.trim();
   if (v.toUpperCase() !== 'DELETE') { toast('Type DELETE to confirm'); return; }
   Object.values(K).forEach(k => localStorage.removeItem(k));
-  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {} };
+  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, favorites: [], recentlyPlayed: [] };
   closeDeleteModal();
   toast('Account deleted');
   go('home'); updateCoinDisplay();
+}
+/* ==================== RENDER: HOME ==================== */
+function isFav(id) { return (state.favorites || []).includes(id); }
+function toggleFavorite(id, e) {
+  if (e) e.stopPropagation();
+  state.favorites = state.favorites || [];
+  const i = state.favorites.indexOf(id);
+  const g = GAMES.find(x => x.id === id);
+  if (i >= 0) { state.favorites.splice(i, 1); toast((g ? g.name : id) + ' removed from favourites 💔'); }
+  else { state.favorites.unshift(id); toast((g ? g.name : id) + ' added to favourites ❤️'); }
+  saveState();
+  // refresh visible hearts + home favorites row
+  document.querySelectorAll(`[data-fav="${id}"]`).forEach(el => {
+    el.innerHTML = isFav(id) ? '❤️' : '🤍';
+    el.classList.toggle('on', isFav(id));
+  });
+  const favRow = document.getElementById('favGrid');
+  if (favRow) renderFavorites();
+  const recRow = document.getElementById('recentGrid');
+  if (recRow) renderRecent();
+}
+function markPlayed(id) {
+  state.recentlyPlayed = state.recentlyPlayed || [];
+  state.recentlyPlayed = [id, ...state.recentlyPlayed.filter(x => x !== id)].slice(0, 8);
+  saveState();
+}
+function renderFavorites() {
+  const favRow = document.getElementById('favGrid');
+  if (!favRow) return;
+  const favs = (state.favorites || []).map(id => GAMES.find(x => x.id === id)).filter(Boolean);
+  const favCount = document.getElementById('favCount');
+  if (favCount) favCount.innerText = favs.length + ' ❤';
+  if (!favs.length) {
+    favRow.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--sub);font-size:var(--font-xs)">No favourites yet — tap ♥ on any game card</div>`;
+    return;
+  }
+  favRow.innerHTML = favs.map(g => `<div class="card game-card" style="cursor:pointer;position:relative;padding:10px" onclick="playGame('${g.id}')">
+    <button class="fav-btn" data-fav="${g.id}" onclick="toggleFavorite('${g.id}', event)" style="position:absolute;top:5px;left:5px;z-index:5;background:rgba(0,0,0,.45);border:none;border-radius:999px;width:22px;height:22px;font-size:11px;cursor:pointer;color:var(--pink);display:flex;align-items:center;justify-content:center">❤️</button>
+    <div style="height:64px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));overflow:hidden">${gameLogo(g.id)}</div>
+    <div style="font-size:11px;font-weight:700;margin-top:6px;text-align:center;color:var(--text)">${g.name}</div>
+  </div>`).join('');
+}
+function renderRecent() {
+  const recRow = document.getElementById('recentGrid');
+  if (!recRow) return;
+  const recs = (state.recentlyPlayed || []).map(id => GAMES.find(x => x.id === id)).filter(Boolean);
+  const recCount = document.getElementById('recentCount');
+  if (recCount) recCount.innerText = recs.length + ' 🕹';
+  if (!recs.length) {
+    recRow.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--sub);font-size:var(--font-xs)">Play a game and it will show up here</div>`;
+    return;
+  }
+  recRow.innerHTML = recs.map(g => `<div class="card game-card" style="cursor:pointer;position:relative;padding:10px" onclick="playGame('${g.id}')">
+    <div style="height:64px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));overflow:hidden">${gameLogo(g.id)}</div>
+    <div style="font-size:11px;font-weight:700;margin-top:6px;text-align:center;color:var(--text)">${g.name}</div>
+  </div>`).join('');
 }
 /* ==================== RENDER: HOME ==================== */
 function comingSoon(name, e) {
@@ -435,6 +495,8 @@ function renderHome() {
   }
   const featGrid = document.getElementById('featuredCarousel') || document.getElementById('featuredGrid');
   if (featGrid) {
+    // remove previously-inserted challenge banners (avoid duplicates on re-render)
+    featGrid.parentElement.querySelectorAll('.deal-banner').forEach(b => b.remove());
     featGrid.insertAdjacentHTML('beforebegin', challHtml);
     featGrid.innerHTML = feat.map((g, i) => `
     <div class="featured-card" style="background:linear-gradient(145deg,${g.color}33,#0A0E16 65%)">
@@ -446,6 +508,8 @@ function renderHome() {
     </div>`).join('');
   }
   renderGameGrid('');
+  renderFavorites();
+  renderRecent();
 
     // NEW UI: Featured Carousel (horizontal scroll with featured games)
     renderFeaturedCarousel();
@@ -545,6 +609,7 @@ function renderGameGrid(filter = '', cat = '') {
     const plays = 1200 + ((h + daySeed * 310) % 9800); // 1.2k–11k fake-plays
     const logo = gameLogo(g.id);
     return `<div class="card game-card" style="cursor:pointer;position:relative" onclick="playGame('${g.id}')">
+      <button class="fav-btn" data-fav="${g.id}" onclick="toggleFavorite('${g.id}', event)" style="position:absolute;top:6px;left:6px;z-index:5;background:rgba(0,0,0,.45);border:none;border-radius:999px;width:26px;height:26px;font-size:13px;cursor:pointer;color:${isFav(g.id) ? 'var(--pink)' : '#888'};display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:transform var(--transition-fast)">${isFav(g.id) ? '❤️' : '🤍'}</button>
       <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px;background:${badgeColor}22;color:${badgeColor};border:1px solid ${badgeColor}55">${badge}</span>
       <div class="thumb" style="border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${logo}</div>
       <h4>${g.name}</h4>
@@ -583,6 +648,7 @@ function renderArcadeGrid(filter = '') {
     const isList = arcadeViewMode === 'list';
     if (isList) {
       return `<div class="card game-card" style="cursor:pointer;position:relative;display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);min-height:80px">
+        <button class="fav-btn" data-fav="${g.id}" onclick="toggleFavorite('${g.id}', event)" style="position:absolute;top:6px;left:6px;z-index:5;background:rgba(0,0,0,.45);border:none;border-radius:999px;width:24px;height:24px;font-size:12px;cursor:pointer;color:${isFav(g.id) ? 'var(--pink)' : '#888'};display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">${isFav(g.id) ? '❤️' : '🤍'}</button>
         <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${badge}</span>
         <div class="thumb" style="width:60px;height:60px;flex-shrink:0;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${gameLogo(g.id)}</div>
         <div class="info" style="flex:1;min-width:0">
@@ -599,6 +665,7 @@ function renderArcadeGrid(filter = '') {
       </div>`;
     } else {
       return `<div class="card game-card" style="cursor:pointer;position:relative">
+        <button class="fav-btn" data-fav="${g.id}" onclick="toggleFavorite('${g.id}', event)" style="position:absolute;top:6px;left:6px;z-index:5;background:rgba(0,0,0,.45);border:none;border-radius:999px;width:24px;height:24px;font-size:12px;cursor:pointer;color:${isFav(g.id) ? 'var(--pink)' : '#888'};display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">${isFav(g.id) ? '❤️' : '🤍'}</button>
         <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${ready ? 'OPEN' : 'SOON'}</span>
         <div class="thumb" style="height:80px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${gameLogo(g.id)}</div>
         <h4 style="font-size:var(--font-sm);font-weight:700;color:#fff;margin-bottom:var(--space-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.name}</h4>
@@ -796,6 +863,8 @@ function renderProfile() {
   document.getElementById('statWins').innerText = state.stats.gamesPlayed;
   document.getElementById('statCoins').innerText = state.coins.toLocaleString();
   document.getElementById('statSkins').innerText = skinsOwned + '/24';
+  const favEl = document.getElementById('statFav');
+  if (favEl) favEl.innerText = (state.favorites || []).length;
 
   // ACHIEVEMENTS (visual grid, v7.5 redesign)
   const ACH_META = [

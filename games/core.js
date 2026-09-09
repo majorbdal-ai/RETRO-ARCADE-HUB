@@ -655,6 +655,7 @@ function loadGameEngine(id, cb) {
 function launchGame(id) {
   const g = GAMES.find(x => x.id === id);
   if (!g) { toast('Game not found'); return; }
+  if (typeof window.markPlayed === 'function') { try { window.markPlayed(id); } catch (e) {} }
   if (typeof window.playSfx === 'function') { try { window.playSfx('launch'); } catch (e) {} }
   const engine = window[GAME_ENGINE[id]];
   if (typeof engine === 'function') { bootGame(id, engine); return; }

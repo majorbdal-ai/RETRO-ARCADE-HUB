@@ -693,6 +693,24 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <!-- populated by JS -->
       </div>
 
+      <!-- FAVORITES ROW -->
+      <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-lg);margin-bottom:var(--space-md)">
+        <span class="glow" style="color:var(--pink)">❤️ FAVORITES</span>
+        <span style="font-size:var(--font-xs);color:var(--sub);font-family:'Space Grotesk',sans-serif" id="favCount">0</span>
+      </div>
+      <div id="favGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--space-md);margin-bottom:var(--space-sm)">
+        <!-- populated by renderFavorites() -->
+      </div>
+
+      <!-- RECENTLY PLAYED ROW -->
+      <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-lg);margin-bottom:var(--space-md)">
+        <span class="glow">🕹️ RECENTLY PLAYED</span>
+        <span style="font-size:var(--font-xs);color:var(--sub);font-family:'Space Grotesk',sans-serif" id="recentCount">0</span>
+      </div>
+      <div id="recentGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--space-md);margin-bottom:var(--space-sm)">
+        <!-- populated by renderRecent() -->
+      </div>
+
       <!-- ALL GAMES GRID -->
       <div class="sec-title" style="margin-top:var(--space-lg);margin-bottom:var(--space-md)"><span class="glow">ALL GAMES</span><span style="font-size:var(--font-xs);color:var(--sub)">TAP TO PLAY</span></div>
       <div class="game-grid" id="gameGrid"></div>
@@ -904,6 +922,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div class="stat-box"><h3 id="statWins">0</h3><p>WINS</p></div>
         <div class="stat-box"><h3 style="color:var(--yellow)" id="statCoins">0</h3><p>COINS</p></div>
         <div class="stat-box"><h3 style="color:var(--pink)" id="statSkins">0/24</h3><p>SKINS</p></div>
+        <div class="stat-box"><h3 style="color:var(--red,#f87171)" id="statFav">0</h3><p>FAVES</p></div>
       </div>
       <div class="widget">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">

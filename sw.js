@@ -2,7 +2,7 @@
    v6.7: cache-first for app shell, pre-cache ALL 66 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.7.0';
+const CACHE = 'retro-arcade-hub-v7.8.0';
 const STATIC_CORE = [
   './',
   './index.html',
