@@ -940,6 +940,8 @@ let themeFx = 'web';  // 'web' | 'matrix' | 'stars' | 'sunset' | 'gold'
 function initThemeCanvas() {
   const c = document.getElementById('themeCanvas');
   if (!c || !c.getContext) return;
+  // Respect reduced-motion: skip animated background entirely
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   themeBgCtx = c.getContext('2d');
   const size = () => { c.width = innerWidth; c.height = innerHeight; };
   size();

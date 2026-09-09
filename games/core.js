@@ -403,6 +403,14 @@ function setAccMode(on) {
 // init from saved prefs
 try { if (localStorage.getItem('accMode') === '1') setAccMode(true); } catch (e) {}
 
+// Color-blind friendly mode (protanopia/deuteranopia safe) — toggles via profile
+function toggleCbSafe() {
+  const on = document.body.classList.toggle('cb-safe');
+  try { localStorage.setItem('cbSafe', on ? '1' : '0'); } catch (e) {}
+  return on;
+}
+try { if (localStorage.getItem('cbSafe') === '1') document.body.classList.add('cb-safe'); } catch (e) {}
+
 function drawControls(gameId) {
   const layout = CONTROL_LAYOUT[gameId] || { type: 'tap', hint: 'TAP' };
   const wrap = document.getElementById('touchControls');
