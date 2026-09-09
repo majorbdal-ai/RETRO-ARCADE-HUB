@@ -250,6 +250,8 @@ body{
 #gameScreen .hud{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--hud-bg);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.1);z-index:30}
 #gameScreen .hud .hud-title{flex:1;text-align:center;font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;color:var(--accent);text-shadow:0 0 10px var(--glow);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hud-chip{font-size:12px;font-weight:700;color:var(--yellow);background:rgba(255,230,0,.1);border:1px solid rgba(255,230,0,.3);padding:5px 10px;border-radius:999px;white-space:nowrap}
+.hud-stats{display:flex;gap:6px;align-items:center}
+.hud-score-chip{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;color:var(--cyan);background:rgba(0,255,255,.1);border:1px solid rgba(0,255,255,.3);min-width:64px;text-align:center;box-shadow:0 0 10px rgba(0,255,255,.15)}
 .hud-btn{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hud-btn:active{transform:scale(.92)}
 /* Canvas area — full screen, big on mobile */
@@ -274,9 +276,9 @@ body.game-active main{display:none}
 .joystick{width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.07);border:2px solid rgba(0,255,255,.4);position:relative;flex-shrink:0;box-shadow:0 0 20px rgba(0,255,255,.15)}
 .joystick .knob{position:absolute;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#66ffff,#0099cc);left:50%;top:50%;transform:translate(-50%,-50%);box-shadow:0 0 16px rgba(0,255,255,.6)}
 .ctrl-group{display:flex;gap:8px;align-items:center}
-.ctrl-btn{width:76px;height:76px;border-radius:18px;font-size:11px;font-weight:900;letter-spacing:.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:2px solid;color:#fff;background:rgba(255,255,255,.08);transition:transform .06s}
+.ctrl-btn{width:76px;height:76px;border-radius:18px;font-size:11px;font-weight:900;letter-spacing:.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:2px solid;color:#fff;background:rgba(255,255,255,.08);transition:transform .06s,box-shadow .1s,background .1s;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 .ctrl-btn i{font-size:18px}
-.ctrl-btn:active{transform:scale(.92)}
+.ctrl-btn:active{transform:scale(.9);box-shadow:0 0 22px var(--accent);background:rgba(255,255,255,.18)}
 .ctrl-boost{border-color:var(--yellow);color:var(--yellow);box-shadow:0 0 14px rgba(255,230,0,.2)}
 .ctrl-boost:active{background:var(--yellow);color:#000}
 .ctrl-drift{border-color:var(--pink);color:var(--pink);box-shadow:0 0 14px rgba(255,16,240,.2)}
@@ -695,8 +697,10 @@ body.cb-safe .badge{background:var(--cb-orange)}
     <div class="hud">
       <button class="hud-btn" onclick="exitToHub()" title="Back"><i class="fa-solid fa-arrow-left"></i></button>
       <div class="hud-title" id="hudGameTitle">GAME</div>
-      <div class="hud-chip" id="hudScore">0</div>
-      <div class="hud-chip" style="color:var(--pink);border-color:rgba(255,16,240,.35);background:rgba(255,16,240,.08)"><i class="fa-solid fa-coins"></i> <span id="hudCoins">0</span></div>
+      <div class="hud-stats">
+        <div class="hud-chip hud-score-chip" id="hudScore">0</div>
+        <div class="hud-chip" style="color:var(--pink);border-color:rgba(255,16,240,.35);background:rgba(255,16,240,.08)"><i class="fa-solid fa-coins"></i> <span id="hudCoins">0</span></div>
+      </div>
       <button class="hud-btn" onclick="toggleHelp()" title="How to Play"><i class="fa-solid fa-circle-question"></i></button>
       <button class="hud-btn" onclick="toggleMute()" title="Sound"><i class="fa-solid" id="muteIcon">🔊</i></button>
       <button class="hud-btn" onclick="toggleFullscreen()" title="Fullscreen"><i class="fa-solid fa-expand" id="fsIcon"></i></button>
