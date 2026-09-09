@@ -255,11 +255,11 @@ body{
 .hud-btn{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hud-btn:active{transform:scale(.92)}
 /* Canvas area — full screen, big on mobile */
-#gameCanvasWrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#000}
+#gameCanvasWrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#000;touch-action:none}
 #gameCanvasWrap::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:9;border-radius:12px;
   background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%);
   background-image:repeating-linear-gradient(to bottom,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 2px,transparent 4px);}
-#gameCanvas{width:100%;height:100%;object-fit:contain;background:#000}
+#gameCanvas{width:100%;height:100%;object-fit:contain;background:#000;touch-action:none}
 /* When game is active, hide bottom nav + fill whole screen */
 body.game-active #bottomNav{display:none !important}
 body.game-active #page-game{height:100vh;height:100dvh;max-height:none}
@@ -270,6 +270,36 @@ body.game-active main{display:none}
 #page-game .hud{flex-shrink:0}
 #gameCanvasWrap{width:100%}
 #touchControls{width:100%;box-sizing:border-box}
+/* ===== BIG GAME SCREEN (v7.7) =====
+   Landscape: HUD floats above canvas, gameplay fills the whole screen.
+   Portrait: compact layout + rotate hint on small phones. */
+@media (orientation: landscape) and (max-height: 600px){
+  body.game-active #page-game .hud{
+    position:absolute;top:0;left:0;right:0;z-index:60;background:linear-gradient(rgba(5,7,10,.85),transparent);
+    border-bottom:none;backdrop-filter:none;padding:8px 10px;pointer-events:none;
+  }
+  body.game-active #page-game .hud > *{pointer-events:auto}
+  body.game-active #page-game .hud .hud-title{font-size:11px}
+  body.game-active #page-game .hud .hud-btn{width:32px;height:32px;font-size:13px}
+  body.game-active #page-game .hud .hud-score-chip{font-size:13px;min-width:52px}
+  body.game-active #page-game .hud .hud-chip{padding:3px 7px;font-size:11px}
+  body.game-active #gameCanvasWrap{position:fixed;inset:0;width:100%;height:100%;z-index:55;border-radius:0}
+  body.game-active #gameCanvasWrap::after{border-radius:0}
+  body.game-active #gameCanvas{width:100vw;height:100vh}
+  body.game-active #touchControls{
+    position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:70;width:min(94vw,560px);
+    padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:linear-gradient(rgba(8,11,18,0),rgba(8,11,18,.72));
+    border-top:none;backdrop-filter:none;
+  }
+  body.game-active #touchControls .joystick{width:88px;height:88px}
+  body.game-active #touchControls .ctrl-btn{width:62px;height:62px;font-size:9px}
+  body.game-active #touchControls .ctrl-btn i{font-size:15px}
+  body.game-active #touchControls .ctrl-radial{width:150px;height:150px}
+  body.game-active #touchControls .ctrl-swipe-zone{min-height:70px;max-width:300px;width:38vw}
+  body.game-active #touchControls .dpad{grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px)}
+  body.game-active #backToHub{display:none}
+  #playAreaLabel{display:none}
+}
 /* ==================== TOUCH CONTROLS ==================== */
 #touchControls{display:none;gap:10px;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));background:rgba(8,11,18,.9);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.1);z-index:40;touch-action:none;flex-shrink:0;box-sizing:border-box}
 #touchControls.show{display:flex;justify-content:space-between;align-items:center}
@@ -727,6 +757,8 @@ body.cb-safe .badge{background:var(--cb-orange)}
     <div id="gameCanvasWrap">
       <!-- fixed BACK TO HUB button over canvas (mobile) -->
       <button id="backToHub" onclick="exitToHub()"><i class="fa-solid fa-arrow-left"></i> BACK TO HUB</button>
+      <!-- rotate hint (small portrait phones with landscape games) -->
+      <div id="playAreaLabel" style="position:absolute;inset:0;z-index:8;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;text-align:center;padding:20px"><div style="font-size:34px">📱↻</div><div style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;color:#fff;text-shadow:0 0 12px rgba(0,255,255,.8)">ROTATE FOR FULL-SCREEN</div><div style="font-size:11px;color:var(--sub)">TURN YOUR PHONE SIDEWAYS</div></div>
       <canvas id="gameCanvas" width="800" height="450"></canvas>
       <div id="gameOverOverlay">
         <div class="go-panel">

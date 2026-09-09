@@ -1,7 +1,7 @@
 {
-  "name": "RETRO ARCADE HUB — 66 Free Games",
+  "name": "RETRO ARCADE HUB — 70 Free Games",
   "short_name": "RETRO ARCADE",
-  "description": "Play 66 free retro arcade games on your phone. 6 themes, neon skins, coins, XP, achievements, daily quests, leaderboard. No download needed. Offline-ready PWA.",
+  "description": "Play 70 free retro arcade games on your phone. 6 themes, neon skins, coins, XP, achievements, daily quests, leaderboard. No download needed. Offline-ready PWA.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -34,7 +34,7 @@
     {
       "name": "Play Arcade",
       "short_name": "Arcade",
-      "description": "Browse all 66 games",
+      "description": "Browse all 70 games",
       "url": "./index.html#arcade",
       "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕹️</text></svg>", "sizes": "192x192" }]
     },

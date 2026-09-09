@@ -730,6 +730,8 @@ function bootGame(id, engine) {
 
   // touch → key sync for keyboard-driven engines
   startTouchKeySync();
+  // big-screen orientation state (rotate hint on small portrait phones)
+  updateGameOrientation();
 }
 
 // ---- end game ---- (spring score pop + theme accent on overlay)
@@ -934,9 +936,25 @@ function exitToHub() {
   stopTouchKeySync();
   const tcWrap = document.getElementById('touchControls');
   if (tcWrap) tcWrap.classList.remove('show');
+  document.body.classList.remove('landscape-game');
+  const hint = document.getElementById('playAreaLabel');
+  if (hint) hint.style.display = 'none';
   go('arcade');
   renderArcadeGrid('');
 }
+
+// ---- orientation: big-screen game experience (v7.7) ----
+// Landscape CSS kicks in automatically via media query (HUD floats over
+// fullscreen canvas). In portrait on small phones, show a rotate hint.
+function updateGameOrientation() {
+  if (!gameState.id) { const h = document.getElementById('playAreaLabel'); if (h) h.style.display = 'none'; return; }
+  const portraitSmall = window.matchMedia('(orientation: portrait) and (max-width: 480px)').matches;
+  const hint = document.getElementById('playAreaLabel');
+  if (hint) hint.style.display = portraitSmall ? 'flex' : 'none';
+}
+// onChange for orientation + manual toggle when phone rotates while playing
+window.addEventListener('orientationchange', () => { setTimeout(updateGameOrientation, 120); });
+window.addEventListener('resize', () => { if (gameState.id) updateGameOrientation(); }, { passive: true });
 
 // ---- pause / resume ----
 function togglePause() {
