@@ -1,28 +1,28 @@
 {
-  "rot": 2,
-  "updated": "2026-09-09T02:55:47.442Z",
+  "rot": 3,
+  "updated": "2026-09-09T10:42:54.742Z",
   "featured": [
-    "pixel-dungeon",
     "light-cycle",
     "tank-battle",
     "bubble-shooter",
     "neon-dash",
-    "sling-birds"
+    "sling-birds",
+    "cricket-sixer"
   ],
   "deal": {
-    "item": "skin-gold",
-    "name": "GOLD LEGEND",
-    "pct": 20
+    "item": "veh-falcon",
+    "name": "FALCON X",
+    "pct": 25
   },
-  "challenge": "pixel-dungeon",
+  "challenge": "neon-snake",
   "botBoost": [
-    1.44,
-    1.67,
-    1.8,
-    1.03,
-    1.26,
-    1.49,
-    1.62,
-    1.85
+    1.61,
+    1.84,
+    1.07,
+    1.2,
+    1.43,
+    1.66,
+    1.89,
+    1.02
   ]
 }
