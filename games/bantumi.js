@@ -589,3 +589,6 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
 
   return { start, update, draw, pause };
 };
+
+// core.js compatibility: expose as window.bantumi
+if (window.engines && window.engines.bantumi) window.bantumi = window.engines.bantumi;

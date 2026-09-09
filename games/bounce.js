@@ -15,7 +15,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
   const PADDLE_W = 100;
   const PADDLE_H = 14;
   const PADDLE_SPEED = 420;
-  const PADDLE_Y_OFFSET = 40; // distance from bottom
+  const PADDLE_Y_OFFSET = 40;
   const BRICK_COLS = 10;
   const BRICK_H = 22;
   const BRICK_PAD = 4;
@@ -26,16 +26,8 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
 
   // Row colors from top to bottom — Nokia neon palette
   const ROW_COLORS = [
-    '#FF1744', // red
-    '#FF9100', // orange
-    '#FFEA00', // yellow
-    '#00E676', // green
-    '#00B0FF', // light blue
-    '#7C4DFF', // purple
-    '#FF4081', // pink
-    '#18FFFF', // cyan
-    '#EEFF41', // lime
-    '#F50057', // hot pink
+    '#FF1744', '#FF9100', '#FFEA00', '#00E676', '#00B0FF',
+    '#7C4DFF', '#FF4081', '#18FFFF', '#EEFF41', '#F50057'
   ];
   const ROW_POINTS = [100, 80, 70, 60, 50, 40, 35, 30, 25, 20];
 
@@ -45,11 +37,43 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
   let paddle, ball, bricks, particles, coinDrops, stars;
   let serveTimer, comboCount, comboTimer;
   let shakeTimer, shakeIntensity;
-  let time; // total elapsed game time for animations
+  let time;
+  let prevAction = false; // for edge detection
 
   // ── Helpers ──
   function rand(a, b) { return Math.random() * (b - a) + a; }
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  // Input helpers — read from input.touches / input.keys
+  function isActionDown() {
+    if (input.touches && input.touches.action) return true;
+    if (input.keys && (input.keys['Enter'] || input.keys[' '])) return true;
+    return false;
+  }
+
+  function actionPressed() {
+    const down = isActionDown();
+    const pressed = down && !prevAction;
+    prevAction = down;
+    return pressed;
+  }
+
+  function isLeftDown() {
+    if (input.touches && input.touches.left) return true;
+    if (input.keys && (input.keys['ArrowLeft'] || input.keys['a'] || input.keys['A'])) return true;
+    return false;
+  }
+
+  function isRightDown() {
+    if (input.touches && input.touches.right) return true;
+    if (input.keys && (input.keys['ArrowRight'] || input.keys['d'] || input.keys['D'])) return true;
+    return false;
+  }
+
+  function isTapDown() {
+    // Touch x coordinate on canvas (for paddle follow)
+    return (input.x !== undefined && input.x !== null) ? input.x : null;
+  }
 
   function rect(x, y, w, h, color, glow) {
     ctx.shadowBlur = glow || 0;
@@ -69,11 +93,11 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     ctx.shadowBlur = 0;
   }
 
-  function text(str, x, y, color, size, align) {
+  function txt(str, x, y, color, size, align) {
     ctx.shadowBlur = 6;
     ctx.shadowColor = color;
     ctx.fillStyle = color;
-    ctx.font = (size || 16) + 'px "Courier New", monospace';
+    ctx.font = 'bold ' + (size || 16) + 'px "Courier New", monospace';
     ctx.textAlign = align || 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(str, x, y);
@@ -107,7 +131,6 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
   }
 
   function spawnBrickParticles(x, y, w, h, color) {
-    // Brick shatter effect
     for (let i = 0; i < 8; i++) {
       const px = x + rand(0, w);
       const py = y + rand(0, h);
@@ -138,12 +161,12 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
         const x = startX + c * (brickW + BRICK_PAD);
         const y = BRICK_OFFSET_Y + r * (BRICK_H + BRICK_PAD);
         const colorIdx = r % ROW_COLORS.length;
+        const hp = (levelNum > 3 && r === 0) ? 2 : 1;
         bricks.push({
           x, y, w: brickW, h: BRICK_H,
           color: ROW_COLORS[colorIdx],
           points: ROW_POINTS[colorIdx] || 20,
-          hp: levelNum > 3 && r === 0 ? 2 : 1, // top row 2HP after level 3
-          maxHp: levelNum > 3 && r === 0 ? 2 : 1,
+          hp, maxHp: hp,
           alive: true,
           hitFlash: 0
         });
@@ -202,6 +225,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     time = 0;
     shakeTimer = 0;
     shakeIntensity = 0;
+    prevAction = false;
 
     // Stars background
     stars = [];
@@ -220,7 +244,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
 
   // ── Collision helpers ──
   function ballHitsPaddle() {
-    if (ball.vy < 0) return false; // only when moving down
+    if (ball.vy < 0) return false;
     const bLeft = ball.x - ball.radius;
     const bRight = ball.x + ball.radius;
     const bBottom = ball.y + ball.radius;
@@ -229,9 +253,8 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
         bBottom <= paddle.y + paddle.h + 4 &&
         bRight >= paddle.x &&
         bLeft <= paddle.x + paddle.w) {
-      // Calculate angle based on where ball hits paddle
-      const hitPos = (ball.x - paddle.x) / paddle.w; // 0..1
-      const angle = lerp(-2.4, -0.74, hitPos); // map to ~-137° to ~-42°
+      const hitPos = (ball.x - paddle.x) / paddle.w;
+      const angle = lerp(-2.4, -0.74, hitPos);
       ball.vy = Math.sin(angle) * ball.speed;
       ball.vx = Math.cos(angle) * ball.speed;
       ball.y = paddle.y - ball.radius - 1;
@@ -246,7 +269,6 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     if (!brick.alive) return false;
     const bx = ball.x, by = ball.y, br = ball.radius;
 
-    // Closest point on brick to ball center
     const cx = clamp(bx, brick.x, brick.x + brick.w);
     const cy = clamp(by, brick.y, brick.y + brick.h);
     const dx = bx - cx;
@@ -254,7 +276,6 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     const distSq = dx * dx + dy * dy;
 
     if (distSq <= br * br) {
-      // Determine bounce direction
       const overlapX = br - Math.abs(dx);
       const overlapY = br - Math.abs(dy);
 
@@ -278,8 +299,6 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
         comboCount++;
         comboTimer = 2;
         spawnBrickParticles(brick.x, brick.y, brick.w, brick.h, brick.color);
-
-        // Coin drop chance
         if (Math.random() < 0.12) {
           spawnCoinDrop(brick.x + brick.w / 2, brick.y + brick.h / 2);
         }
@@ -287,34 +306,31 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
         spawnParticles(cx, cy, brick.color, 3);
       }
 
-      // Speed up slightly
       ball.speed = Math.min(ball.speed + 2, 550);
-
       return true;
     }
     return false;
   }
 
   function checkLevelComplete() {
-    return bricks.every(b => !b.alive);
+    return bricks.every(function(b) { return !b.alive; });
   }
 
   // ── Update ──
   function update(dt) {
     time += dt;
-
-    // Clamp dt to prevent physics explosion
     dt = Math.min(dt, 1 / 30);
 
-    // ── Stars ──
-    for (const s of stars) {
+    // Stars
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
       s.x -= s.speed * dt;
       if (s.x < -2) { s.x = W + 2; s.y = rand(0, H); }
     }
 
     // ── Title ──
     if (phase === 'title') {
-      if (input.pressed('enter') || input.pressed(' ') || input.pressed('tap')) {
+      if (actionPressed()) {
         phase = 'play';
         resetBall();
         ball.stuck = true;
@@ -327,7 +343,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     // ── Game Over ──
     if (phase === 'gameOver') {
       updateParticles(dt);
-      if (input.pressed('enter') || input.pressed(' ') || input.pressed('tap')) {
+      if (actionPressed()) {
         resetGame();
         phase = 'play';
         resetBall();
@@ -339,7 +355,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     // ── Level Complete ──
     if (phase === 'levelComplete') {
       updateParticles(dt);
-      if (input.pressed('enter') || input.pressed(' ') || input.pressed('tap')) {
+      if (actionPressed()) {
         initLevel(level + 1);
         phase = 'play';
         resetBall();
@@ -355,7 +371,6 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
       if (serveTimer <= 0) {
         if (lives <= 0) {
           phase = 'gameOver';
-          // Notify framework
           if (typeof window.endGame === 'function') {
             window.endGame(score, coins);
           }
@@ -371,49 +386,24 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     // ── PLAYING ──
     if (phase !== 'play') return;
 
-    // ── Combo timer ──
+    // Combo timer
     if (comboTimer > 0) {
       comboTimer -= dt;
       if (comboTimer <= 0) comboCount = 0;
     }
 
     // ── Paddle movement ──
-    let paddleTarget = null;
-
-    // Touch/drag: move paddle to touch x
-    if (input.touches && input.touches.left) {
-      paddleTarget = input.touches.left;
-    }
-    if (input.touches && input.touches.right) {
-      paddleTarget = input.touches.right;
-    }
-
-    // Also support raw x from input
-    if (input.x !== undefined && input.x !== null) {
-      paddleTarget = input.x;
-    }
-
-    // Keyboard
-    let kLeft = false, kRight = false;
-    if (input.keys) {
-      kLeft = input.keys['ArrowLeft'] || input.keys['a'] || input.keys['A'];
-      kRight = input.keys['ArrowRight'] || input.keys['d'] || input.keys['D'];
-    }
-    // Also support touch zone buttons
-    if (input.touches) {
-      if (input.touches.left) kLeft = true;
-      if (input.touches.right) kRight = true;
-    }
-
-    if (paddleTarget !== null && paddleTarget !== undefined) {
-      // Move paddle toward touch/mouse position
-      const targetX = clamp(paddleTarget - paddle.w / 2, 0, W - paddle.w);
-      const diff = targetX - paddle.x;
-      const move = Math.sign(diff) * Math.min(Math.abs(diff), PADDLE_SPEED * dt * 2.5);
+    var touchX = isTapDown();
+    if (touchX !== null) {
+      // Move paddle toward touch/mouse x
+      var targetX = clamp(touchX - paddle.w / 2, 0, W - paddle.w);
+      var diff = targetX - paddle.x;
+      var move = Math.sign(diff) * Math.min(Math.abs(diff), PADDLE_SPEED * dt * 2.5);
       paddle.x += move;
-    } else if (kLeft || kRight) {
-      if (kLeft) paddle.x -= PADDLE_SPEED * dt;
-      if (kRight) paddle.x += PADDLE_SPEED * dt;
+    } else if (isLeftDown()) {
+      paddle.x -= PADDLE_SPEED * dt;
+    } else if (isRightDown()) {
+      paddle.x += PADDLE_SPEED * dt;
     }
 
     paddle.x = clamp(paddle.x, 0, W - paddle.w);
@@ -423,9 +413,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     if (ball.stuck) {
       ball.x = paddle.x + paddle.w / 2;
       ball.y = paddle.y - ball.radius - 2;
-
-      // Serve on action
-      if (input.pressed('action') || input.pressed('enter') || input.pressed(' ') || input.pressed('tap')) {
+      if (actionPressed()) {
         serveBall();
       }
       updateParticles(dt);
@@ -436,7 +424,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     // ── Ball trail ──
     ball.trail.push({ x: ball.x, y: ball.y, alpha: 1 });
     if (ball.trail.length > 8) ball.trail.shift();
-    for (const t of ball.trail) t.alpha *= 0.85;
+    for (let i = 0; i < ball.trail.length; i++) ball.trail[i].alpha *= 0.85;
 
     // ── Ball movement ──
     ball.x += ball.vx * dt;
@@ -474,39 +462,37 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     ballHitsPaddle();
 
     // ── Brick collisions ──
-    for (const brick of bricks) {
-      if (ballHitsBrick(brick)) {
+    for (let i = 0; i < bricks.length; i++) {
+      if (ballHitsBrick(bricks[i])) {
         if (checkLevelComplete()) {
           phase = 'levelComplete';
-          score += level * 500; // level clear bonus
-          // Celebration particles
-          for (let i = 0; i < 40; i++) {
-            const colors = ['#FF3B3B', '#00FF88', '#FFFF00', '#00B0FF', '#FF4081'];
+          score += level * 500;
+          var colors = ['#FF3B3B', '#00FF88', '#FFFF00', '#00B0FF', '#FF4081'];
+          for (let j = 0; j < 40; j++) {
             spawnParticles(W / 2, H / 2, colors[Math.floor(rand(0, 5))], 1);
           }
         }
-        break; // one brick per frame max
+        break;
       }
     }
 
-    // ── Particles ──
+    // Particles
     updateParticles(dt);
-
-    // ── Coin drops ──
+    // Coin drops
     updateCoinDrops(dt);
 
-    // ── Brick hit flash decay ──
-    for (const b of bricks) {
-      if (b.hitFlash > 0) b.hitFlash -= dt;
+    // Brick hit flash decay
+    for (let i = 0; i < bricks.length; i++) {
+      if (bricks[i].hitFlash > 0) bricks[i].hitFlash -= dt;
     }
 
-    // ── Screen shake ──
+    // Screen shake
     if (shakeTimer > 0) shakeTimer -= dt;
 
-    // ── Speed normalization (prevent getting too slow) ──
-    const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+    // Speed normalization
+    var speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
     if (speed > 0 && speed < ball.speed * 0.7) {
-      const scale = (ball.speed * 0.8) / speed;
+      var scale = (ball.speed * 0.8) / speed;
       ball.vx *= scale;
       ball.vy *= scale;
     }
@@ -514,7 +500,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
 
   function updateParticles(dt) {
     for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
+      var p = particles[i];
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.vx *= 0.97;
@@ -526,11 +512,10 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
 
   function updateCoinDrops(dt) {
     for (let i = coinDrops.length - 1; i >= 0; i--) {
-      const c = coinDrops[i];
+      var c = coinDrops[i];
       c.y += c.vy * dt;
       c.bobPhase += dt * 5;
       c.life -= dt;
-      // Collect if touching paddle
       if (c.y + c.size >= paddle.y && c.y - c.size <= paddle.y + paddle.h &&
           c.x + c.size >= paddle.x && c.x - c.size <= paddle.x + paddle.w) {
         coins += 5;
@@ -554,13 +539,14 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     // Apply screen shake
     ctx.save();
     if (shakeTimer > 0) {
-      const sx = (Math.random() - 0.5) * shakeIntensity * 2;
-      const sy = (Math.random() - 0.5) * shakeIntensity * 2;
+      var sx = (Math.random() - 0.5) * shakeIntensity * 2;
+      var sy = (Math.random() - 0.5) * shakeIntensity * 2;
       ctx.translate(sx, sy);
     }
 
     // ── Stars ──
-    for (const s of stars) {
+    for (let i = 0; i < stars.length; i++) {
+      var s = stars[i];
       ctx.globalAlpha = s.alpha * (0.6 + 0.4 * Math.sin(time * 2 + s.x * 0.01));
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(s.x, s.y, s.size, s.size);
@@ -568,7 +554,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     ctx.globalAlpha = 1;
 
     // ── Border glow ──
-    const borderGrad = ctx.createLinearGradient(0, 0, 0, H);
+    var borderGrad = ctx.createLinearGradient(0, 0, 0, H);
     borderGrad.addColorStop(0, 'rgba(255,255,255,0.06)');
     borderGrad.addColorStop(1, 'rgba(0,255,136,0.04)');
     ctx.fillStyle = borderGrad;
@@ -595,15 +581,14 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     // ── HUD (always) ──
     drawHUD();
 
-    return { score, coins, best: (state && state.best && state.best.bounce) || 0 };
+    return { score: score, coins: coins, best: (state && state.best && state.best.bounce) || 0 };
   }
 
   function drawTitle() {
-    // Animated title
-    const pulse = 0.7 + 0.3 * Math.sin(time * 3);
+    var pulse = 0.7 + 0.3 * Math.sin(time * 3);
 
     // Title ball bouncing animation
-    const titleBallY = H / 2 - 40 + Math.sin(time * 4) * 15;
+    var titleBallY = H / 2 - 40 + Math.sin(time * 4) * 15;
     circle(W / 2, titleBallY, 12, '#FF3B3B', 20);
 
     // "BOUNCE" text
@@ -621,20 +606,19 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     ctx.font = '14px "Courier New", monospace';
     ctx.fillStyle = '#00FF88';
     ctx.fillText('NOKIA CLASSIC', W / 2, H / 2 - 55);
-
     ctx.shadowBlur = 0;
 
     // Brick preview
-    const previewW = 300;
-    const previewCols = 6;
-    const previewBrickW = (previewW - (previewCols - 1) * 4) / previewCols;
-    const previewStartX = (W - previewW) / 2;
-    const previewRows = 4;
+    var previewW = 300;
+    var previewCols = 6;
+    var previewBrickW = (previewW - (previewCols - 1) * 4) / previewCols;
+    var previewStartX = (W - previewW) / 2;
+    var previewRows = 4;
     for (let r = 0; r < previewRows; r++) {
       for (let c = 0; c < previewCols; c++) {
-        const bx = previewStartX + c * (previewBrickW + 4);
-        const by = H / 2 - 30 + r * 26;
-        const alpha = 0.4 + 0.6 * Math.sin(time * 2 + r * 0.5 + c * 0.3);
+        var bx = previewStartX + c * (previewBrickW + 4);
+        var by = H / 2 - 30 + r * 26;
+        var alpha = 0.4 + 0.6 * Math.sin(time * 2 + r * 0.5 + c * 0.3);
         ctx.globalAlpha = alpha;
         rect(bx, by, previewBrickW, 20, ROW_COLORS[r % ROW_COLORS.length], 4);
       }
@@ -645,24 +629,22 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     rect(W / 2 - 50, H / 2 + 80, 100, 12, '#00FF88', 10);
 
     // Instructions
-    const blink = Math.sin(time * 4) > 0;
-    if (blink) {
-      text('TAP TO START', W / 2, H / 2 + 120, '#FFFFFF', 18);
+    if (Math.sin(time * 4) > 0) {
+      txt('TAP TO START', W / 2, H / 2 + 120, '#FFFFFF', 18);
     }
-
-    text('← → MOVE PADDLE', W / 2, H / 2 + 150, '#666666', 12);
-    text('ACTION TO SERVE', W / 2, H / 2 + 168, '#666666', 12);
+    txt('← → MOVE PADDLE', W / 2, H / 2 + 150, '#666666', 12);
+    txt('ACTION TO SERVE', W / 2, H / 2 + 168, '#666666', 12);
   }
 
   function drawGame() {
     // ── Bricks ──
-    for (const b of bricks) {
+    for (let i = 0; i < bricks.length; i++) {
+      var b = bricks[i];
       if (!b.alive) continue;
 
-      // Brick body
-      const glowAmt = b.hitFlash > 0 ? 20 : 6;
-      const alpha = b.maxHp > 1 ? (b.hp / b.maxHp * 0.5 + 0.5) : 1;
-      ctx.globalAlpha = alpha;
+      var glowAmt = b.hitFlash > 0 ? 20 : 6;
+      var brickAlpha = b.maxHp > 1 ? (b.hp / b.maxHp * 0.5 + 0.5) : 1;
+      ctx.globalAlpha = brickAlpha;
       rect(b.x, b.y, b.w, b.h, b.color, glowAmt);
 
       // Shine highlight
@@ -671,14 +653,15 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
 
       // HP indicator for multi-hit bricks
       if (b.maxHp > 1 && b.hp > 1) {
-        text(b.hp.toString(), b.x + b.w / 2, b.y + b.h / 2, '#FFFFFF', 11);
+        txt(String(b.hp), b.x + b.w / 2, b.y + b.h / 2, '#FFFFFF', 11);
       }
       ctx.globalAlpha = 1;
     }
 
     // ── Coin drops ──
-    for (const c of coinDrops) {
-      const bob = Math.sin(c.bobPhase) * 3;
+    for (let i = 0; i < coinDrops.length; i++) {
+      var c = coinDrops[i];
+      var bob = Math.sin(c.bobPhase) * 3;
       ctx.shadowBlur = 8;
       ctx.shadowColor = '#FFD700';
       ctx.fillStyle = '#FFD700';
@@ -686,11 +669,12 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
       ctx.arc(c.x, c.y + bob, c.size / 2, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
-      text('$', c.x, c.y + bob, '#8B6914', 10);
+      txt('$', c.x, c.y + bob, '#8B6914', 10);
     }
 
     // ── Ball trail ──
-    for (const t of ball.trail) {
+    for (let i = 0; i < ball.trail.length; i++) {
+      var t = ball.trail[i];
       if (t.alpha < 0.1) continue;
       ctx.globalAlpha = t.alpha * 0.4;
       circle(t.x, t.y, ball.radius * 0.7, '#FF3B3B');
@@ -699,22 +683,18 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
 
     // ── Ball ──
     if (ball.stuck || ball.active) {
-      // Outer glow
       circle(ball.x, ball.y, ball.radius + 3, 'rgba(255,59,59,0.2)');
-      // Main ball
       circle(ball.x, ball.y, ball.radius, '#FF3B3B', 18);
-      // Inner shine
       circle(ball.x - 2, ball.y - 2, ball.radius * 0.35, 'rgba(255,255,255,0.5)');
     }
 
     // ── Paddle ──
-    const glowAmt = 8 + paddle.glow * 20;
-    // Glow
-    ctx.shadowBlur = glowAmt;
+    var paddleGlow = 8 + paddle.glow * 20;
+    ctx.shadowBlur = paddleGlow;
     ctx.shadowColor = paddle.color;
     ctx.fillStyle = paddle.color;
     // Rounded paddle
-    const pr = paddle.h / 2;
+    var pr = paddle.h / 2;
     ctx.beginPath();
     ctx.moveTo(paddle.x + pr, paddle.y);
     ctx.lineTo(paddle.x + paddle.w - pr, paddle.y);
@@ -724,20 +704,20 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     ctx.closePath();
     ctx.fill();
     ctx.shadowBlur = 0;
-
     // Paddle shine
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.fillRect(paddle.x + 4, paddle.y + 1, paddle.w - 8, 3);
 
     // ── Particles ──
-    for (const p of particles) {
-      const alpha = clamp(p.life / p.maxLife, 0, 1);
-      ctx.globalAlpha = alpha;
+    for (let i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      var pAlpha = clamp(p.life / p.maxLife, 0, 1);
+      ctx.globalAlpha = pAlpha;
       ctx.shadowBlur = 4;
       ctx.shadowColor = p.color;
       ctx.fillStyle = p.color;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, p.size * pAlpha, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -745,40 +725,38 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
 
     // ── Combo indicator ──
     if (comboCount >= 5 && comboTimer > 0) {
-      const alpha = clamp(comboTimer, 0, 1);
-      ctx.globalAlpha = alpha;
-      const comboText = comboCount + 'x COMBO!';
-      const comboSize = 20 + Math.min(comboCount, 20) * 0.5;
-      text(comboText, W / 2, H / 2 + 40, '#FFEA00', comboSize);
+      var comboAlpha = clamp(comboTimer, 0, 1);
+      ctx.globalAlpha = comboAlpha;
+      var comboSize = 20 + Math.min(comboCount, 20) * 0.5;
+      txt(comboCount + 'x COMBO!', W / 2, H / 2 + 40, '#FFEA00', comboSize);
       ctx.globalAlpha = 1;
     }
 
     // ── Serve prompt ──
     if (ball.stuck && phase === 'play') {
-      const blink = Math.sin(time * 5) > 0;
-      if (blink) {
-        text('TAP TO SERVE', W / 2, paddle.y - 40, 'rgba(255,255,255,0.7)', 14);
+      if (Math.sin(time * 5) > 0) {
+        txt('TAP TO SERVE', W / 2, paddle.y - 40, 'rgba(255,255,255,0.7)', 14);
       }
     }
 
     // ── Level indicator ──
-    text('LEVEL ' + level, W - 60, H - 20, 'rgba(255,255,255,0.3)', 11, 'right');
+    txt('LEVEL ' + level, W - 60, H - 20, 'rgba(255,255,255,0.3)', 11, 'right');
   }
 
   function drawHUD() {
     // Score
-    text('SCORE', 80, 18, '#888', 10);
-    text(score.toString(), 80, 34, '#FFFFFF', 18);
+    txt('SCORE', 80, 18, '#888', 10);
+    txt(String(score), 80, 34, '#FFFFFF', 18);
 
     // Coins
-    text('COINS', W / 2, 18, '#888', 10);
-    text(coins.toString(), W / 2, 34, '#FFD700', 18);
+    txt('COINS', W / 2, 18, '#888', 10);
+    txt(String(coins), W / 2, 34, '#FFD700', 18);
 
     // Lives
-    text('LIVES', W - 80, 18, '#888', 10);
+    txt('LIVES', W - 80, 18, '#888', 10);
     for (let i = 0; i < MAX_LIVES; i++) {
-      const lx = W - 95 + i * 22;
-      const ly = 34;
+      var lx = W - 95 + i * 22;
+      var ly = 34;
       if (i < lives) {
         circle(lx, ly, 6, '#FF3B3B', 8);
         circle(lx - 1, ly - 1, 2, 'rgba(255,255,255,0.4)');
@@ -791,55 +769,47 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
   }
 
   function drawGameOver() {
-    // Darken
     ctx.fillStyle = 'rgba(6,6,14,0.75)';
     ctx.fillRect(0, 0, W, H);
 
-    // Game Over box
-    const boxW = 320, boxH = 200;
-    const bx = (W - boxW) / 2, by = (H - boxH) / 2;
+    var boxW = 320, boxH = 200;
+    var bx = (W - boxW) / 2, by = (H - boxH) / 2;
     ctx.fillStyle = 'rgba(20,20,40,0.95)';
     ctx.fillRect(bx, by, boxW, boxH);
     ctx.strokeStyle = '#FF3B3B';
     ctx.lineWidth = 2;
     ctx.strokeRect(bx, by, boxW, boxH);
 
-    text('GAME OVER', W / 2, by + 40, '#FF3B3B', 30);
-    text('SCORE: ' + score, W / 2, by + 80, '#FFFFFF', 20);
-    text('COINS: ' + coins, W / 2, by + 105, '#FFD700', 16);
-    text('LEVEL: ' + level, W / 2, by + 130, '#00FF88', 14);
+    txt('GAME OVER', W / 2, by + 40, '#FF3B3B', 30);
+    txt('SCORE: ' + score, W / 2, by + 80, '#FFFFFF', 20);
+    txt('COINS: ' + coins, W / 2, by + 105, '#FFD700', 16);
+    txt('LEVEL: ' + level, W / 2, by + 130, '#00FF88', 14);
 
-    const blink = Math.sin(time * 4) > 0;
-    if (blink) {
-      text('TAP TO RETRY', W / 2, by + 170, '#888888', 14);
+    if (Math.sin(time * 4) > 0) {
+      txt('TAP TO RETRY', W / 2, by + 170, '#888888', 14);
     }
   }
 
   function drawLevelComplete() {
-    // Darken
     ctx.fillStyle = 'rgba(6,6,14,0.7)';
     ctx.fillRect(0, 0, W, H);
 
-    const pulse = 0.7 + 0.3 * Math.sin(time * 3);
-
-    // Celebration text
+    var pulse = 0.7 + 0.3 * Math.sin(time * 3);
     ctx.globalAlpha = pulse;
-    text('LEVEL ' + level + ' CLEAR!', W / 2, H / 2 - 40, '#00FF88', 32);
+    txt('LEVEL ' + level + ' CLEAR!', W / 2, H / 2 - 40, '#00FF88', 32);
     ctx.globalAlpha = 1;
+    txt('BONUS: ' + (level * 500), W / 2, H / 2 + 10, '#FFD700', 20);
+    txt('SCORE: ' + score, W / 2, H / 2 + 40, '#FFFFFF', 18);
 
-    text('BONUS: ' + (level * 500), W / 2, H / 2 + 10, '#FFD700', 20);
-    text('SCORE: ' + score, W / 2, H / 2 + 40, '#FFFFFF', 18);
-
-    const blink = Math.sin(time * 4) > 0;
-    if (blink) {
-      text('TAP FOR NEXT LEVEL', W / 2, H / 2 + 80, '#888888', 14);
+    if (Math.sin(time * 4) > 0) {
+      txt('TAP FOR NEXT LEVEL', W / 2, H / 2 + 80, '#888888', 14);
     }
   }
 
   // ── Animation loop ──
   function animate(ts) {
     if (!running) return;
-    const dt = Math.min((ts - lastTime) / 1000, 0.1);
+    var dt = Math.min((ts - lastTime) / 1000, 0.1);
     lastTime = ts;
     update(dt);
     draw();
@@ -867,5 +837,8 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
   }
 
   // ── Public API ──
-  return { start, update, draw, pause, resume };
+  return { start: start, update: update, draw: draw, pause: pause, resume: resume };
 };
+
+// core.js compatibility: expose as window.bounce
+if (window.engines && window.engines.bounce) window.bounce = window.engines.bounce;

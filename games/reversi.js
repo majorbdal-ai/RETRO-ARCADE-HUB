@@ -1024,3 +1024,6 @@ window.engines.reversi = function(canvas, ctx, onScore, onGameOver, onCoins) {
 
   return { start, pause, resume, destroy, setInput };
 };
+
+// core.js compatibility: expose as window.reversi
+if (window.engines && window.engines.reversi) window.reversi = window.engines.reversi;

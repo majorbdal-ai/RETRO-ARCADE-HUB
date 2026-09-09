@@ -778,3 +778,6 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
   // ── Public API ──
   return { start, update, draw };
 };
+
+// core.js compatibility: expose as window.spaceImpact
+if (window.engines && window.engines.spaceImpact) window.spaceImpact = window.engines.spaceImpact;
