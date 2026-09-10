@@ -1328,8 +1328,21 @@ function onVisibilityChange() {
 document.addEventListener('visibilitychange', onVisibilityChange);
 
 // ---- browser back button exits game instead of reloading ----
+// B4 FIX [016]: first back = pause (if running), second back = exit to hub
+let backPressedAt = 0;
 window.addEventListener('popstate', () => {
-  if (gameState.id) { exitToHub(); }
+  if (!gameState.id) return;
+  if (gameState.over) { exitToHub(); return; }
+  if (!gameState.paused && gameState.running) {
+    // first back: pause the game
+    const now = Date.now();
+    if (now - backPressedAt < 2500) { exitToHub(); return; } // double-back within 2.5s = exit
+    backPressedAt = now;
+    togglePause();
+    if (typeof window.toast === 'function') { try { window.toast('Back again to exit'); } catch (e) {} }
+    return;
+  }
+  exitToHub();
 });
 // push a history entry when entering a game so back works
 function pushGameHistory() {

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>RETRO ARCADE HUB — 70 Games! Play Free Online</title>
 <meta name="description" content="Play 70 free retro arcade games on your phone — neon snake, tetris, pinball, racing, puzzle, sports & more. XP, achievements, daily quests, coins, skins, leaderboard. No download, no install.">
 <meta name="keywords" content="retro arcade games, free mobile games, neon games, online arcade, play games free, tetris, snake, pinball">
@@ -260,6 +260,8 @@ body{
 /* ==================== BOTTOM NAV ==================== */
 #bottomNav{
   position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+  /* B4 [028]: respect gesture-nav safe area */
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
   display:flex;align-items:center;justify-content:space-around;
   width:min(92%,420px);padding:10px 6px;border-radius:22px;
   background:var(--nav-bg);backdrop-filter:blur(20px);
@@ -361,7 +363,22 @@ body.game-active #topBar{display:none !important}
   body.game-active #backToHub{display:none}
   #playAreaLabel{display:none}
 }
-/* ==================== TOUCH CONTROLS ==================== */
+/* B4 FIX [018,017]: portrait — canvas keeps aspect (object-fit:contain) so no distortion,
+   but cap its height so controls stay visible; orientation changes re-flow automatically */
+@media (orientation: portrait){
+  body.game-active #gameCanvasWrap{min-height:0}
+  body.game-active #gameCanvas{max-height:52vh;width:auto;max-width:100%}
+}
+/* B4 FIX [025]: very small screens (320-360px) — tighten controls so nothing overflows */
+@media (max-width: 360px){
+  #touchControls .ctrl-btn{width:58px;height:58px;font-size:9px}
+  #touchControls .ctrl-btn i{font-size:14px}
+  #touchControls .joystick{width:88px;height:88px}
+  #touchControls .dpad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px)}
+  .ctrl-steer{width:100%;justify-content:space-between}
+}
+/* B4 FIX [030]: icon-only buttons still ≥44px touch target */
+.min-44{min-width:44px;min-height:44px}
 #touchControls{display:none;gap:10px;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));background:rgba(8,11,18,.9);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.1);z-index:40;touch-action:none;flex-shrink:0;box-sizing:border-box}
 #touchControls.show{display:flex;justify-content:space-between;align-items:center}
 #touchControls .joystick{width:105px;height:105px}
