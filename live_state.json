@@ -1,28 +1,28 @@
 {
-  "rot": 6,
-  "updated": "2026-09-10T02:56:30.763Z",
+  "rot": 7,
+  "updated": "2026-09-10T10:32:23.694Z",
   "featured": [
-    "neon-dash",
     "sling-birds",
     "cricket-sixer",
     "neon-racer",
     "cyber-shooter",
-    "pixel-dungeon"
+    "pixel-dungeon",
+    "light-cycle"
   ],
   "deal": {
-    "item": "fx-fire",
-    "name": "FIRE TRAIL",
-    "pct": 15
+    "item": "fx-rainbow",
+    "name": "RAINBOW",
+    "pct": 20
   },
-  "challenge": "flappy-neon",
+  "challenge": "pac-runner",
   "botBoost": [
-    1.22,
-    1.45,
-    1.68,
-    1.81,
-    1.04,
-    1.27,
-    1.4,
-    1.63
+    1.49,
+    1.62,
+    1.85,
+    1.08,
+    1.21,
+    1.44,
+    1.67,
+    1.8
   ]
 }
