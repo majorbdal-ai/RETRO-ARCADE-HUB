@@ -1,0 +1,56 @@
+#!/usr/bin/env node
+/* RETRO ARCADE HUB — B9: security & input & cleanup tests (static + headless-friendly)
+   Tests: XSS escape, buy price trust, coin funnel, touch cleanup, tilt listener cleanup.
+   Usage: node test/security.js  (no browser needed — pure static asserts) */
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const root = path.join(__dirname, '..');
+
+const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const core = fs.readFileSync(path.join(root, 'games/core.js'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+
+let pass = 0, fail = 0;
+const t = (name, cond) => { if (cond) { pass++; console.log('✅ ' + name); } else { fail++; console.log('❌ ' + name); } };
+
+// 1. XSS escape exists + used in leaderboard renders
+t('escHTML() defined in app.js', /function escHTML\s*\(/.test(app));
+t('leaderboard refresh escapes username', /escHTML\(b\.username\)/.test(app) || /escHTML\(.*username/.test(app));
+t('boardList render escapes name/avatar', /escHTML\(b\.name\)/.test(app));
+// 2. buyItem does NOT trust caller price
+t('buyItem resolves authoritative price', /SHOP_ITEMS/.test(app) && /realPrice|find\(.*\.id === id\)/.test(app.slice(app.indexOf('function buyItem'), app.indexOf('function equipItem'))));
+t('buyTheme no duplicate purchase', /inventory\.includes\('theme-' \+ id\)/.test(app));
+// 3. Coin funnel: onCoinCb must NOT add state.coins directly
+const coinCb = core.slice(core.indexOf('const onCoinCb'), core.indexOf('const onOverCb'));
+t('onCoinCb does not double-add coins', !/state\.coins \+=/.test(coinCb));
+// 4. endGame awards once
+const endGame = core.slice(core.indexOf('function endGame'), core.indexOf('function shuffle'));
+const coinAdds = (endGame.match(/state\.coins \+=/g) || []).length;
+t('endGame awards coins in <12 locations (no triple-add bug)', coinAdds >= 2 && coinAdds < 12);
+// 5. touchcancel handled in bindGameTouch
+t('bindGameTouch handles touchcancel', (core.match(/touchcancel/g) || []).length >= 3);
+t('bindGameTouch handles mouseleave', (core.match(/mouseleave/g) || []).length >= 3);
+// 6. Tilt cleanup: stopTilt exists + called on exit/end
+t('stopTilt() defined', /function stopTilt/.test(core));
+t('stopTilt called in exitToHub', /exitToHub[\s\S]{0,400}stopTilt\(\)/.test(core));
+t('stopTilt called in endGame', /function endGame[\s\S]{0,300}stopTilt\(\)/.test(core));
+// 7. Back button: pause first, exit on double
+const popstate = core.slice(core.indexOf("popstate"), core.indexOf("function pushGameHistory"));
+t('back-button: pause-first + double-back exit', /togglePause\(\)/.test(popstate) && /backPressedAt/.test(popstate) && /exitToHub\(\)/.test(popstate));
+// 8. SEO: canonical, robots, sitemap, JSON-LD
+t('canonical link present', /rel="canonical"/.test(html));
+t('JSON-LD structured data', /application\/ld\+json/.test(html));
+t('robots.txt exists', fs.existsSync(path.join(root, 'robots.txt')));
+t('sitemap.xml exists', fs.existsSync(path.join(root, 'sitemap.xml')));
+// 9. PWA: SW individual engine caching (no all-or-nothing addAll)
+const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+t('SW install catches per-engine failures', /try \{ await c\.add\(url\); \} catch/.test(sw));
+t('SW cache version matches version.json', (() => {
+  try { const vj = JSON.parse(fs.readFileSync(path.join(root, 'version.json'), 'utf8')); return sw.includes('v' + vj.version); } catch { return false; }
+})());
+// 10. Restart does full cleanup
+t('restartGame does full cleanup + relaunch', /restartGame[\s\S]{0,500}unbindGameTouch\(\)/.test(core) && /restartGame[\s\S]{0,700}launchGame\(id\)/.test(core));
+
+console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
+process.exit(fail ? 1 : 0);

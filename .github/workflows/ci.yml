@@ -14,7 +14,5 @@ jobs:
       - name: Syntax check all JS
         run: |
           for f in $(find . -name '*.js' -not -path './node_modules/*'); do node --check "$f" || exit 1; done
-      - name: Headless lifecycle test (66 games)
-        run: node test/run_all.js
-      - name: Game registry consistency check
-        run: node test/consistency.js
+      - name: Full test suite (consistency + security + engines)
+        run: node test/all.js
