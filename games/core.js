@@ -685,6 +685,9 @@ function bootGame(id, engine) {
   document.getElementById('hudGameTitle').innerText = g.name;
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('hudCoins').innerText = '0';
+  // hide lives chip until an engine reports lives
+  const hudLivesEl = document.getElementById('hudLives');
+  if (hudLivesEl) hudLivesEl.style.display = 'none';
 
   // lock page scroll during gameplay (mobile)
   lockGameScroll(true);
@@ -972,6 +975,37 @@ function togglePause() {
     document.getElementById('pauseOverlay').classList.add('show');
     if (currentGame) { try { currentGame.pause(); } catch (e) {} }
   }
+}
+
+// ---- pause menu extras ----
+let soundOn = true;
+function toggleSound() {
+  soundOn = !soundOn;
+  const btn = document.getElementById('pauseSoundBtn');
+  if (btn) btn.innerHTML = soundOn ? '<i class="fa-solid fa-volume-high"></i> SOUND' : '<i class="fa-solid fa-volume-xmark"></i> MUTED';
+  if (typeof window.setMuted === 'function') { try { window.setMuted(!soundOn); } catch (e) {} }
+}
+// engines call this to show/update lives HUD chip
+window.setHUDLives = (n) => {
+  const el = document.getElementById('hudLives');
+  if (!el) return;
+  if (typeof n === 'number' && n >= 0) {
+    el.style.display = '';
+    document.getElementById('hudLivesVal').innerText = n;
+  } else {
+    el.style.display = 'none';
+  }
+};
+function toggleFullscreen() {
+  if (document.fullscreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen();
+  } else {
+    const el = document.getElementById('gameCanvasWrap') || document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+  }
+}
+function restartGame() {
+  if (gameState.id) launchGame(gameState.id);
 }
 
 // ---- auto-pause when call / backgrounded (mobile) ----

@@ -752,7 +752,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
         
         <!-- SEARCH + FILTER BAR -->
         <div class="arcade-toolbar" style="display:flex;flex-direction:column;gap:var(--space-sm)">
-          <div class="search-bar" style="flex:1;margin:0"><i class="fa-solid fa-magnifying-glass"></i><input id="arcadeSearch" placeholder="Search games..." oninput="renderArcadeGrid(this.value)" style="font-size:var(--font-md)"></div>
+          <div class="search-bar" style="flex:1;margin:0"><i class="fa-solid fa-magnifying-glass"></i><input id="arcadeSearch" placeholder="Search games..." oninput="renderArcadeGrid(this.value)" style="font-size:var(--font-md)"><button id="searchResetBtn" onclick="resetSearch()" style="display:none;background:none;border:none;color:var(--sub);cursor:pointer;padding:6px;font-size:14px" title="Clear search"><i class="fa-solid fa-xmark"></i></button></div>
           <div class="filter-row" style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:center">
             <div class="cat-filter" id="catFilter" style="display:flex;gap:var(--space-xs);overflow-x:auto;padding-bottom:var(--space-xs);scrollbar-width:none;-ms-overflow-style:none;flex:1"></div>
             <div class="sort-select" style="display:flex;align-items:center;gap:var(--space-xs);padding:0 var(--space-sm);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md)">
@@ -782,6 +782,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <div class="hud-stats">
         <div class="hud-chip hud-score-chip" id="hudScore">0</div>
         <div class="hud-chip" style="color:var(--pink);border-color:rgba(255,16,240,.35);background:rgba(255,16,240,.08)"><i class="fa-solid fa-coins"></i> <span id="hudCoins">0</span></div>
+        <div class="hud-chip" id="hudLives" style="color:var(--green,#39FF88);border-color:rgba(57,255,136,.3);background:rgba(57,255,136,.07);display:none"><i class="fa-solid fa-heart"></i> <span id="hudLivesVal">3</span></div>
       </div>
       <button class="hud-btn" onclick="toggleHelp()" title="How to Play"><i class="fa-solid fa-circle-question"></i></button>
       <button class="hud-btn" onclick="toggleMute()" title="Sound"><i class="fa-solid" id="muteIcon">🔊</i></button>
@@ -817,6 +818,11 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center">
           <button class="btn btn-primary" onclick="togglePause()" style="padding:11px 18px;font-size:13px"><i class="fa-solid fa-play"></i> RESUME</button>
           <button class="btn btn-ghost" onclick="exitToHub()" style="padding:11px 18px;font-size:13px"><i class="fa-solid fa-shop"></i> LOBBY</button>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center">
+          <button class="btn btn-ghost" onclick="toggleSound()" style="padding:9px 14px;font-size:12px" id="pauseSoundBtn"><i class="fa-solid fa-volume-high"></i> SOUND</button>
+          <button class="btn btn-ghost" onclick="toggleFullscreen()" style="padding:9px 14px;font-size:12px"><i class="fa-solid fa-expand"></i> FULLSCREEN</button>
+          <button class="btn btn-ghost" onclick="togglePause(); restartGame()" style="padding:9px 14px;font-size:12px"><i class="fa-solid fa-rotate-right"></i> RESTART</button>
         </div>
       </div>
       <div id="helpOverlay">

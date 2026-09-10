@@ -766,8 +766,18 @@ function renderArcadeGrid(filter = '') {
   }).join('');
   const g1 = document.getElementById('gameGrid');
   const g2 = document.getElementById('arcadeGrid');
-  if (g1) g1.innerHTML = html;
-  if (g2) g2.innerHTML = html;
+  const htmlOut = html || (q || c !== 'ALL' ? `<div class="empty-state" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:32px 16px;text-align:center;color:var(--sub)">
+      <div style="font-size:38px">🔍</div>
+      <div style="font-size:var(--font-sm);font-weight:700;color:var(--text)">NO GAMES FOUND</div>
+      <div style="font-size:var(--font-xs);max-width:220px">${q ? `No game matches "<b>${q}</b>"` : 'No games in this category yet'}</div>
+      <button class="btn btn-primary" onclick="resetSearch()" style="padding:8px 18px;font-size:12px;margin-top:6px"><i class="fa-solid fa-xmark"></i> CLEAR SEARCH</button>
+    </div>` : '');
+  if (g1) g1.innerHTML = htmlOut;
+  if (g2) g2.innerHTML = htmlOut;
+
+  // show/hide reset button in arcade search bar
+  const sReset = document.getElementById('searchResetBtn');
+  if (sReset) sReset.style.display = q ? 'flex' : 'none';
   // apply list view class
   if (g2) g2.classList.toggle('list-view', arcadeViewMode === 'list');
   
@@ -785,6 +795,14 @@ function setCatFilter(c) {
   currentCatFilter = c;
   renderArcadeGrid();
   document.getElementById('arcadeSearch').value = '';
+}
+function resetSearch() {
+  const inp = document.getElementById('arcadeSearch');
+  if (inp) inp.value = '';
+  currentCatFilter = 'ALL';
+  const wrap = document.getElementById('catFilter');
+  if (wrap) wrap.querySelectorAll('.cat-chip').forEach(ch => ch.classList.toggle('active', ch.innerText.trim() === 'ALL'));
+  renderArcadeGrid();
 }
 
 /* ==================== SHOP ==================== */
