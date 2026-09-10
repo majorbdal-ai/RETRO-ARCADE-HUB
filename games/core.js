@@ -663,6 +663,8 @@ function launchGame(id) {
   const now = Date.now();
   if (state.combo.lastTime && (now - state.combo.lastTime) < COMBO_WINDOW_MS) {
     state.combo.count++;
+    // gameFX: combo glow
+    if (window.gameFX) { try { window.gameFX.comboFlash(state.combo.count); } catch(e) {} }
   } else {
     // new session — save previous combo's best if it was higher
     if (state.combo.count > (state.combo.bestSession || 0)) {
@@ -688,6 +690,108 @@ function launchGame(id) {
   });
 }
 
+// legacy engine input adapter: exposes pressed()/down() from gameState touches+keys,
+// plus touches/keys objects (bounce style), plus x/y pointer coords
+function makeLegacyInput() {
+  const KEYMAP = {
+    enter: 'Enter', ' ': ' ', space: ' ', up: 'ArrowUp', down: 'ArrowDown',
+    left: 'ArrowLeft', right: 'ArrowRight', w: 'KeyW', s: 'KeyS',
+    a: 'KeyA', d: 'KeyD', tap: 'action'
+  };
+  const mapKey = (k) => KEYMAP[k] || k;
+  return {
+    touches: gameState.touches,
+    keys: gameState.keys,
+    x: null, y: null,
+    pressed: (k) => {
+      const K = mapKey(k);
+      if (K === 'action') return !!gameState.touches.action;
+      return !!gameState.keys[K] || !!gameState.keys[k];
+    },
+    down: (k) => {
+      const K = mapKey(k);
+      if (K === 'action') return !!gameState.touches.action;
+      if (gameState.touches.left || gameState.touches.right || gameState.touches.up || gameState.touches.down) {
+        if (K === 'ArrowLeft' || k === 'left') return !!gameState.touches.left;
+        if (K === 'ArrowRight' || k === 'right') return !!gameState.touches.right;
+        if (K === 'ArrowUp' || k === 'up') return !!gameState.touches.up;
+        if (K === 'ArrowDown' || k === 'down') return !!gameState.touches.down;
+      }
+      return !!gameState.keys[K] || !!gameState.keys[k];
+    },
+    setTouches: (t) => { gameState.touches = t; }
+  };
+}
+
+// ==== GAME FX v7.12 — screen shake, particles, death flash ====
+window.gameFX = {
+  shake(intensity = 1) {
+    const wrap = document.getElementById('gameCanvasWrap');
+    if (!wrap) return;
+    const dur = Math.round(120 + intensity * 60);
+    const amp = Math.round(2 + intensity * 4);
+    wrap.style.setProperty('--shake-dur', dur + 'ms');
+    wrap.style.setProperty('--shake-x', (Math.random() > .5 ? 1 : -1) * amp + 'px');
+    wrap.style.setProperty('--shake-y', (Math.random() > .5 ? 1 : -1) * amp + 'px');
+    wrap.classList.remove('fx-shake');
+    void wrap.offsetWidth;
+    wrap.classList.add('fx-shake');
+    setTimeout(() => wrap.classList.remove('fx-shake'), dur);
+  },
+  burst(x, y, color, count = 8) {
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div');
+      el.className = 'fx-particle';
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - .5) * .5;
+      const dist = 20 + Math.random() * 40;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+      const dur = .4 + Math.random() * .5;
+      el.style.setProperty('--p-color', color || '#FFD700');
+      el.style.setProperty('--p-dx', dx + 'px');
+      el.style.setProperty('--p-dy', dy + 'px');
+      el.style.setProperty('--p-dur', dur + 's');
+      el.style.setProperty('--p-size', (3 + Math.random() * 5) + 'px');
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), dur * 1000 + 50);
+    }
+  },
+  scoreFloat(text, color, x, y) {
+    if (typeof window.popScore === 'function') {
+      window.popScore(x || innerWidth / 2, y || innerHeight / 3, text);
+    }
+  },
+  comboFlash(combo) {
+    if (combo < 2) return;
+    const chip = document.getElementById('hudCombo');
+    if (!chip) return;
+    chip.style.display = 'inline-flex';
+    document.getElementById('hudComboVal').innerText = 'x' + combo;
+    chip.classList.remove('fx-combo-flash');
+    void chip.offsetWidth;
+    chip.classList.add('fx-combo-flash');
+  },
+  deathFX() {
+    // red flash overlay
+    const ov = document.createElement('div');
+    ov.className = 'fx-death-overlay';
+    document.body.appendChild(ov);
+    setTimeout(() => ov.remove(), 550);
+    // heavy shake
+    this.shake(3);
+    // scattered particles from center
+    const cx = innerWidth / 2, cy = innerHeight / 3;
+    this.burst(cx, cy, '#ff4444', 12);
+    this.burst(cx, cy, '#ff8800', 8);
+  },
+  coinFX(x, y) {
+    this.burst(x || innerWidth / 2 + (Math.random() - .5) * 60, y || innerHeight / 3, '#FFD700', 6);
+    this.shake(0.3);
+  }
+};
+
 function bootGame(id, engine) {
   const g = GAMES.find(x => x.id === id);
   // browser back should exit the game
@@ -707,6 +811,9 @@ function bootGame(id, engine) {
   // hide lives chip until an engine reports lives
   const hudLivesEl = document.getElementById('hudLives');
   if (hudLivesEl) hudLivesEl.style.display = 'none';
+  // hide combo chip until combo active
+  const hudComboEl = document.getElementById('hudCombo');
+  if (hudComboEl) hudComboEl.style.display = 'none';
 
   // lock page scroll during gameplay (mobile)
   lockGameScroll(true);
@@ -719,10 +826,16 @@ function bootGame(id, engine) {
 
   // create engine instance
   currentEngine = engine;
-  currentGame = engine(canvas, ctx,
-    (s) => { document.getElementById('hudScore').innerText = s; },
-    (score, coinsEarned) => endGame(score, coinsEarned),
-    (n) => {
+  const onScoreCb = (s) => { document.getElementById('hudScore').innerText = s;
+    // gameFX: subtle score particles every few points
+    if (s > 0 && s % 5 === 0 && window.gameFX) {
+      const scoreEl = document.getElementById('hudScore');
+      const r = scoreEl.getBoundingClientRect();
+      window.gameFX.burst(r.left + r.width/2, r.top + r.height/2, '#00ffff', 4);
+    }
+  };
+  const onOverCb = (score, coinsEarned) => endGame(score, coinsEarned);
+  const onCoinCb = (n) => {
       gameState.coinsEarned += n;
       state.coins += n;
       saveState(); updateCoinDisplay();
@@ -740,8 +853,17 @@ function bootGame(id, engine) {
         setTimeout(() => pop.remove(), 950);
       } catch (e) {}
       if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
-    }
-  );
+      // gameFX: coin particles
+      if (window.gameFX) { try { window.gameFX.coinFX(); } catch(e) {} }
+  };
+
+  // engine API: new-style (canvas, ctx, onScore, onOver, onCoins) OR old-style (canvas, ctx, W, H, input, state)
+  const oldStyle = engine.length >= 6;
+  currentGame = oldStyle
+    ? engine(canvas, ctx, canvas.width, canvas.height,
+        makeLegacyInput(),
+        { onScore: onScoreCb, onGameOver: onOverCb, onCoins: onCoinCb })
+    : engine(canvas, ctx, onScoreCb, onOverCb, onCoinCb);
 
   // draw per-game controls
   drawControls(id);
@@ -760,7 +882,7 @@ function bootGame(id, engine) {
 
   // start
   gameState.running = true;
-  currentGame.setInput(gameState.touches, gameState.keys);
+  if (typeof currentGame.setInput === 'function') currentGame.setInput(gameState.touches, gameState.keys);
   currentGame.start();
 
   // wire keyboard
@@ -781,6 +903,8 @@ function endGame(score, coinsEarned) {
   gameState.coinsEarned = coinsEarned || 0;
   if (currentGame) { try { currentGame.pause(); } catch (e) {} }
   if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+  // gameFX: death particles + screen shake + red flash
+  if (window.gameFX) { try { window.gameFX.deathFX(); } catch(e) {} }
 
   // award coins
   if (coinsEarned > 0) {

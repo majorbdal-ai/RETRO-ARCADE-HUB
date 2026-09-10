@@ -1,9 +1,9 @@
 /* RETRO ARCADE HUB — Service Worker for offline PWA support.
-   v7.11.0: network-first app shell (updates propagate instantly),
+   v7.12.0: global game FX (screen shake, particles, death flash, combo glow)
    pre-cache ALL 70 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.11.0';
+const CACHE = 'retro-arcade-hub-v7.12.0';
 const STATIC_CORE = [
   './',
   './index.html',

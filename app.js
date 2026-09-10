@@ -679,13 +679,6 @@ function renderHome() {
       </div>`).join('');
   }
 
-  // NEW UI: Home category filter
-  function setHomeCat(cat) {
-    currentHomeCat = cat;
-    document.querySelectorAll('#homeCatTabs .cat-tab').forEach(t => 
-      t.classList.toggle('active', t.dataset.cat === cat));
-    renderHomeGrid();
-  }
 
   // current category filter
   let currentCatFilter = 'ALL';
@@ -1025,6 +1018,8 @@ function renderProfile() {
   const xpPct = Math.min(100, Math.round(xpCur / xpNeed * 100));
   document.getElementById('avatarBig').innerText = p.avatar || '👤';
   document.getElementById('playerName').innerText = p.username;
+  const unameInp = document.getElementById('usernameInput');
+  if (unameInp) unameInp.value = p.username || '';
   document.getElementById('playerLevel').innerHTML = 'LVL ' + p.level + (p.level >= 30 ? ' <span style="color:var(--gold)">VIP</span>' : '') + `<div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div><span class="xp-label">${Math.round(xpCur)}/${Math.round(xpNeed)}</span></div>`;
   document.getElementById('statWins').innerText = state.stats.gamesPlayed;
   document.getElementById('statCoins').innerText = state.coins.toLocaleString();
@@ -1658,6 +1653,9 @@ function showVersionBadge() {
       if (sg) sg.innerText = d.games + '+';
       const hsc = document.getElementById('heroSubCount');
       if (hsc) hsc.innerText = d.games + ' GAMES · PLAY INSTANTLY';
+      // dynamic hero badge version
+      const hv = document.getElementById('heroVersionText');
+      if (hv) hv.innerText = `NEW UPDATE v${d.version}`;
       // page title too
       if (d.games) document.title = document.title.replace(/\d+ Games/, d.games + ' Games');
     });
@@ -1674,4 +1672,20 @@ function showVersionBadge() {
       localStorage.setItem('rh_version', d.version);
     }).catch(() => {});
   } catch (e) {}
+}
+
+// ── Username editor ──
+function promptUsername() {
+  const inp = document.getElementById('usernameInput');
+  if (inp) { inp.focus(); inp.select(); }
+}
+function setUsername(name) {
+  name = (name || '').trim().slice(0, 16) || 'PLAYER';
+  state.profile.username = name;
+  saveState();
+  const el = document.getElementById('playerName');
+  if (el) el.innerText = name;
+  const inp = document.getElementById('usernameInput');
+  if (inp) inp.value = name;
+  toast('Name set: ' + name);
 }

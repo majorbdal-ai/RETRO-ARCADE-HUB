@@ -183,6 +183,44 @@ body{
   75%{transform:translateY(-46px) scale(.95);opacity:.9}
   100%{transform:translateY(-60px) scale(1);opacity:0}
 }
+/* === GAME FX v7.12 === */
+#gameCanvasWrap{position:relative}
+.fx-shake{animation:shakeAnim var(--shake-dur,.15s) ease-out}
+@keyframes shakeAnim{
+  0%,100%{transform:translate(0,0)}
+  10%{transform:translate(calc(var(--shake-x,3px)),calc(var(--shake-y,-2px)))}
+  30%{transform:translate(calc(var(--shake-x,-2px)),calc(var(--shake-y,3px)))}
+  50%{transform:translate(calc(var(--shake-x,2px)),calc(var(--shake-y,-1px)))}
+  70%{transform:translate(calc(var(--shake-x,-1px)),calc(var(--shake-y,1px)))}
+}
+.fx-particle{
+  position:fixed;width:var(--p-size,6px);height:var(--p-size,6px);
+  border-radius:50%;pointer-events:none;z-index:999;
+  background:var(--p-color,#FFD700);
+  box-shadow:0 0 6px var(--p-color,#FFD700);
+  animation:fxFly var(--p-dur,.7s) ease-out forwards;
+}
+@keyframes fxFly{
+  0%{opacity:1;transform:translate(0,0) scale(1)}
+  60%{opacity:.8}
+  100%{opacity:0;transform:translate(var(--p-dx,20px),var(--p-dy,-40px)) scale(.2)}
+}
+.fx-combo-flash{
+  animation:comboFlash .4s ease-out;
+}
+@keyframes comboFlash{
+  0%{box-shadow:0 0 0 0 rgba(255,215,0,.6)}
+  50%{box-shadow:0 0 20px 4px rgba(255,215,0,.4)}
+  100%{box-shadow:0 0 0 0 rgba(255,215,0,0)}
+}
+.fx-death-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:98;
+  background:radial-gradient(ellipse at center,rgba(255,0,0,.15),transparent 70%);
+  pointer-events:none;animation:deathFlash .5s ease-out forwards;
+}
+@keyframes deathFlash{
+  0%{opacity:1}100%{opacity:0}
+}
 /* Coin display */
 .coin-badge{
   display:inline-flex;align-items:center;gap:6px;
@@ -669,7 +707,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <!-- HERO SECTION -->
       <div class="hero-section" style="margin-bottom:var(--space-xl);padding:var(--space-lg);background:linear-gradient(135deg,var(--panel),var(--bg));border-radius:var(--radius-xl);border:1px solid var(--glass-border);overflow:hidden;position:relative">
         <div class="hero-content" style="display:flex;flex-direction:column;gap:var(--space-md);align-items:flex-start;position:relative;z-index:1">
-          <div class="hero-badge" style="display:inline-flex;align-items:center;gap:var(--space-xs);background:var(--btn-grad);color:#000;padding:var(--space-xs) var(--space-sm);border-radius:999px;font-size:var(--font-xs);font-weight:700;letter-spacing:.5px"><i class="fa-solid fa-fire"></i> NEW UPDATE v6.7</div>
+          <div class="hero-badge" id="heroBadge" style="display:inline-flex;align-items:center;gap:var(--space-xs);background:var(--btn-grad);color:#000;padding:var(--space-xs) var(--space-sm);border-radius:999px;font-size:var(--font-xs);font-weight:700;letter-spacing:.5px"><i class="fa-solid fa-fire"></i> <span id="heroVersionText">LOADING...</span></div>
           <h1 class="hero-title" style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(var(--font-xl),6vw,var(--font-2xl));line-height:1.1;color:#fff;background:linear-gradient(135deg,#fff,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;margin:0"><span id="heroGameCount">70</span> GAMES. ONE ARENA.</h1>
           <p class="hero-subtitle" style="color:var(--sub);font-size:var(--font-md);margin:0;max-width:280px">Play free retro arcade games on mobile. No downloads. Instant fun. <span id="heroOfflineBadge" style="display:none;color:var(--green,#22c55e);font-weight:700">OFFLINE-READY</span></p>
           <div class="hero-stats" style="display:flex;gap:var(--space-lg);margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:1px solid rgba(255,255,255,.08)">
@@ -706,6 +744,9 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <button class="cat-tab" data-cat="Retro" onclick="setHomeCat('Retro')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)">RETRO</button>
         <button class="cat-tab" data-cat="Board" onclick="setHomeCat('Board')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)">BOARD</button>
         <button class="cat-tab" data-cat="Casino" onclick="setHomeCat('Casino')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)">CASINO</button>
+        <button class="cat-tab" data-cat="Racing" onclick="setHomeCat('Racing')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)">RACING</button>
+        <button class="cat-tab" data-cat="Adventure" onclick="setHomeCat('Adventure')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)">ADVENTURE</button>
+        <button class="cat-tab" data-cat="Skill" onclick="setHomeCat('Skill')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)">SKILL</button>
       </div>
 
       <!-- FEATURED CAROUSEL -->
@@ -810,6 +851,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div class="hud-chip hud-score-chip" id="hudScore">0</div>
         <div class="hud-chip" style="color:var(--pink);border-color:rgba(255,16,240,.35);background:rgba(255,16,240,.08)"><i class="fa-solid fa-coins"></i> <span id="hudCoins">0</span></div>
         <div class="hud-chip" id="hudLives" style="color:var(--green,#39FF88);border-color:rgba(57,255,136,.3);background:rgba(57,255,136,.07);display:none"><i class="fa-solid fa-heart"></i> <span id="hudLivesVal">3</span></div>
+        <div class="hud-chip" id="hudCombo" style="color:var(--gold,#FFD700);border-color:rgba(255,215,0,.35);background:rgba(255,215,0,.08);display:none"><i class="fa-solid fa-fire"></i> <span id="hudComboVal">x1</span></div>
       </div>
       <button class="hud-btn" onclick="toggleHelp()" title="How to Play"><i class="fa-solid fa-circle-question"></i></button>
       <button class="hud-btn" onclick="toggleMute()" title="Sound"><i class="fa-solid" id="muteIcon">🔊</i></button>
@@ -971,7 +1013,11 @@ body.cb-safe .badge{background:var(--cb-orange)}
           <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;color:#fff" id="playerName">PLAYER</div>
           <div style="font-size:11px;color:var(--pink);font-weight:700" id="playerLevel">LVL 1</div>
         </div>
-        <button class="btn btn-ghost" onclick="toast('Edit profile — coming in v3.2')" style="padding:8px 12px;font-size:12px"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-ghost" onclick="promptUsername()" style="padding:8px 12px;font-size:12px"><i class="fa-solid fa-pen"></i></button>
+      </div>
+      <div class="widget" style="padding:var(--space-sm)">
+        <label style="font-size:11px;color:var(--sub);font-weight:700;display:block;margin-bottom:4px">PLAYER NAME</label>
+        <input type="text" id="usernameInput" maxlength="16" placeholder="Enter name..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;color:#fff;font-size:13px;font-family:'Orbitron',sans-serif;outline:none" onchange="setUsername(this.value)">
       </div>
       <div class="widget" style="display:flex">
         <div class="stat-box"><h3 id="statWins">0</h3><p>WINS</p></div>
@@ -979,6 +1025,8 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div class="stat-box"><h3 style="color:var(--pink)" id="statSkins">0/24</h3><p>SKINS</p></div>
         <div class="stat-box"><h3 style="color:var(--red,#f87171)" id="statFav">0</h3><p>FAVES</p></div>
         <div class="stat-box"><h3 style="color:#FF9D00" id="statStreak">0d</h3><p>STREAK</p></div>
+        <div class="stat-box"><h3 style="color:var(--gold,#FFD700)" id="statCombo">0</h3><p>COMBO</p></div>
+        <div class="stat-box"><h3 style="color:var(--gold,#FFD700)" id="statComboCur">x0</h3><p>MAX</p></div>
       </div>
       <div class="widget" id="streakWidget"></div>
       <div class="widget">

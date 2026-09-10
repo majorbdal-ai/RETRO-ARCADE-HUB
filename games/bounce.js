@@ -837,7 +837,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
   }
 
   // ── Public API ──
-  return { start: start, update: update, draw: draw, pause: pause, resume: resume };
+  return { start: start, update: update, draw: draw, pause: pause, resume: resume, setInput: (t, k) => { input.touches = t || {}; input.keys = k || {}; } };
 };
 
 // core.js compatibility: expose as window.bounce

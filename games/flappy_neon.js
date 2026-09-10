@@ -110,6 +110,11 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
     // start delay
     if (startDelay > 0) {
       startDelay -= dt;
+      // allow flap during delay (tap-to-start feel)
+      if (touches.action || keys.Space || keys.ArrowUp) {
+        flap();
+        touches.action = false; keys.Space = false; keys.ArrowUp = false;
+      }
       // still apply gravity during delay
       BIRD.vy += GRAVITY * dt;
       BIRD.vy = Math.min(BIRD.vy, MAX_VY);

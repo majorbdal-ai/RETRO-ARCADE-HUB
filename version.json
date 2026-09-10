@@ -1,5 +1,5 @@
 {
-  "version": "7.11.0",
+  "version": "7.12.0",
   "games": 70,
   "build": "2026-09-10",
   "features": [
@@ -34,6 +34,14 @@
     "global-error-handler",
     "share-score-card",
     "image-share-download",
-    "score-copy-clipboard"
+    "score-copy-clipboard",
+    "game-fx-shake",
+    "game-fx-particles",
+    "game-fx-death-flash",
+    "game-fx-combo-glow",
+    "game-fx-coin-burst",
+    "username-editor",
+    "dynamic-hero-badge",
+    "11-home-tabs"
   ]
 }
