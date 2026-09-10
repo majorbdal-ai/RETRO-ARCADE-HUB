@@ -788,6 +788,7 @@ function setCatFilter(c) {
 }
 
 /* ==================== SHOP ==================== */
+let currentShopTab = 'skins';
 const SHOP_ITEMS = {
   skins: [
     { id: 'skin-dragon', name: 'DRAGON SKIN', ico: '🐉', price: 500, desc: 'Snake turns into a fire dragon' },
