@@ -303,8 +303,9 @@ function toast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
-function ripple(e) {
-  const b = e.currentTarget;
+function ripple(e, btn) {
+  const b = btn || e.currentTarget;
+  if (!b || typeof b.getBoundingClientRect !== 'function') return;
   const r = b.getBoundingClientRect();
   const d = Math.max(r.width, r.height);
   const ink = document.createElement('span');
@@ -316,7 +317,7 @@ function ripple(e) {
   setTimeout(() => ink.remove(), 650);
   if (navigator.vibrate) { try { navigator.vibrate(50); } catch (e2) {} }
 }
-document.addEventListener('click', (e) => { const b = e.target.closest('.btn'); if (b) ripple(e); });
+document.addEventListener('click', (e) => { const b = e.target.closest('.btn'); if (b) ripple(e, b); });
 function popScore(x, y, text) {
   const el = document.createElement('div');
   el.className = 'score-pop';
@@ -1578,6 +1579,7 @@ function comboTimeRemaining() {
 
 /* ==================== INIT ==================== */
 function init() {
+  initErrorHandler();
   openAuth();
   navInit();
   initCRT();
@@ -1611,25 +1613,34 @@ function init() {
   updateCoinDisplay();
   // version badge
   showVersionBadge();
+  bootDone = true;
 }
 document.addEventListener('DOMContentLoaded', init);
 // Global error handler — show errorScreen for uncaught errors
-window.addEventListener('error', function(e) {
-  const el = document.getElementById('errorScreen');
-  const msg = document.getElementById('errorMsg');
-  if (el && msg) {
-    msg.textContent = (e.message || 'Unknown error') + (e.filename ? ' in ' + e.filename.split('/').pop() : '');
-    el.classList.add('show');
-  }
-});
-window.addEventListener('unhandledrejection', function(e) {
-  const el = document.getElementById('errorScreen');
-  const msg = document.getElementById('errorMsg');
-  if (el && msg) {
-    msg.textContent = 'Async error: ' + (e.reason?.message || String(e.reason || 'unknown'));
-    el.classList.add('show');
-  }
-});
+let bootDone = false;
+function initErrorHandler() {
+  window.addEventListener('error', function(e) {
+    // ignore harmless ripple/UI errors — only block the screen if the APP failed to boot
+    if (!bootDone) {
+      const el = document.getElementById('errorScreen');
+      const msg = document.getElementById('errorMsg');
+      if (el && msg) {
+        msg.textContent = (e.message || 'Unknown error') + (e.filename ? ' in ' + e.filename.split('/').pop() : '');
+        el.classList.add('show');
+      }
+    }
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    if (!bootDone) {
+      const el = document.getElementById('errorScreen');
+      const msg = document.getElementById('errorMsg');
+      if (el && msg) {
+        msg.textContent = 'Async error: ' + (e.reason?.message || String(e.reason || 'unknown'));
+        el.classList.add('show');
+      }
+    }
+  });
+}
 
 // version badge + hero counts stay in sync with version.json automatically
 function showVersionBadge() {
