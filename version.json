@@ -1,5 +1,5 @@
 {
-  "version": "7.10.0",
+  "version": "7.11.0",
   "games": 70,
   "build": "2026-09-10",
   "features": [
@@ -31,6 +31,9 @@
     "discovery-rows",
     "game-wise-leaderboard",
     "error-screen",
-    "global-error-handler"
+    "global-error-handler",
+    "share-score-card",
+    "image-share-download",
+    "score-copy-clipboard"
   ]
 }

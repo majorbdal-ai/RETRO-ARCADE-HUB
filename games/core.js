@@ -1078,14 +1078,196 @@ function pushGameHistory() {
   try { history.pushState({ game: true }, ''); } catch (e) {}
 }
 
-// ---- share ----
-function shareGame() {
+// ---- share (v7.11: canvas score card + image sharing) ----
+function generateShareCard() {
+  const game = GAMES.find(g => g.id === gameState.id) || {};
+  const score = gameState.score || 0;
+  const color = game.color || '#00FFFF';
+  const name = game.name || 'UNKNOWN';
+  const icon = game.icon || '🎮';
+  const best = state.best[gameState.id] || 0;
+  const isNewBest = score > 0 && score >= best;
+  const level = (state.profile && state.profile.level) || 1;
+
+  // Star rating (same logic as endGame)
+  const TGT = { 'flappy-neon':50,'neon-dash':100,'neon-jumper':100,'snake-classic':100,'dino-run':300,'temple-run':500,'traffic-racer':500,'helix-drop':200,'cyber-shooter':100,'space-invaders':20,'pac-runner':30,'brick-breaker':60,'pinball':7,'2048':512,'tetris-blitz':4,'space-miner':1000,'neon-slam':500 };
+  const t = TGT[gameState.id];
+  const stars = score <= 0 ? 0 : (!t ? (score > 0 ? 1 : 0) : score >= t ? 3 : score >= t * 0.6 ? 2 : 1);
+
+  const W = 600, H = 400;
+  const cvs = document.createElement('canvas');
+  cvs.width = W; cvs.height = H;
+  const ctx = cvs.getContext('2d');
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#0A0E16');
+  bg.addColorStop(0.5, '#0D1220');
+  bg.addColorStop(1, '#0A0E16');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle grid lines
+  ctx.strokeStyle = color + '12';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+  // Glow circle behind score
+  const glow = ctx.createRadialGradient(W/2, H/2 - 20, 10, W/2, H/2 - 20, 160);
+  glow.addColorStop(0, color + '30');
+  glow.addColorStop(0.5, color + '10');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  // Top accent line
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.moveTo(60, 50);
+  ctx.lineTo(W - 60, 50);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Game name
+  ctx.font = "bold 28px 'Orbitron', 'Arial', sans-serif";
+  ctx.fillStyle = '#FFFFFF';
+  ctx.textAlign = 'center';
+  ctx.fillText(icon + ' ' + name, W/2, 90);
+
+  // "SCORE" label
+  ctx.font = "12px 'Arial', sans-serif";
+  ctx.fillStyle = '#8A93A6';
+  ctx.letterSpacing = '4px';
+  ctx.fillText('SCORE', W/2, 130);
+
+  // Score value — big glowing number
+  const scoreStr = score.toLocaleString();
+  ctx.font = "bold 64px 'Orbitron', 'Arial', sans-serif";
+  ctx.shadowColor = isNewBest ? '#FFE600' : color;
+  ctx.shadowBlur = 30;
+  ctx.fillStyle = isNewBest ? '#FFE600' : '#FFFFFF';
+  ctx.fillText(scoreStr, W/2, 195);
+  ctx.shadowBlur = 0;
+
+  // New Best badge
+  if (isNewBest) {
+    ctx.font = "bold 14px 'Arial', sans-serif";
+    ctx.fillStyle = '#FFE600';
+    ctx.fillText('★ NEW BEST ★', W/2, 225);
+  }
+
+  // Stars
+  const starY = 260;
+  const starSize = 30;
+  const starSpacing = 40;
+  const starStartX = W/2 - (stars * starSpacing) / 2;
+  for (let i = 0; i < 3; i++) {
+    const sx = starStartX + i * starSpacing + starSpacing/2;
+    ctx.font = `${starSize}px 'Arial'`;
+    if (i < stars) {
+      ctx.shadowColor = '#FFE600';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = '#FFE600';
+      ctx.fillText('★', sx, starY);
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.fillStyle = '#333333';
+      ctx.fillText('★', sx, starY);
+    }
+  }
+
+  // Level + best score info
+  ctx.font = "13px 'Arial', sans-serif";
+  ctx.fillStyle = '#8A93A6';
+  ctx.fillText('LVL ' + level + (isNewBest ? '  ·  ★ NEW BEST' : '  ·  BEST: ' + best.toLocaleString()), W/2, 295);
+
+  // Bottom accent line
+  ctx.strokeStyle = color + '50';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(60, 320);
+  ctx.lineTo(W - 60, 320);
+  ctx.stroke();
+
+  // Branding
+  ctx.font = "bold 16px 'Orbitron', 'Arial', sans-serif";
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = color;
+  ctx.fillText('RETRO ARCADE HUB', W/2, 355);
+  ctx.shadowBlur = 0;
+
+  ctx.font = "11px 'Arial', sans-serif";
+  ctx.fillStyle = '#555555';
+  ctx.fillText('70 games · XP · achievements · free to play', W/2, 375);
+
+  return cvs;
+}
+
+async function shareGame() {
+  const game = GAMES.find(g => g.id === gameState.id) || {};
+  const score = gameState.score || 0;
+  const name = game.name || 'a game';
   const url = location.origin + location.pathname;
-  const text = `I just scored ${gameState.score.toLocaleString()} on ${(GAMES.find(g => g.id === gameState.id) || {}).name} at RETRO ARCADE HUB! 👑`;
-  if (navigator.share) {
-    navigator.share({ title: 'RETRO ARCADE HUB', text, url }).catch(() => {});
+  const text = `🎮 I scored ${score.toLocaleString()} on ${name}! 🏆\n\nCan you beat me? Play FREE at RETRO ARCADE HUB 👇`;
+
+  try {
+    // Generate share card image
+    const cvs = generateShareCard();
+    const blob = await new Promise(r => cvs.toBlob(r, 'image/png', 0.95));
+
+    // Try native share with image
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'score.png', { type: 'image/png' })] })) {
+      const file = new File([blob], 'score.png', { type: 'image/png' });
+      await navigator.share({ title: 'RETRO ARCADE HUB', text, url, files: [file] }).catch(() => {});
+      toast('Shared! 🎉');
+      return;
+    }
+
+    // Fallback: try text-only share
+    if (navigator.share) {
+      await navigator.share({ title: 'RETRO ARCADE HUB', text: text + '\n' + url }).catch(() => {});
+      toast('Shared! 🎉');
+      return;
+    }
+
+    // Desktop fallback: download the image
+    downloadShareCard();
+  } catch (e) {
+    downloadShareCard();
+  }
+}
+
+function downloadShareCard() {
+  try {
+    const cvs = generateShareCard();
+    const link = document.createElement('a');
+    link.download = 'retro-arcade-score.png';
+    link.href = cvs.toDataURL('image/png', 0.95);
+    link.click();
+    toast('Score card downloaded! 📸 Share it on WhatsApp!');
+  } catch (e) {
+    toast('Could not generate card');
+  }
+}
+
+function copyScoreText() {
+  const game = GAMES.find(g => g.id === gameState.id) || {};
+  const score = gameState.score || 0;
+  const stars = '⭐'.repeat((() => {
+    const TGT = { 'flappy-neon':50,'neon-dash':100,'snake-classic':100,'dino-run':300 };
+    const t = TGT[gameState.id];
+    return t ? (score >= t ? 3 : score >= t * 0.6 ? 2 : 1) : 1;
+  })());
+  const text = `🎮 ${game.name}: ${score.toLocaleString()} ${stars}\nRETRO ARCADE HUB — 70 free games!`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => toast('Score copied! 📋')).catch(() => toast('Could not copy'));
   } else {
-    toast('Try another platform to share');
+    toast('Could not copy');
   }
 }
 
