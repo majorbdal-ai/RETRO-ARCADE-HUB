@@ -842,6 +842,9 @@ function endGame(score, coinsEarned) {
 
   saveState(); updateCoinDisplay();
 
+  // daily streak — first play of the day keeps the flame alive (v7.9)
+  if (typeof window.updateStreak === 'function') { try { window.updateStreak(); } catch (e) {} }
+
   // sync to backend if logged in
   syncScore(gameState.id, score);
 

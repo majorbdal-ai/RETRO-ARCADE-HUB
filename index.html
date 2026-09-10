@@ -408,6 +408,22 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 .stat-box p{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}
 .progress{height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
 .progress>div{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--pink));box-shadow:0 0 12px var(--cyan)}
+/* ==================== STREAK WIDGET (v7.9) ==================== */
+.streak-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.streak-flame{font-size:34px;filter:drop-shadow(0 0 12px rgba(255,120,0,.6));animation:streakPulse 2.4s ease-in-out infinite}
+@keyframes streakPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.streak-num{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:900;color:#fff;text-shadow:0 0 18px rgba(255,140,0,.5);line-height:1}
+.streak-day{font-size:10px;color:var(--sub);display:block;letter-spacing:1px;margin-top:2px}
+.streak-keep{flex:1;text-align:right;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--sub)}
+.streak-dots{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.sd-dot{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--sub);font-family:'Orbitron',sans-serif}
+.sd-dot.on{background:linear-gradient(135deg,rgba(255,140,0,.35),rgba(255,59,107,.35));border-color:#FF9D00;color:#FFE600;box-shadow:0 0 10px rgba(255,140,0,.35)}
+.sd-dot.today{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.2)}
+.streak-bar{font-size:11px;color:var(--sub);margin-bottom:12px}
+.streak-bar b{color:#fff}
+.streak-rewards{display:flex;gap:8px;flex-wrap:wrap}
+.sd-reward{font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:var(--sub)}
+.sd-reward.got{background:linear-gradient(135deg,rgba(255,140,0,.3),rgba(255,59,107,.3));border-color:#FF9D00;color:#FFE600}
 /* ==================== STORE (coins/themes) ==================== */
 .pack-card{padding:18px;text-align:center;margin-bottom:12px;position:relative}
 .pack-card .coins{font-family:'Orbitron',sans-serif;font-size:26px;color:var(--yellow);text-shadow:0 0 14px rgba(255,230,0,.4)}
@@ -923,7 +939,9 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div class="stat-box"><h3 style="color:var(--yellow)" id="statCoins">0</h3><p>COINS</p></div>
         <div class="stat-box"><h3 style="color:var(--pink)" id="statSkins">0/24</h3><p>SKINS</p></div>
         <div class="stat-box"><h3 style="color:var(--red,#f87171)" id="statFav">0</h3><p>FAVES</p></div>
+        <div class="stat-box"><h3 style="color:#FF9D00" id="statStreak">0d</h3><p>STREAK</p></div>
       </div>
+      <div class="widget" id="streakWidget"></div>
       <div class="widget">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <b style="font-size:13px;color:#fff">ACHIEVEMENTS</b>

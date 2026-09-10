@@ -42,6 +42,7 @@ let state = {
   dailyQuest: store.get(K.dailyQuest, {}),
   lastPlay: store.get(K.lastPlay, 0),
   streak: store.get(K.streak, 0),
+  streakClaimed: store.get('rh_streakClaimed', {}),
   favorites: store.get('rh_favorites', []),
   recentlyPlayed: store.get('rh_recently', [])
 };
@@ -59,6 +60,7 @@ function saveState() {
   store.set(K.dailyQuest, state.dailyQuest);
   store.set(K.lastPlay, state.lastPlay);
   store.set(K.streak, state.streak);
+  store.set('rh_streakClaimed', state.streakClaimed);
   store.set('rh_favorites', state.favorites);
   store.set('rh_recently', state.recentlyPlayed);
 }
@@ -408,7 +410,7 @@ function confirmDelete() {
   const v = document.getElementById('deleteInput').value.trim();
   if (v.toUpperCase() !== 'DELETE') { toast('Type DELETE to confirm'); return; }
   Object.values(K).forEach(k => localStorage.removeItem(k));
-  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, favorites: [], recentlyPlayed: [] };
+  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, lastPlay: 0, streak: 0, streakClaimed: {}, favorites: [], recentlyPlayed: [] };
   closeDeleteModal();
   toast('Account deleted');
   go('home'); updateCoinDisplay();
@@ -437,6 +439,90 @@ function markPlayed(id) {
   state.recentlyPlayed = state.recentlyPlayed || [];
   state.recentlyPlayed = [id, ...state.recentlyPlayed.filter(x => x !== id)].slice(0, 8);
   saveState();
+}
+
+/* ==================== DAILY STREAK (v7.9) ====================
+   Consecutive-day habit loop: play ANY game once per day to keep the
+   flame alive. Milestones pay out coins once each; the calendar dots
+   show the last 7 days at a glance. */
+const STREAK_MILESTONES = [
+  { day: 7,  reward: 500,  ico: '🔥', label: '7 DAYS' },
+  { day: 14, reward: 1200, ico: '⚡', label: '14 DAYS' },
+  { day: 30, reward: 3000, ico: '👑', label: '30 DAYS' }
+];
+function dayStart(ts) { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
+function updateStreak() {
+  const now = Date.now();
+  const today = dayStart(now);
+  state.lastPlay = state.lastPlay || 0;
+  state.streak = state.streak || 0;
+  // first play of this calendar day?
+  if (state.lastPlay < today) {
+    const yest = today - 86400000;
+    const wasYest = state.lastPlay >= yest && state.lastPlay < today;
+    state.streak = wasYest ? state.streak + 1 : 1;
+    state.lastPlay = today;
+    // milestone coin payout (once per day each)
+    const st = state.streak;
+    STREAK_MILESTONES.forEach(m => {
+      if (st >= m.day && !(state.streakClaimed || {})[m.day]) {
+        state.streakClaimed = state.streakClaimed || {};
+        state.streakClaimed[m.day] = true;
+        state.coins += m.reward;
+        saveState(); updateCoinDisplay();
+        setTimeout(() => toast('🔥 ' + m.day + '-DAY STREAK! +' + m.reward + ' 🪙'), 1200);
+      }
+    });
+    saveState();
+    // refresh profile if it's open
+    const pp = document.getElementById('page-profile');
+    if (pp && pp.classList.contains('active')) renderProfile();
+  }
+}
+function streakLast7(now = Date.now()) {
+  const out = [];
+  const today = dayStart(now);
+  for (let i = 6; i >= 0; i--) {
+    const d = today - i * 86400000;
+    const played = state.lastPlay ? state.lastPlay >= d && state.lastPlay < d + 86400000 : false;
+    out.push({ played, today: i === 0 });
+  }
+  return out;
+}
+function renderStreak() {
+  const wrap = document.getElementById('streakWidget');
+  if (!wrap) return;
+  const st = state.streak || 0;
+  const days = streakLast7();
+  const nextMilestone = STREAK_MILESTONES.find(m => st < m.day);
+  const progress = nextMilestone ? Math.min(100, Math.round(st / nextMilestone.day * 100)) : 100;
+  const heat = Math.min(30, 1 + Math.floor((st - 1) / 2));
+  const dots = days.map(d =>
+    `<div class="sd-dot${d.played ? ' on' : ''}${d.today ? ' today' : ''}" title="${d.today ? 'TODAY' : dayStartLabel(d)}">${d.played && d.today ? '🔥' : ''}</div>`
+  ).join('');
+  wrap.innerHTML = `
+    <div class="streak-top">
+      <div class="streak-flame" style="filter:hue-rotate(${heat * 8}deg)">🔥</div>
+      <div class="streak-num">${st}<span class="streak-day">DAY${st === 1 ? '' : 'S'}</span></div>
+      <div class="streak-keep">${st > 0 ? 'COME BACK TOMORROW!' : 'PLAY A GAME TO START!'}</div>
+    </div>
+    <div class="streak-dots">${dots}</div>
+    <div class="streak-bar">
+      ${nextMilestone
+        ? `NEXT: <b>${nextMilestone.ico} ${nextMilestone.label}</b> — <b>${nextMilestone.reward.toLocaleString()} 🪙</b>`
+        : `MAX STREAK — <b>${st}-DAY LEGEND 👑</b>`}
+      <div class="progress-track" style="margin-top:6px"><div class="progress-fill" style="width:${progress}%;background:linear-gradient(90deg,#FF9D00,#FF3B6B)"></div></div>
+      <div style="font-size:10px;color:var(--sub);margin-top:4px">${Math.min(st, (nextMilestone || {}).day || st)}/${nextMilestone ? nextMilestone.day : st} DAYS</div>
+    </div>
+    <div class="streak-rewards">
+      ${STREAK_MILESTONES.map(m =>
+        `<span class="sd-reward${st >= m.day ? ' got' : ''}">${m.ico} ${m.day}d ${state.streakClaimed && state.streakClaimed[m.day] ? '✓' : (m.reward / 1000) + 'k🪙'}</span>`
+      ).join('')}
+    </div>`;
+}
+function dayStartLabel(d) {
+  const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  return days[new Date(d).getDay()];
 }
 function renderFavorites() {
   const favRow = document.getElementById('favGrid');
@@ -865,6 +951,9 @@ function renderProfile() {
   document.getElementById('statSkins').innerText = skinsOwned + '/24';
   const favEl = document.getElementById('statFav');
   if (favEl) favEl.innerText = (state.favorites || []).length;
+  const streakEl = document.getElementById('statStreak');
+  if (streakEl) streakEl.innerText = (state.streak || 0) + 'd';
+  renderStreak();
 
   // ACHIEVEMENTS (visual grid, v7.5 redesign)
   const ACH_META = [
