@@ -954,6 +954,7 @@ function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.fl
 // ---- restart ----
 function restartGame() {
   if (!gameState.id) return;
+  if (!confirm('Restart this game?')) return;
   document.getElementById('gameOverOverlay').classList.remove('show');
   launchGame(gameState.id);
 }
@@ -1035,10 +1036,6 @@ function toggleFullscreen() {
     if (el.requestFullscreen) el.requestFullscreen();
   }
 }
-function restartGame() {
-  if (gameState.id) launchGame(gameState.id);
-}
-
 // ---- auto-pause when call / backgrounded (mobile) ----
 function onVisibilityChange() {
   if (document.hidden && gameState.id && !gameState.paused && !gameState.over) {

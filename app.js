@@ -1594,7 +1594,11 @@ function init() {
         // check for updates every page load — new SW activates quickly
         reg.update();
         // if a new SW is waiting, skip waiting so updates apply immediately
-        navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          // never hard-reload mid-game — that kills the player's session
+          if (document.getElementById('page-game')?.classList.contains('active')) return;
+          location.reload();
+        });
       }).catch(() => {});
     });
   }
@@ -1650,8 +1654,11 @@ function showVersionBadge() {
     fetch('version.json').then(r => r.json()).then(d => {
       const last = localStorage.getItem('rh_version');
       if (last && last !== d.version) {
-        localStorage.setItem('rh_version', d.version);
-        location.reload();
+        // never reload mid-game — application update applies on next load
+        if (!document.getElementById('page-game')?.classList.contains('active')) {
+          localStorage.setItem('rh_version', d.version);
+          location.reload();
+        }
       }
       localStorage.setItem('rh_version', d.version);
     }).catch(() => {});
