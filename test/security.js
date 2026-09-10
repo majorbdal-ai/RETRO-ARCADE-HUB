@@ -51,6 +51,15 @@ t('SW cache version matches version.json', (() => {
 })());
 // 10. Restart does full cleanup
 t('restartGame does full cleanup + relaunch', /restartGame[\s\S]{0,500}unbindGameTouch\(\)/.test(core) && /restartGame[\s\S]{0,700}launchGame\(id\)/.test(core));
+// 11. Coin-continue (revive): one per run, deducts 150, carries score floor
+t('reviveGame defined', /function reviveGame/.test(core));
+t('revive costs 150 coins', /const COST = 150/.test(core));
+t('revive deducts from state.coins', /reviveGame[\s\S]{0,400}state\.coins -= COST/.test(core));
+t('revive caps at one per run', /reviveUsed/.test(core) && /One continue per run/.test(core));
+t('revive carries score floor', /pendingReviveFloor = gameState\.score/.test(core));
+t('floor added in onOverCb', /onOverCb = \(score, coinsEarned\) => endGame\(score \+ reviveFloor, coinsEarned\)/.test(core));
+t('floor shown in HUD via onScoreCb', /const shown = s \+ reviveFloor/.test(core));
+t('CONTINUE button present in overlay', /id="reviveBtn"/.test(html));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);

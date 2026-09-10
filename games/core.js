@@ -90,6 +90,8 @@ function engineReady(id) {
 let currentGame = null;   // engine instance
 let currentEngine = null; // function
 let gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+let reviveUsed = false;            // one coin-continue per session (arcade rule)
+let pendingReviveFloor = 0;        // score floor carried into the revived run
 // per-game touch/pointer binding (carrom, temple, snake-classic use canvas swipes)
 let canvasSwipe = { startX: 0, startY: 0, started: false };
 let swipeBinding = null; // { el, handlers } or null
@@ -936,15 +938,18 @@ function bootGame(id, engine) {
 
   // create engine instance
   currentEngine = engine;
-  const onScoreCb = (s) => { document.getElementById('hudScore').innerText = s;
+  let reviveFloor = pendingReviveFloor; pendingReviveFloor = 0;   // consumed once
+  const onScoreCb = (s) => {
+    const shown = s + reviveFloor;    // revive: add carried floor to the live score
+    document.getElementById('hudScore').innerText = shown;
     // gameFX: subtle score particles every few points
-    if (s > 0 && s % 5 === 0 && window.gameFX) {
+    if (shown > 0 && shown % 5 === 0 && window.gameFX) {
       const scoreEl = document.getElementById('hudScore');
       const r = scoreEl.getBoundingClientRect();
       window.gameFX.burst(r.left + r.width/2, r.top + r.height/2, '#00ffff', 4);
     }
   };
-  const onOverCb = (score, coinsEarned) => endGame(score, coinsEarned);
+  const onOverCb = (score, coinsEarned) => endGame(score + reviveFloor, coinsEarned);
   const onCoinCb = (n) => {
       gameState.coinsEarned += n;
       // B1 FIX [042]: do NOT add to state.coins here — endGame adds once at game over.
@@ -1127,6 +1132,15 @@ function endGame(score, coinsEarned) {
 
   // show overlay — REDESIGN v7.2: stars, new-best glow, level label
   const scoreEl = document.getElementById('overScore');
+
+  // ==== COIN-CONTINUE (v7.14) — 2nd chance button ====
+  const reviveBtn = document.getElementById('reviveBtn');
+  if (reviveBtn) {
+    const COST = 150;
+    const can = !reviveUsed && state.coins >= COST;
+    reviveBtn.style.display = can ? 'inline-flex' : 'none';
+    if (can) reviveBtn.innerText = '🪙 CONTINUE (-' + COST + ' 🪙)';
+  }
   const prevBestTxt = (state.best[gameState.id] || 0).toLocaleString();
   document.getElementById('overCoins').innerText = (coinsEarned + scoreCoins + (leveledUp ? newLevel * 50 : 0)).toLocaleString();
   document.getElementById('overBest').innerText = prevBestTxt;
@@ -1211,7 +1225,36 @@ function restartGame() {
   window.removeEventListener('keyup', keyUp);
   stopTouchKeySync();
   document.getElementById('gameOverOverlay').classList.remove('show');
+  reviveUsed = false; // fresh run — continue allowed again
   // re-launch fresh
+  launchGame(id);
+}
+
+// ---- coin continue (2nd chance, arcade revive) ----
+function reviveGame() {
+  if (!gameState.id || !gameState.over) return;
+  if (reviveUsed) { toast('One continue per run!'); return; }
+  const COST = 150;
+  if (state.coins < COST) { toast('Need ' + COST + ' coins for continue!'); if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('err'); } catch (e) {} } return; }
+  state.coins -= COST;
+  reviveUsed = true;
+  pendingReviveFloor = gameState.score; // carry the run's score into the continue
+  saveState(); updateCoinDisplay();
+  if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+  if (typeof window.playSfx === 'function') { try { window.playSfx('continue'); } catch (e) {} }
+  // same full cleanup as restart, but with the floor pre-set
+  const id = gameState.id;
+  unbindGameTouch();
+  stopTilt();
+  lockGameScroll(false);
+  if (currentGame) { try { currentGame.destroy(); } catch (e) {} }
+  currentGame = null;
+  currentEngine = null;
+  gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  window.removeEventListener('keydown', keyDown);
+  window.removeEventListener('keyup', keyUp);
+  stopTouchKeySync();
+  document.getElementById('gameOverOverlay').classList.remove('show');
   launchGame(id);
 }
 
@@ -1619,5 +1662,6 @@ document.addEventListener('fullscreenchange', () => {
 // ---- wire card clicks to launch (replaces comingSoon) ----
 function playGame(id, e) {
   if (e) e.stopPropagation();
+  reviveUsed = false;   // fresh pick from hub — a new continue is available
   launchGame(id);
 }

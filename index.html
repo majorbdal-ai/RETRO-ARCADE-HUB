@@ -556,9 +556,11 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 .go-replay{flex:1;min-width:150px;padding:14px 20px;font-size:15px;border:none;border-radius:14px;cursor:pointer;
   background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#000;font-weight:900;font-family:'Orbitron',sans-serif;
   box-shadow:0 6px 24px var(--cyan2);transition:transform .15s,box-shadow .15s}
+#reviveBtn{background:linear-gradient(135deg,#ffd700,#ff9500);color:#1a1a1a;box-shadow:0 6px 24px rgba(255,180,0,.55)}
+#reviveBtn:active{transform:scale(.94)}
 .go-replay:active{transform:scale(.94)}
 .go-lobby,.go-share{flex:1;min-width:110px;padding:12px 14px;font-size:13px;border-radius:12px;cursor:pointer;font-weight:700;border:1px solid rgba(255,255,255,.15);color:#fff;background:rgba(255,255,255,.06)}
-.go-lobby:active,.go-share:active{transform:scale(.94)}
+.go-lobby:active,.go-share:active{transform:scale(.94);}
 /* Fixed BACK TO HUB over canvas (mobile) */
 #backToHub{position:absolute;top:10px;left:10px;z-index:95;display:flex;align-items:center;gap:6px;background:rgba(255,16,240,.85);color:#fff;border:none;border-radius:999px;padding:8px 14px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 4px 16px rgba(255,16,240,.4)}
 #backToHub:active{transform:scale(.94)}
@@ -913,6 +915,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
           <div style="text-align:center;color:var(--yellow);font-size:12px;margin-top:2px">+ <span id="overCoins">0</span> COINS</div>
           <div style="text-align:center;color:var(--sub);font-size:11px;margin-top:4px">BEST: <span id="overBest" style="color:#fff">0</span> &nbsp;|&nbsp; <span id="overLevel" style="color:#fff">LVL 1</span></div>
           <div class="go-buttons">
+            <button class="go-replay" id="reviveBtn" onclick="reviveGame()" style="display:none"><i class="fa-solid fa-heart"></i> CONTINUE</button>
             <button class="go-replay" onclick="restartGame()"><i class="fa-solid fa-rotate-right"></i> PLAY AGAIN</button>
             <button class="go-lobby" onclick="exitToHub()"><i class="fa-solid fa-shop"></i> LOBBY</button>
           </div>
