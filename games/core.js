@@ -756,6 +756,7 @@ function bootGame(id, engine) {
 
   // flag for the rotate hint: only show once per game boot
   gameState.justStarted = true;
+  gameState.hintShown = false;
 
   // start
   gameState.running = true;
@@ -986,20 +987,25 @@ function exitToHub() {
 
 // ---- orientation: big-screen game experience (v7.7) ----
 // Landscape CSS kicks in automatically via media query (HUD floats over
-// fullscreen canvas). In portrait on small phones, show a rotate hint briefly
-// (3.5s) then auto-hide so it never blocks the game view. Tapping it dismisses.
+// fullscreen canvas). Portrait games have their own touch controls, so the
+// rotate hint is unnecessary there — hidden entirely. Only used on TINY
+// portrait phones as a one-time (3.5s) nudge; auto-dismisses permanently.
 let rotateHintTimer = null;
 function updateGameOrientation() {
   if (!gameState.id) { const h = document.getElementById('playAreaLabel'); if (h) h.style.display = 'none'; return; }
-  const portraitSmall = window.matchMedia('(orientation: portrait) and (max-width: 480px)').matches;
   const hint = document.getElementById('playAreaLabel');
   if (!hint) return;
-  if (!portraitSmall) { hint.style.display = 'none'; return; }
-  // show briefly on game start, then auto-hide
-  if (gameState.justStarted) {
+  // only show on very small portrait phones, once per game boot
+  const tinyPortrait = window.matchMedia('(orientation: portrait) and (max-width: 389px)').matches;
+  if (!tinyPortrait) { hint.style.display = 'none'; return; }
+  if (gameState.justStarted && !gameState.hintShown) {
     hint.style.display = 'flex';
+    gameState.hintShown = true;
     clearTimeout(rotateHintTimer);
-    rotateHintTimer = setTimeout(() => { hint.style.display = 'none'; }, 3500);
+    rotateHintTimer = setTimeout(() => {
+      hint.style.display = 'none';
+      gameState.justStarted = false;
+    }, 3500);
   }
 }
 // tapping the hint dismisses it instantly (and prevents future re-show this game)
