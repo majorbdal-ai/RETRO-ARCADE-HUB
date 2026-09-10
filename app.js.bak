@@ -44,8 +44,7 @@ let state = {
   streak: store.get(K.streak, 0),
   streakClaimed: store.get('rh_streakClaimed', {}),
   favorites: store.get('rh_favorites', []),
-  recentlyPlayed: store.get('rh_recently', []),
-  combo: store.get('rh_combo', { count: 0, lastTime: 0, bestSession: 0 })
+  recentlyPlayed: store.get('rh_recently', [])
 };
 
 function saveState() {
@@ -64,7 +63,6 @@ function saveState() {
   store.set('rh_streakClaimed', state.streakClaimed);
   store.set('rh_favorites', state.favorites);
   store.set('rh_recently', state.recentlyPlayed);
-  store.set('rh_combo', state.combo);
 }
 
 /* ==================== API LAYER (InfinityFree PHP backend) ==================== */
@@ -412,7 +410,7 @@ function confirmDelete() {
   const v = document.getElementById('deleteInput').value.trim();
   if (v.toUpperCase() !== 'DELETE') { toast('Type DELETE to confirm'); return; }
   Object.values(K).forEach(k => localStorage.removeItem(k));
-  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, lastPlay: 0, streak: 0, streakClaimed: {}, favorites: [], recentlyPlayed: [], combo: { count: 0, lastTime: 0, bestSession: 0 } };
+  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, lastPlay: 0, streak: 0, streakClaimed: {}, favorites: [], recentlyPlayed: [] };
   closeDeleteModal();
   toast('Account deleted');
   go('home'); updateCoinDisplay();
@@ -955,44 +953,16 @@ const BOTS = [
   { name: 'NOVA_BLAZE', score: 322100, avatar: '🔥' },
   { name: 'TURBO_TITAN', score: 256800, avatar: '🚀' }
 ];
-function renderBoard(range = 'weekly', gameId = null) {
+function renderBoard(range = 'weekly') {
   const myBest = Object.values(state.best).reduce((a, b) => a + b, 0);
   const myName = state.profile.username;
   // live-rotated bot scores (deterministic per rot; falls back to 1.0)
   const boost = liveBotBoost() || [1,1,1,1,1,1,1,1];
   let list = BOTS.map((b, i) => ({ ...b, score: Math.round(b.score * (boost[i] || 1)), me: false }));
-  // game-wise: show per-game best scores
-  const gameSel = document.getElementById('boardGameSelect');
-  if (range === 'game') {
-    // populate dropdown if empty
-    if (gameSel && gameSel.options.length <= 1) {
-      const played = GAMES.filter(g => state.best[g.id] > 0);
-      gameSel.innerHTML = '<option value="">Select a game...</option>' + played.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-      // add all games if none played
-      if (played.length === 0) gameSel.innerHTML = GAMES.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-    }
-    if (gameSel) gameSel.style.display = 'block';
-    if (gameId && state.best[gameId]) {
-      // show only this game's scores — bots get random-ish scores for this game
-      list = BOTS.map((b, i) => ({
-        ...b,
-        score: Math.round((state.best[gameId] || 0) * (0.3 + (boost[i] || 1) * 0.5)),
-        me: false
-      }));
-      list.push({ name: myName, score: state.best[gameId] || 0, avatar: state.profile.avatar, me: true });
-      list.sort((a, b) => b.score - a.score);
-    } else {
-      // no game selected — show overall
-      list.push({ name: myName, score: Math.max(myBest, 100), avatar: state.profile.avatar, me: true });
-      list.sort((a, b) => b.score - a.score);
-    }
-  } else {
-    if (gameSel) gameSel.style.display = 'none';
-    list.push({ name: myName, score: Math.max(myBest, 100), avatar: state.profile.avatar, me: true });
-    if (range === 'alltime') list.forEach(b => b.score = Math.round(b.score * 1.7));
-    else if (range === 'friends') list = list.filter(b => b.me || Math.random() < 0.4);
-    list.sort((a, b) => b.score - a.score);
-  }
+  list.push({ name: myName, score: Math.max(myBest, 100), avatar: state.profile.avatar, me: true });
+  if (range === 'alltime') list.forEach(b => b.score = Math.round(b.score * 1.7));
+  else if (range === 'friends') list = list.filter(b => b.me || Math.random() < 0.4);
+  list.sort((a, b) => b.score - a.score);
   const myRank = list.findIndex(b => b.me) + 1;
   const myRow = list.find(b => b.me);
   document.getElementById('myRankCard').innerHTML = `
@@ -1032,20 +1002,6 @@ function renderProfile() {
   if (favEl) favEl.innerText = (state.favorites || []).length;
   const streakEl = document.getElementById('statStreak');
   if (streakEl) streakEl.innerText = (state.streak || 0) + 'd';
-  // Combo stats
-  const comboEl = document.getElementById('statCombo');
-  if (comboEl) comboEl.innerText = (state.combo || {}).bestSession || 0;
-  const comboCurEl = document.getElementById('statComboCur');
-  if (comboCurEl) {
-    const cc = state.combo || { count: 0 };
-    if (cc.count >= 2) {
-      comboCurEl.style.display = 'block';
-      comboCurEl.innerHTML = `<span style="color:${getComboTier(cc.count).color}">🔥 ${cc.count}x ACTIVE</span> <span style="color:var(--sub);font-size:10px">×${getComboMultiplier(cc.count)} mult</span>`;
-    } else {
-      comboCurEl.style.display = 'block';
-      comboCurEl.innerHTML = '<span style="color:var(--sub)">Play games back-to-back!</span>';
-    }
-  }
   renderStreak();
 
   // ACHIEVEMENTS (visual grid, v7.5 redesign)
@@ -1509,73 +1465,6 @@ function applyTheme(id, silent) {
 /* ==================== GAME CORE (disabled — pick favourites later) ==================== */
 let game = { id: null, running: false, paused: false, over: false, score: 0, touches: {}, keys: {} };
 
-/* ==================== SESSION COMBO SYSTEM (v8.0) ==================== */
-// Combo increments each game you play back-to-back (within 3 min window).
-// Higher combo = bigger coin/XP multiplier. Milestones at 5/10/15/20.
-const COMBO_WINDOW_MS = 3 * 60 * 1000; // 3 minutes between games to keep combo alive
-function getComboMultiplier(count) {
-  if (count <= 1) return 1.0;
-  if (count <= 3) return 1.2;
-  if (count <= 5) return 1.5;
-  if (count <= 8) return 2.0;
-  if (count <= 12) return 2.5;
-  if (count <= 16) return 3.0;
-  if (count <= 20) return 4.0;
-  return 5.0;
-}
-function getComboTier(count) {
-  if (count >= 20) return { name: 'LEGENDARY', color: '#FFD700', glow: 'rgba(255,215,0,.6)' };
-  if (count >= 15) return { name: 'INSANE', color: '#FF10F0', glow: 'rgba(255,16,240,.5)' };
-  if (count >= 10) return { name: 'MEGA', color: '#00FFFF', glow: 'rgba(0,255,255,.5)' };
-  if (count >= 5)  return { name: 'HOT', color: '#FF6B35', glow: 'rgba(255,107,53,.4)' };
-  if (count >= 3)  return { name: 'WARM', color: '#39FF88', glow: 'rgba(57,255,136,.4)' };
-  return { name: '', color: '', glow: '' };
-}
-function updateComboHUD() {
-  const el = document.getElementById('hudCombo');
-  if (!el) return;
-  const c = state.combo || { count: 0 };
-  if (c.count < 2) { el.style.display = 'none'; return; }
-  el.style.display = 'flex';
-  const mult = getComboMultiplier(c.count);
-  const tier = getComboTier(c.count);
-  el.innerHTML = `<i class="fa-solid fa-fire"></i> ${c.count}x COMBO` + (mult > 1 ? ` <span style="color:var(--green);font-size:10px">×${mult}</span>` : '');
-  el.style.color = tier.color;
-  el.style.borderColor = tier.color + '55';
-  el.style.background = tier.color + '15';
-  el.style.textShadow = '0 0 8px ' + tier.glow;
-}
-function resetCombo() {
-  if (state.combo && state.combo.count > (state.combo.bestSession || 0)) {
-    state.combo.bestSession = state.combo.count;
-  }
-  state.combo.count = 0;
-  state.combo.lastTime = 0;
-  saveState();
-}
-function applyComboMilestone(count) {
-  // Milestone rewards at specific combo levels
-  const MILESTONES = [
-    { at: 5,  coins: 100, msg: '🔥 5x COMBO! +100 🪙' },
-    { at: 10, coins: 300, msg: '⚡ 10x COMBO! +300 🪙' },
-    { at: 15, coins: 700, msg: '🌀 15x COMBO! +700 🪙' },
-    { at: 20, coins: 1500, msg: '👑 20x COMBO! LEGENDARY +1500 🪙' }
-  ];
-  const m = MILESTONES.find(x => x.at === count);
-  if (m) {
-    state.coins += m.coins;
-    setTimeout(() => {
-      toast(m.msg);
-      if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
-    }, 1200);
-  }
-}
-function comboTimeRemaining() {
-  if (!state.combo || !state.combo.lastTime) return 0;
-  const remain = COMBO_WINDOW_MS - (Date.now() - state.combo.lastTime);
-  return Math.max(0, Math.ceil(remain / 1000));
-}
-
 /* ==================== INIT ==================== */
 function init() {
   openAuth();
@@ -1609,23 +1498,6 @@ function init() {
   showVersionBadge();
 }
 document.addEventListener('DOMContentLoaded', init);
-// Global error handler — show errorScreen for uncaught errors
-window.addEventListener('error', function(e) {
-  const el = document.getElementById('errorScreen');
-  const msg = document.getElementById('errorMsg');
-  if (el && msg) {
-    msg.textContent = (e.message || 'Unknown error') + (e.filename ? ' in ' + e.filename.split('/').pop() : '');
-    el.classList.add('show');
-  }
-});
-window.addEventListener('unhandledrejection', function(e) {
-  const el = document.getElementById('errorScreen');
-  const msg = document.getElementById('errorMsg');
-  if (el && msg) {
-    msg.textContent = 'Async error: ' + (e.reason?.message || String(e.reason || 'unknown'));
-    el.classList.add('show');
-  }
-});
 
 // version badge + hero counts stay in sync with version.json automatically
 function showVersionBadge() {

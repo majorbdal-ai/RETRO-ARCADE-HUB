@@ -657,25 +657,6 @@ function launchGame(id) {
   if (!g) { toast('Game not found'); return; }
   if (typeof window.markPlayed === 'function') { try { window.markPlayed(id); } catch (e) {} }
   if (typeof window.playSfx === 'function') { try { window.playSfx('launch'); } catch (e) {} }
-
-  // ==== SESSION COMBO (v8.0): increment if playing within time window ====
-  if (!state.combo) state.combo = { count: 0, lastTime: 0, bestSession: 0 };
-  const now = Date.now();
-  if (state.combo.lastTime && (now - state.combo.lastTime) < COMBO_WINDOW_MS) {
-    state.combo.count++;
-  } else {
-    // new session — save previous combo's best if it was higher
-    if (state.combo.count > (state.combo.bestSession || 0)) {
-      state.combo.bestSession = state.combo.count;
-    }
-    state.combo.count = 1;
-  }
-  state.combo.lastTime = now;
-  if (state.combo.count > (state.stats.bestCombo || 0)) {
-    state.stats.bestCombo = state.combo.count;
-  }
-  saveState();
-
   const engine = window[GAME_ENGINE[id]];
   if (typeof engine === 'function') { bootGame(id, engine); return; }
   // engine not loaded yet — lazy load it (performance), show loading screen

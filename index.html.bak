@@ -493,8 +493,6 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 #gameLoading{position:absolute;inset:0;z-index:105;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 #gameLoading.show{display:flex}
 #gameLoading .spin{width:42px;height:42px;border-radius:50%;border:3px solid rgba(255,16,240,.2);border-top-color:var(--pink);animation:spin 1s linear infinite}
-#errorScreen{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;background:rgba(10,14,22,.98)}
-#errorScreen.show{display:flex}
 /* Loading */
 #bootLoader{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
 #bootLoader .spin{width:46px;height:46px;border-radius:50%;border:3px solid rgba(0,255,255,.2);border-top-color:var(--cyan);animation:spin 1s linear infinite}
@@ -948,9 +946,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <button class="tab active" data-range="weekly">WEEKLY</button>
         <button class="tab" data-range="alltime">ALL TIME</button>
         <button class="tab" data-range="friends">FRIENDS</button>
-        <button class="tab" data-range="game">GAME-WISE</button>
       </div>
-      <select id="boardGameSelect" style="display:none;width:100%;margin:8px 0;padding:8px;border-radius:var(--radius-md);background:var(--card-bg);color:var(--text);border:1px solid rgba(255,255,255,.1);font-size:12px" onchange="renderBoard('game', this.value)"></select>
       <div id="myRankCard" class="glass"></div>
       <div id="boardList"></div>
     </div>
@@ -1086,15 +1082,6 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <button class="btn btn-ghost" onclick="toggleAuthMode()" style="flex:1;padding:10px" id="authToggle">SIGN UP</button>
     </div>
   </div>
-</div>
-
-<!-- ERROR SCREEN (shown on critical JS errors) -->
-<div id="errorScreen" style="position:fixed;inset:0;z-index:300;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;background:rgba(10,14,22,.98)">
-  <div style="font-size:48px">💥</div>
-  <div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:var(--pink)">SOMETHING WENT WRONG</div>
-  <div id="errorMsg" style="font-size:12px;color:var(--sub);max-width:300px;line-height:1.5"></div>
-  <button onclick="location.reload()" style="margin-top:8px;padding:10px 24px;border-radius:var(--radius-md);background:var(--cyan);color:#000;font-family:'Orbitron',sans-serif;font-weight:700;font-size:12px;border:none;cursor:pointer">RELOAD</button>
-  <button onclick="go('home')" style="padding:8px 20px;border-radius:var(--radius-md);background:transparent;color:var(--text);font-size:12px;border:1px solid rgba(255,255,255,.2);cursor:pointer">BACK TO HUB</button>
 </div>
 
 <script src="games/controls.js"></script>
