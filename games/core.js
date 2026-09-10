@@ -754,6 +754,9 @@ function bootGame(id, engine) {
   // hide game over overlay
   document.getElementById('gameOverOverlay').classList.remove('show');
 
+  // flag for the rotate hint: only show once per game boot
+  gameState.justStarted = true;
+
   // start
   gameState.running = true;
   currentGame.setInput(gameState.touches, gameState.keys);
@@ -983,13 +986,30 @@ function exitToHub() {
 
 // ---- orientation: big-screen game experience (v7.7) ----
 // Landscape CSS kicks in automatically via media query (HUD floats over
-// fullscreen canvas). In portrait on small phones, show a rotate hint.
+// fullscreen canvas). In portrait on small phones, show a rotate hint briefly
+// (3.5s) then auto-hide so it never blocks the game view. Tapping it dismisses.
+let rotateHintTimer = null;
 function updateGameOrientation() {
   if (!gameState.id) { const h = document.getElementById('playAreaLabel'); if (h) h.style.display = 'none'; return; }
   const portraitSmall = window.matchMedia('(orientation: portrait) and (max-width: 480px)').matches;
   const hint = document.getElementById('playAreaLabel');
-  if (hint) hint.style.display = portraitSmall ? 'flex' : 'none';
+  if (!hint) return;
+  if (!portraitSmall) { hint.style.display = 'none'; return; }
+  // show briefly on game start, then auto-hide
+  if (gameState.justStarted) {
+    hint.style.display = 'flex';
+    clearTimeout(rotateHintTimer);
+    rotateHintTimer = setTimeout(() => { hint.style.display = 'none'; }, 3500);
+  }
 }
+// tapping the hint dismisses it instantly (and prevents future re-show this game)
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.closest && e.target.closest('#playAreaLabel')) {
+    const hint = document.getElementById('playAreaLabel');
+    if (hint) hint.style.display = 'none';
+    if (gameState) gameState.justStarted = false;
+  }
+});
 // onChange for orientation + manual toggle when phone rotates while playing
 window.addEventListener('orientationchange', () => { setTimeout(updateGameOrientation, 120); });
 window.addEventListener('resize', () => { if (gameState.id) updateGameOrientation(); }, { passive: true });
