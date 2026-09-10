@@ -83,6 +83,11 @@
   --transition-normal:250ms ease;
   --transition-slow:400ms ease;
 }
+@keyframes coinPop {
+  0% { transform: translateY(0) scale(.6); opacity: 0; }
+  25% { transform: translateY(-8px) scale(1.15); opacity: 1; }
+  100% { transform: translateY(-42px) scale(1); opacity: 0; }
+}
 /* Smooth theme cross-fade on everything color-related */
 body,*{transition:background-color var(--theme-transition) ease,border-color var(--theme-transition) ease,box-shadow var(--theme-transition) ease,color var(--theme-transition) ease}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -708,6 +713,25 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <div class="featured-carousel" id="featuredCarousel" style="display:flex;gap:var(--space-md);overflow-x:auto;padding-bottom:var(--space-md);scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory">
         <!-- populated by JS -->
       </div>
+
+      <!-- DISCOVERY ROWS: TRENDING / TOP RATED / NEW -->
+      <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-lg);margin-bottom:var(--space-md)">
+        <span class="glow" style="color:var(--pink)">🔥 TRENDING</span>
+        <span style="font-size:var(--font-xs);color:var(--sub)">MOST PLAYED</span>
+      </div>
+      <div id="trendRow" class="game-grid-h" style="display:flex;gap:var(--space-md);overflow-x:auto;padding-bottom:var(--space-md);scrollbar-width:none;-ms-overflow-style:none"></div>
+
+      <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-lg);margin-bottom:var(--space-md)">
+        <span class="glow" style="color:var(--yellow)">⭐ TOP RATED</span>
+        <span style="font-size:var(--font-xs);color:var(--sub)">PLAYER FAVES</span>
+      </div>
+      <div id="topRow" class="game-grid-h" style="display:flex;gap:var(--space-md);overflow-x:auto;padding-bottom:var(--space-md);scrollbar-width:none;-ms-overflow-style:none"></div>
+
+      <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-lg);margin-bottom:var(--space-md)">
+        <span class="glow" style="color:var(--green)">🆕 NEW GAMES</span>
+        <span style="font-size:var(--font-xs);color:var(--sub)">JUST ADDED</span>
+      </div>
+      <div id="newRow" class="game-grid-h" style="display:flex;gap:var(--space-md);overflow-x:auto;padding-bottom:var(--space-md);scrollbar-width:none;-ms-overflow-style:none"></div>
 
       <!-- FAVORITES ROW -->
       <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-lg);margin-bottom:var(--space-md)">

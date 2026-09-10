@@ -708,6 +708,18 @@ function bootGame(id, engine) {
       state.coins += n;
       saveState(); updateCoinDisplay();
       document.getElementById('hudCoins').innerText = '0'; // updated at end
+      // coin pop animation (roadmap 11)
+      try {
+        const hud = document.getElementById('hudCoins');
+        const pop = document.createElement('span');
+        pop.style.cssText = 'position:fixed;z-index:999;font-family:Orbitron,sans-serif;font-weight:900;color:var(--yellow);font-size:18px;pointer-events:none;text-shadow:0 0 10px rgba(255,230,0,.8);animation:coinPop .9s ease-out forwards';
+        const r = hud.getBoundingClientRect();
+        pop.style.left = (r.left + r.width/2 - 15) + 'px';
+        pop.style.top = (r.top - 10) + 'px';
+        pop.innerText = '+' + n;
+        document.body.appendChild(pop);
+        setTimeout(() => pop.remove(), 950);
+      } catch (e) {}
       if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
     }
   );

@@ -129,9 +129,9 @@ async function syncScore(gameId, score) {
 
 /* ==================== 20 GAMES ==================== */
 const GAMES = [
-  { id: 'neon-racer',    name: 'NEON RACER',    icon: '🏎️', color: '#00FFFF', desc: 'Dodge traffic, collect coins, nitro boost', featured: true, type: 'racer', cat: 'Action', controls: 'tilt-steer' },
+  { id: 'neon-racer',    name: 'NEON RACER',    icon: '🏎️', color: '#00FFFF', desc: 'Dodge traffic, collect coins, nitro boost', featured: true, type: 'racer', cat: 'Racing', controls: 'tilt-steer' },
   { id: 'cyber-shooter',    name: 'CYBER SHOOTER',    icon: '🚀', color: '#FF10F0', desc: 'Blast alien armadas, combo kills, 3 lives', featured: true, type: 'shooter', cat: 'Action', controls: 'joystick-auto' },
-  { id: 'pixel-dungeon',    name: 'PIXEL DUNGEON',    icon: '🗡️', color: '#FFE600', desc: 'Descend, dodge traps, find key, open chest', featured: true, type: 'dungeon', cat: 'Action', controls: 'joystick-btn' },
+  { id: 'pixel-dungeon',    name: 'PIXEL DUNGEON',    icon: '🗡️', color: '#FFE600', desc: 'Descend, dodge traps, find key, open chest', featured: true, type: 'dungeon', cat: 'Adventure', controls: 'joystick-btn' },
   { id: 'light-cycle',    name: 'LIGHT CYCLE',    icon: '🏍️', color: '#39FF88', desc: 'Tron-style grid duel — don\'t hit walls', featured: true, type: 'cycle', cat: 'Action', controls: 'swipe4' },
   { id: 'neon-snake',    name: 'NEON SNAKE',    icon: '🐍', color: '#22D3EE', desc: 'Glowing classic, speed up each food', featured: false, type: 'snake', cat: 'Arcade', controls: 'swipe4' },
   { id: 'brick-breaker',    name: 'BRICK BREAKER',    icon: '🧱', color: '#F59E0B', desc: 'Paddle-ball, clear all bricks, power-ups', featured: false, type: 'breaker', cat: 'Arcade', controls: 'drag-paddle' },
@@ -150,31 +150,31 @@ const GAMES = [
   { id: 'ludo-king',    name: 'LUDO KING',    icon: '🎲', color: '#F59E0B', desc: '2-4 player, pass & play, vs bot', featured: false, type: 'ludo', cat: 'Board', controls: 'tap-roll-tap-piece' },
   { id: 'carrom-pool',    name: 'CARROM POOL',    icon: '🎯', color: '#EAB308', desc: 'Striker drag & shoot, queen cover', featured: false, type: 'carrom', cat: 'Board', controls: 'drag-aim-release' },
   { id: '2048',    name: '2048',    icon: '🔢', color: '#84CC16', desc: 'Swipe merge, reach 2048', featured: false, type: '2048', cat: 'Arcade', controls: 'swipe4' },
-  { id: 'hill-climb',    name: 'HILL CLIMB',    icon: '🚙', color: '#F97316', desc: 'Gas/brake, collect fuel, upgrade shop', featured: false, type: 'hillclimb', cat: 'Action', controls: 'hold-gas-brake' },
+  { id: 'hill-climb',    name: 'HILL CLIMB',    icon: '🚙', color: '#F97316', desc: 'Gas/brake, collect fuel, upgrade shop', featured: false, type: 'hillclimb', cat: 'Racing', controls: 'hold-gas-brake' },
   { id: 'temple-run',    name: 'TEMPLE RUN',    icon: '🏃', color: '#EF4444', desc: 'Endless runner, swipe jump/slide/turn', featured: false, type: 'templerun', cat: 'Action', controls: 'swipe4' },
   { id: 'candy-crush',    name: 'CANDY CRUSH',    icon: '🍬', color: '#EC4899', desc: '3-match blast, line/color bombs', featured: false, type: 'candy', cat: 'Arcade', controls: 'drag-swap' },
   { id: 'snake-classic',    name: 'SNAKE CLASSIC',    icon: '🐍', color: '#22C55E', desc: 'Nokia 1100 style, keypad + swipe', featured: false, type: 'snakeclassic', cat: 'Arcade', controls: 'dpad+swipe' },
   { id: 'duck-hunt',    name: 'DUCK HUNT',    icon: '🦆', color: '#FBBF24', desc: 'Tap the ducks before they fly away', featured: false, type: 'duckhunt', cat: 'Arcade', controls: 'tap-target' },
-  { id: 'neon-dash',    name: 'NEON DASH',    icon: '⚡', color: '#22D3EE', desc: 'Geometry-Dash style, hold to jump', featured: true, type: 'dash', cat: 'Action', controls: 'tap-hold-jump' },
+  { id: 'neon-dash',    name: 'NEON DASH',    icon: '⚡', color: '#22D3EE', desc: 'Geometry-Dash style, hold to jump', featured: true, type: 'dash', cat: 'Skill', controls: 'tap-hold-jump' },
   { id: 'color-switch',    name: 'COLOR SWITCH',    icon: '🎨', color: '#F472B6', desc: 'Match the ball color, one-tap switch', featured: false, type: 'colorswitch', cat: 'Arcade', controls: 'tap-switch' },
   { id: 'neon-jumper',    name: 'NEON JUMPER',    icon: '🦘', color: '#4ADE80', desc: 'Doodle-Jump style, hold L/R to bounce', featured: false, type: 'jumper', cat: 'Arcade', controls: 'hold-lr' },
   { id: 'stack-drop',    name: 'STACK DROP',    icon: '🧱', color: '#F59E0B', desc: 'Tap to drop blocks, build the tower', featured: false, type: 'stack', cat: 'Arcade', controls: 'tap-drop' },
   { id: 'helix-drop',    name: 'HELIX DROP',    icon: '🌀', color: '#38BDF8', desc: 'Swipe to rotate, hold to fall', featured: false, type: 'helix', cat: 'Arcade', controls: 'swipe-rotate-tap' },
-  { id: 'traffic-racer',    name: 'TRAFFIC RACER',    icon: '🏁', color: '#F97316', desc: 'Lane-steer endless highway racer', featured: false, type: 'traffic', cat: 'Action', controls: 'tap-steer' },
+  { id: 'traffic-racer',    name: 'TRAFFIC RACER',    icon: '🏁', color: '#F97316', desc: 'Lane-steer endless highway racer', featured: false, type: 'traffic', cat: 'Racing', controls: 'tap-steer' },
   { id: 'dino-run',    name: 'DINO RUN',    icon: '🦖', color: '#A3E635', desc: 'Chrome dino — jump & duck the cacti', featured: false, type: 'dino', cat: 'Action', controls: 'tap-jump-drag-duck' },
-  { id: 'sling-birds',    name: 'SLING BIRDS',    icon: '🐦', color: '#FB923C', desc: 'Angry-Birds style slingshot mayhem', featured: true, type: 'sling', cat: 'Action', controls: 'slingshot-drag' },
+  { id: 'sling-birds',    name: 'SLING BIRDS',    icon: '🐦', color: '#FB923C', desc: 'Angry-Birds style slingshot mayhem', featured: true, type: 'sling', cat: 'Skill', controls: 'slingshot-drag' },
   { id: 'space-miner',    name: 'SPACE MINER',    icon: '⛏️', color: '#FFD700', desc: 'Mine asteroids, upgrade ship, defeat bosses', featured: true, type: 'miner', cat: 'Action', controls: 'move-mine' },
   { id: 'neon-slam',    name: 'NEON SLAM',    icon: '🏓', color: '#00FFFF', desc: 'Breakout with powerups, combos, endless levels', featured: true, type: 'slam', cat: 'Action', controls: 'drag-paddle' },
   { id: 'neon-tower',    name: 'NEON TOWER',    icon: '🏗️', color: '#7B61FF', desc: 'Stack the tower — precision timing', featured: true, type: 'tower', cat: 'Puzzle', controls: 'tap-drop' },
   { id: 'cosmic-dash',    name: 'COSMIC DASH',    icon: '🚀', color: '#00FFFF', desc: 'Gravity-flip space runner with portals', featured: true, type: 'dash', cat: 'Action', controls: 'tap-thrust' },
   { id: 'lazer-maze',    name: 'LAZER MAZE',    icon: '🔦', color: '#FF3B6B', desc: 'Rotate mirrors to guide the laser home', featured: true, type: 'lazer', cat: 'Puzzle', controls: 'tap-mirror' },
-  { id: 'time-rush',    name: 'TIME RUSH',    icon: '⏪', color: '#7B61FF', desc: 'Jump, dodge, and rewind time when you crash', featured: true, type: 'rewind', cat: 'Action', controls: 'tap-jump-hold-rewind' },
+  { id: 'time-rush',    name: 'TIME RUSH',    icon: '⏪', color: '#7B61FF', desc: 'Jump, dodge, and rewind time when you crash', featured: true, type: 'rewind', cat: 'Skill', controls: 'tap-jump-hold-rewind' },
   { id: 'pong',    name: 'NEON PONG',    icon: '🏓', color: '#00FFFF', desc: 'Classic pong vs AI — drag paddle', featured: false, type: 'pong', cat: 'Sports', controls: 'drag-paddle' },
   { id: 'table-tennis',    name: 'TABLE TENNIS',    icon: '🏓', color: '#FF10F0', desc: 'Drag paddle rally, timing smashes', featured: false, type: 'pingpong', cat: 'Sports', controls: 'drag-paddle' },
   { id: 'bowling-strike',    name: 'BOWLING STRIKE',    icon: '🎳', color: '#60A5FA', desc: 'Swipe to bowl — power & curve', featured: false, type: 'bowling', cat: 'Sports', controls: 'swipe-bowl' },
   { id: 'cricket-sixer',    name: 'CRICKET SIXER',    icon: '🏏', color: '#FBBF24', desc: 'Timing tap — smash every ball for six', featured: true, type: 'cricket', cat: 'Sports', controls: 'timing-tap' },
   { id: 'hoop-dunk',    name: 'HOOP DUNK',    icon: '🏀', color: '#FB923C', desc: 'Drag-aim the basketball into the hoop', featured: false, type: 'basket', cat: 'Sports', controls: 'drag-aim-release' },
-  { id: 'archery-master',    name: 'ARCHERY MASTER',    icon: '🏹', color: '#4ADE80', desc: 'Drag-aim with wind — hit the bullseye', featured: false, type: 'archery', cat: 'Sports', controls: 'drag-aim-wind' },
+  { id: 'archery-master',    name: 'ARCHERY MASTER',    icon: '🏹', color: '#4ADE80', desc: 'Drag-aim with wind — hit the bullseye', featured: false, type: 'archery', cat: 'Skill', controls: 'drag-aim-wind' },
   { id: 'soccer-penalty',    name: 'PENALTY KICK',    icon: '⚽', color: '#22C55E', desc: 'Drag-aim & power the penalty kick', featured: false, type: 'soccer', cat: 'Sports', controls: 'drag-aim-power' },
   { id: 'athletics-sprint',    name: 'SPRINT KING',    icon: '🏃', color: '#F59E0B', desc: 'Tap-tap-tap to sprint, time the start', featured: false, type: 'sprint', cat: 'Sports', controls: 'rapid-tap' },
   { id: 'flow-free',    name: 'FLOW FREE',    icon: '🔗', color: '#22D3EE', desc: 'Connect matching dots, fill the grid', featured: false, type: 'flow', cat: 'Puzzle', controls: 'drag-path' },
@@ -524,6 +524,35 @@ function dayStartLabel(d) {
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   return days[new Date(d).getDay()];
 }
+function renderDiscovery() {
+  const rows = [
+    ['trendRow', [...GAMES].sort((a,b) => {
+      // pseudo-popularity: deterministic hash — feels live
+      let ha=0, hb=0;
+      for (let k=0;k<a.id.length;k++) ha=(ha*31+a.id.charCodeAt(k))>>>0;
+      for (let k=0;k<b.id.length;k++) hb=(hb*31+b.id.charCodeAt(k))>>>0;
+      return (hb%1000)-(ha%1000);
+    }).slice(0,10), '🔥'],
+    ['topRow', [...GAMES].sort((a,b) => {
+      const ra = (aa) => 4.0 + ((aa.id.length*7+a.a ? 0 : 0) % 10)/10;
+      let ha=0, hb=0;
+      for (let k=0;k<a.id.length;k++) ha=(ha*31+a.id.charCodeAt(k))>>>0;
+      for (let k=0;k<b.id.length;k++) hb=(hb*31+b.id.charCodeAt(k))>>>0;
+      return (ha%10)-(hb%10);
+    }).slice(0,10), '⭐'],
+    ['newRow', [...GAMES].slice(-10).reverse(), '🆕']
+  ];
+  rows.forEach(([rowId, list, mark]) => {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    row.innerHTML = list.map(g => `<div class="card game-card" style="cursor:pointer;position:relative;flex-shrink:0;width:118px;padding:10px" onclick="playGame('${g.id}')">
+      <button class="fav-btn" data-fav="${g.id}" onclick="toggleFavorite('${g.id}', event)" style="position:absolute;top:4px;left:4px;z-index:5;background:rgba(0,0,0,.5);border:none;border-radius:999px;width:22px;height:22px;font-size:11px;cursor:pointer;color:${isFav(g.id) ? 'var(--pink)' : '#888'};display:flex;align-items:center;justify-content:center">${isFav(g.id) ? '❤️' : '🤍'}</button>
+      <div style="height:64px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));overflow:hidden">${gameLogo(g.id)}</div>
+      <div style="font-size:10px;font-weight:700;margin-top:6px;text-align:center;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.name}</div>
+      <div style="font-size:9px;color:var(--sub);text-align:center;margin-top:2px">${mark} ${g.cat || ''}</div>
+    </div>`).join('');
+  });
+}
 function renderFavorites() {
   const favRow = document.getElementById('favGrid');
   if (!favRow) return;
@@ -594,6 +623,7 @@ function renderHome() {
     </div>`).join('');
   }
   renderGameGrid('');
+  renderDiscovery();
   renderFavorites();
   renderRecent();
 
@@ -1449,7 +1479,12 @@ function init() {
   // PWA offline support
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      navigator.serviceWorker.register('./sw.js').then(reg => {
+        // check for updates every page load — new SW activates quickly
+        reg.update();
+        // if a new SW is waiting, skip waiting so updates apply immediately
+        navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+      }).catch(() => {});
     });
   }
   // hide boot, show UI
@@ -1483,5 +1518,14 @@ function showVersionBadge() {
       // page title too
       if (d.games) document.title = document.title.replace(/\d+ Games/, d.games + ' Games');
     });
+    // AUTO-UPDATE: if server version differs from last seen, refresh once to pick up new code
+    fetch('version.json').then(r => r.json()).then(d => {
+      const last = localStorage.getItem('rh_version');
+      if (last && last !== d.version) {
+        localStorage.setItem('rh_version', d.version);
+        location.reload();
+      }
+      localStorage.setItem('rh_version', d.version);
+    }).catch(() => {});
   } catch (e) {}
 }

@@ -1,8 +1,9 @@
 /* RETRO ARCADE HUB — Service Worker for offline PWA support.
-   v6.7: cache-first for app shell, pre-cache ALL 66 game engines at install
+   v7.9.2: network-first app shell (updates propagate instantly),
+   pre-cache ALL 70 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.9.0';
+const CACHE = 'retro-arcade-hub-v7.9.2';
 const STATIC_CORE = [
   './',
   './index.html',
@@ -122,14 +123,16 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // App shell → cache-first (offline-first)
+  // App shell → network-first (so updates propagate instantly), fallback cached
   if (url.pathname.endsWith('/') || url.pathname.endsWith('index.html')) {
     e.respondWith(
-      caches.match(e.request).then((m) => m || fetch(e.request).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
-        return res;
-      }))
+      fetch(e.request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(e.request).then((m) => m || caches.match('./index.html')))
     );
     return;
   }
