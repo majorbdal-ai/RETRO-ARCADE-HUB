@@ -1,5 +1,5 @@
 {
-  "version": "7.13.1",
+  "version": "7.13.2",
   "games": 70,
   "build": "2026-09-10",
   "features": [
@@ -61,6 +61,10 @@
     "back-pause-exit",
     "portrait-canvas-cap",
     "small-screen-controls",
-    "safe-area-nav"
+    "safe-area-nav",
+    "perf-particle-cap",
+    "perf-fx-pause-game",
+    "perf-blur-off-game",
+    "registry-b10-checker"
   ]
 }

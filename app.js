@@ -1287,6 +1287,9 @@ function themeCanvasFx() {
 
 function themeBgLoop() {
   const ctx = themeBgCtx; if (!ctx) return;
+  if (typeof frame !== 'number') frame = 0; else frame++; // B6: frame counter for alternating glow
+  // B6 FIX [111,116]: pause background FX during gameplay to save FPS
+  if (document.body.classList.contains('game-active')) { themeBgRaf = requestAnimationFrame(themeBgLoop); return; }
   const c = document.getElementById('themeCanvas');
   const W = c.width, H = c.height;
   // fade last frame for trails (composite 'destination-out' or alpha fill)
@@ -1303,28 +1306,38 @@ function themeBgLoop() {
   else if (themeFx === 'gold') drawGoldDust(ctx, W, H, accent, accent2);
 
   // connecting web lines between near particles (neon web) + bloom dots
+  // B6 FIX [112]: cap connections per frame — avoids O(n²) blowup on large screens
   ctx.lineWidth = .6;
-  for (let i = 0; i < themeParticles.length; i++) {
+  let linesDrawn = 0;
+  const MAX_LINES = 60;
+  const glowFrame = (frame % 2 === 0); // alternate bloom glow frames (perf)
+  for (let i = 0; i < themeParticles.length && linesDrawn < MAX_LINES; i++) {
     const p = themeParticles[i];
     p.x += p.vx; p.y += p.vy; p.pulse += .02;
     if (p.x < -20) p.x = W + 20; if (p.x > W + 20) p.x = -20;
     if (p.y < -20) p.y = H + 20; if (p.y > H + 20) p.y = -20;
+    // only draw lines to the nearest few — skip far ones fast
     for (let j = i + 1; j < themeParticles.length; j++) {
       const q = themeParticles[j];
-      const d = Math.hypot(p.x - q.x, p.y - q.y);
+      const dx = p.x - q.x, dy = p.y - q.y;
+      if (dx > 130 || dy > 130 || dx < -130 || dy < -130) continue; // cheap reject
+      const d = Math.hypot(dx, dy);
       if (d < 130) {
         ctx.strokeStyle = (p.hue === 'accent' ? accent : accent2);
         ctx.globalAlpha = (1 - d / 130) * .18;
         ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+        if (++linesDrawn >= MAX_LINES) break;
       }
     }
     const col = p.hue === 'accent' ? accent : accent2;
-    // bloom glow (radial gradient)
-    ctx.globalAlpha = (.25 + .2 * Math.sin(p.pulse)) * .5;
-    const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 6);
-    glow.addColorStop(0, col); glow.addColorStop(1, 'transparent');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 6, 0, Math.PI * 2); ctx.fill();
+    // bloom glow (radial gradient) — every other frame saves AA cost
+    if (glowFrame) {
+      ctx.globalAlpha = (.25 + .2 * Math.sin(p.pulse)) * .5;
+      const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 6);
+      glow.addColorStop(0, col); glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 6, 0, Math.PI * 2); ctx.fill();
+    }
     // core dot
     ctx.globalAlpha = .4 + .3 * Math.sin(p.pulse);
     ctx.fillStyle = col;
