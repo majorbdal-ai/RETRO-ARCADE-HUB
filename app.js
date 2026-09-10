@@ -1,8 +1,13 @@
 /* ============================================================
-   RETRO ARCADE HUB — 15+ LEGENDS. 1 ARENA. WHO IS THE KING?
+   RETRO ARCADE HUB — 70 LEGENDARY GAMES. 1 ARENA. WHO IS THE KING?
    Website (browser) build — localStorage data layer (Supabase-ready later)
    ============================================================ */
 'use strict';
+
+// B3 FIX [088-090]: HTML escape — prevents XSS from username injection in innerHTML
+function escHTML(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 /* ==================== API LAYER (InfinityFree PHP backend) ==================== */
 const API_BASE = 'api/index.php'; // সাইটের api/ ফোল্ডারে — পাবলিক
@@ -116,20 +121,22 @@ async function refreshLeaderboard() {
   if (!r.ok || !r.rows) return;
   const me = auth.user || state.profile.username;
   const list = document.getElementById('boardList');
-  if (list) list.innerHTML = r.rows.slice(0, 12).map((b, i) => `
+  if (list) list.innerHTML = r.rows.slice(0, 12).map((b, i) => {
+    const safeUser = escHTML(b.username);
+    return `
     <div class="card rank-row ${b.username === me ? 'me' : ''}" style="margin-bottom:8px">
       <div class="rank-no">${i < 3 ? '<span class="crown">👑</span>' : '#' + (i + 1)}</div>
-      <div class="rank-avatar">${(b.username[0] || '?').toUpperCase()}</div>
-      <div class="rank-name">${b.username}${b.username === me ? ' <span style="color:var(--cyan);font-size:10px">(YOU)</span>' : ''}</div>
+      <div class="rank-avatar">${escHTML((b.username[0] || '?').toUpperCase())}</div>
+      <div class="rank-name">${safeUser}${b.username === me ? ' <span style="color:var(--cyan);font-size:10px">(YOU)</span>' : ''}</div>
       <div class="rank-score">${Number(b.score).toLocaleString()}</div>
-    </div>`).join('');
+    </div>`}).join('');
 }
 async function syncScore(gameId, score) {
   if (!auth.user) return;
   try { await api('save_score', { username: auth.user, game: gameId, score }); refreshLeaderboard(); } catch (e) {}
 }
 
-/* ==================== 20 GAMES ==================== */
+/* ==================== 70 GAMES ==================== */
 const GAMES = [
   { id: 'neon-racer',    name: 'NEON RACER',    icon: '🏎️', color: '#00FFFF', desc: 'Dodge traffic, collect coins, nitro boost', featured: true, type: 'racer', cat: 'Racing', controls: 'tilt-steer' },
   { id: 'cyber-shooter',    name: 'CYBER SHOOTER',    icon: '🚀', color: '#FF10F0', desc: 'Blast alien armadas, combo kills, 3 lives', featured: true, type: 'shooter', cat: 'Action', controls: 'joystick-auto' },
@@ -926,8 +933,17 @@ function renderShop(tab = 'skins') {
 }
 function buyItem(id, type, price) {
   if (state.inventory.includes(id)) { toast('Already owned'); return; }
-  if (state.coins < price) { toast('Not enough coins — play games!'); return; }
-  state.coins -= price;
+  // B3 FIX [063]: authoritatively resolve the price from SHOP_ITEMS — never trust the caller-supplied price
+  const realPrice = (() => {
+    for (const cat in SHOP_ITEMS) {
+      const it = SHOP_ITEMS[cat].find(x => x.id === id);
+      if (it) return it.price;
+    }
+    return null;
+  })();
+  const cost = (typeof realPrice === 'number') ? realPrice : (price || 0);
+  if (state.coins < cost) { toast('Not enough coins — play games!'); return; }
+  state.coins -= cost;
   state.inventory.push(id);
   saveState(); updateCoinDisplay(); renderShop();
   toast('Purchased! 🛒');
@@ -1003,9 +1019,9 @@ function renderBoard(range = 'weekly', gameId = null) {
   document.getElementById('boardList').innerHTML = list.slice(0, 12).map((b, i) => `
     <div class="card rank-row ${b.me ? 'me' : ''}" style="margin-bottom:8px">
       <div class="rank-no">${i < 3 ? '<span class="crown">👑</span>' : '#' + (i + 1)}</div>
-      <div class="rank-avatar">${b.avatar}</div>
-      <div class="rank-name">${b.name}${b.me ? ' <span style="color:var(--cyan);font-size:10px">(YOU)</span>' : ''}</div>
-      <div class="rank-score">${b.score.toLocaleString()}</div>
+      <div class="rank-avatar">${escHTML(b.avatar)}</div>
+      <div class="rank-name">${escHTML(b.name)}${b.me ? ' <span style="color:var(--cyan);font-size:10px">(YOU)</span>' : ''}</div>
+      <div class="rank-score">${Number(b.score).toLocaleString()}</div>
     </div>`).join('');
 }
 
@@ -1442,8 +1458,13 @@ function renderThemes() {
   applyTheme(state.equipped.theme, true);
 }
 function buyTheme(id, price) {
-  if (state.coins < price) { toast('Not enough coins'); return; }
-  state.coins -= price;
+  // B3 FIX [063]: authoritative price from THEMES + no duplicate purchase
+  if (state.inventory.includes('theme-' + id)) { toast('Already owned'); return; }
+  const t = THEMES.find(x => x.id === id);
+  const cost = t ? (t.price || 0) : (price || 0);
+  if (cost === 0) { toast('This theme is free'); return; }
+  if (state.coins < cost) { toast('Not enough coins'); return; }
+  state.coins -= cost;
   state.inventory.push('theme-' + id);
   state.equipped.theme = id;
   saveState(); updateCoinDisplay(); renderThemes(); renderShop();

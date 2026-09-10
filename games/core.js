@@ -103,31 +103,72 @@ const CTRL_BTN_LABELS = {
 // ---- per-game canvas touch binding (carrom / temple-run / snake-classic) ----
 // Game engines exposing pointerDown/pointerMove/pointerUp or swipe/onSwipe
 // get their touch events wired to the canvas automatically.
+// B1: canvas CSS → logical coordinate scaling + pointerId multi-touch tracking + touchcancel.
+function canvasScale() {
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return { sx: 1, sy: 1 };
+  const r = canvas.getBoundingClientRect();
+  return {
+    sx: (canvas.width && r.width) ? (canvas.width / r.width) : 1,
+    sy: (canvas.height && r.height) ? (canvas.height / r.height) : 1
+  };
+}
+function canvasXY(clientX, clientY) {
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return { x: clientX, y: clientY };
+  const r = canvas.getBoundingClientRect();
+  const { sx, sy } = canvasScale();
+  return { x: (clientX - r.left) * sx, y: (clientY - r.top) * sy };
+}
 function bindGameTouch(engine) {
   unbindGameTouch();
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return;
+  // track active pointers per pointerId (multi-touch safe)
+  const pointers = new Map();
+  const primaryXY = (e) => {
+    if (e.touches && e.touches.length) return canvasXY(e.touches[0].clientX, e.touches[0].clientY);
+    return canvasXY(e.clientX, e.clientY);
+  };
   // pointer-drag style (carrom)
   if (typeof engine.pointerDown === 'function') {
-    const down = (e) => { e.preventDefault(); const r = canvas.getBoundingClientRect(); engine.pointerDown(e.clientX - r.left, e.clientY - r.top); };
-    const move = (e) => { e.preventDefault(); const r = canvas.getBoundingClientRect(); engine.pointerMove(e.clientX - r.left, e.clientY - r.top); };
+    const down = (e) => { e.preventDefault(); const { x, y } = canvasXY(e.clientX, e.clientY); engine.pointerDown(x, y); };
+    const move = (e) => { e.preventDefault(); const { x, y } = canvasXY(e.clientX, e.clientY); engine.pointerMove(x, y); };
     const up = (e) => { e.preventDefault(); engine.pointerUp(); };
     canvas.addEventListener('touchstart', down, { passive: false });
     canvas.addEventListener('touchmove', move, { passive: false });
     canvas.addEventListener('touchend', up, { passive: false });
+    canvas.addEventListener('touchcancel', up, { passive: false });
     canvas.addEventListener('mousedown', down, { passive: false });
     canvas.addEventListener('mousemove', move, { passive: false });
     canvas.addEventListener('mouseup', up, { passive: false });
+    canvas.addEventListener('mouseleave', up, { passive: false });
     swipeBinding = { el: canvas, type: 'pointer', handlers: { down, move, up } };
     return;
   }
   // generic swipe fallback → touches (snake, light-cycle, 2048, invaders, pac-runner, etc.)
   if (typeof engine.swipe !== 'function' && typeof engine.onSwipe !== 'function' && typeof engine.pointerDown !== 'function') {
     let swipeDirTimer = null;
+    let activePointer = null;
     const clearDir = () => { gameState.touches.left = gameState.touches.right = gameState.touches.up = gameState.touches.down = false; };
     const start = (e) => {
       const t = e.touches ? e.touches[0] : e;
+      if (e.touches) activePointer = e.touches[0].identifier;
       canvasSwipe.startX = t.clientX; canvasSwipe.startY = t.clientY; canvasSwipe.started = true;
+      if (e.preventDefault) e.preventDefault();
+    };
+    const move = (e) => {
+      if (!canvasSwipe.started) return;
+      if (e.touches) {
+        const t = Array.from(e.touches).find(t2 => t2.identifier === activePointer) || e.touches[0];
+        const dx = t.clientX - canvasSwipe.startX;
+        const dy = t.clientY - canvasSwipe.startY;
+        clearDir();
+        if (Math.hypot(dx, dy) > 20) {
+          if (Math.abs(dx) > Math.abs(dy)) { gameState.touches.left = dx < 0; gameState.touches.right = dx > 0; }
+          else { gameState.touches.up = dy < 0; gameState.touches.down = dy > 0; }
+        }
+      }
       if (e.preventDefault) e.preventDefault();
     };
     const end = (e) => {
@@ -135,29 +176,45 @@ function bindGameTouch(engine) {
       const t = e.changedTouches ? e.changedTouches[0] : e;
       const dx = t.clientX - canvasSwipe.startX;
       const dy = t.clientY - canvasSwipe.startY;
-      canvasSwipe.started = false;
+      canvasSwipe.started = false; activePointer = null;
       if (Math.hypot(dx, dy) > 20) {
         clearDir();
         if (Math.abs(dx) > Math.abs(dy)) { gameState.touches.left = dx < 0; gameState.touches.right = dx > 0; }
         else { gameState.touches.up = dy < 0; gameState.touches.down = dy > 0; }
         clearTimeout(swipeDirTimer);
-        swipeDirTimer = setTimeout(clearDir, 300); // hold direction briefly so touch→key bridge fires
+        swipeDirTimer = setTimeout(clearDir, 180); // B1: 300→180ms — tighter, still bridges touch→key
       }
       if (e.preventDefault) e.preventDefault();
     };
     canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', move, { passive: false });
     canvas.addEventListener('touchend', end, { passive: false });
+    canvas.addEventListener('touchcancel', end, { passive: false });
     canvas.addEventListener('mousedown', start, { passive: false });
+    canvas.addEventListener('mousemove', move, { passive: false });
     canvas.addEventListener('mouseup', end, { passive: false });
-    swipeBinding = { el: canvas, type: 'swipe', handlers: { start, end } };
+    canvas.addEventListener('mouseleave', end, { passive: false });
+    swipeBinding = { el: canvas, type: 'swipe', handlers: { start, move, end } };
     return;
   }
   // swipe style (temple-run / snake-classic)
   if (typeof engine.swipe === 'function' || typeof engine.onSwipe === 'function') {
     const cb = typeof engine.swipe === 'function' ? engine.swipe : engine.onSwipe;
+    let activePointer = null;
     const start = (e) => {
       const t = e.touches ? e.touches[0] : e;
+      if (e.touches) activePointer = e.touches[0].identifier;
       canvasSwipe.startX = t.clientX; canvasSwipe.startY = t.clientY; canvasSwipe.started = true;
+      if (e.preventDefault) e.preventDefault();
+    };
+    const move = (e) => {
+      if (!canvasSwipe.started) return;
+      if (e.touches) {
+        const t = Array.from(e.touches).find(t2 => t2.identifier === activePointer) || e.touches[0];
+        const dx = t.clientX - canvasSwipe.startX;
+        const dy = t.clientY - canvasSwipe.startY;
+        if (Math.hypot(dx, dy) > 20) cb(dx, dy);
+      }
       if (e.preventDefault) e.preventDefault();
     };
     const end = (e) => {
@@ -165,15 +222,19 @@ function bindGameTouch(engine) {
       const t = e.changedTouches ? e.changedTouches[0] : e;
       const dx = t.clientX - canvasSwipe.startX;
       const dy = t.clientY - canvasSwipe.startY;
-      canvasSwipe.started = false;
+      canvasSwipe.started = false; activePointer = null;
       if (Math.hypot(dx, dy) > 20) cb(dx, dy);
       if (e.preventDefault) e.preventDefault();
     };
     canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', move, { passive: false });
     canvas.addEventListener('touchend', end, { passive: false });
+    canvas.addEventListener('touchcancel', end, { passive: false });
     canvas.addEventListener('mousedown', start, { passive: false });
+    canvas.addEventListener('mousemove', move, { passive: false });
     canvas.addEventListener('mouseup', end, { passive: false });
-    swipeBinding = { el: canvas, type: 'swipe', handlers: { start, end } };
+    canvas.addEventListener('mouseleave', end, { passive: false });
+    swipeBinding = { el: canvas, type: 'swipe', handlers: { start, move, end } };
     return;
   }
 }
@@ -184,14 +245,20 @@ function unbindGameTouch() {
       el.removeEventListener('touchstart', handlers.down);
       el.removeEventListener('touchmove', handlers.move);
       el.removeEventListener('touchend', handlers.up);
+      el.removeEventListener('touchcancel', handlers.up);
       el.removeEventListener('mousedown', handlers.down);
       el.removeEventListener('mousemove', handlers.move);
       el.removeEventListener('mouseup', handlers.up);
+      el.removeEventListener('mouseleave', handlers.up);
     } else {
       el.removeEventListener('touchstart', handlers.start);
+      el.removeEventListener('touchmove', handlers.move);
       el.removeEventListener('touchend', handlers.end);
+      el.removeEventListener('touchcancel', handlers.end);
       el.removeEventListener('mousedown', handlers.start);
+      el.removeEventListener('mousemove', handlers.move);
       el.removeEventListener('mouseup', handlers.end);
+      el.removeEventListener('mouseleave', handlers.end);
     }
     swipeBinding = null;
   }
@@ -366,6 +433,49 @@ function initWheel() {
     else if (d < -0.2) { gameState.touches.left = true; gameState.touches.right = false; startAngle = a; }
   });
   w.addEventListener('mouseup', () => { active = false; gameState.touches.left = gameState.touches.right = false; });
+}
+
+// B1 FIX [001,039-041]: deviceorientation tilt control — Neon Racer, Gyro games
+let tiltActive = false;
+let tiltCalibration = null; // null until first reading
+function initTilt() {
+  if (tiltActive) return;
+  // iOS 13+ requires explicit permission
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(state => {
+      if (state === 'granted') startTiltListening();
+    }).catch(() => {});
+  } else {
+    startTiltListening();
+  }
+}
+function startTiltListening() {
+  window.addEventListener('deviceorientation', onTilt, { passive: true });
+  tiltActive = true;
+}
+function onTilt(e) {
+  if (!gameState.id || gameState.paused || gameState.over) return;
+  // gamma: left/right tilt (-90 to 90), beta: front/back (-180 to 180)
+  const gamma = e.gamma || 0;
+  const beta = e.beta || 0;
+  // calibrate on first reading to neutral position
+  if (tiltCalibration === null) {
+    tiltCalibration = { gamma, beta };
+  }
+  const dGamma = gamma - (tiltCalibration.gamma || 0);
+  const dBeta = beta - (tiltCalibration.beta || 0);
+  const THRESHOLD = 8; // degrees dead zone
+  gameState.touches.left = dGamma < -THRESHOLD;
+  gameState.touches.right = dGamma > THRESHOLD;
+  gameState.touches.up = dBeta < -THRESHOLD;
+  gameState.touches.down = dBeta > THRESHOLD;
+}
+function stopTilt() {
+  if (tiltActive) {
+    window.removeEventListener('deviceorientation', onTilt);
+    tiltActive = false;
+    tiltCalibration = null;
+  }
 }
 
 function pressed(control, isDown, ev) {
@@ -837,8 +947,8 @@ function bootGame(id, engine) {
   const onOverCb = (score, coinsEarned) => endGame(score, coinsEarned);
   const onCoinCb = (n) => {
       gameState.coinsEarned += n;
-      state.coins += n;
-      saveState(); updateCoinDisplay();
+      // B1 FIX [042]: do NOT add to state.coins here — endGame adds once at game over.
+      updateCoinDisplay();
       document.getElementById('hudCoins').innerText = '0'; // updated at end
       // coin pop animation (roadmap 11)
       try {
@@ -870,6 +980,12 @@ function bootGame(id, engine) {
   const tcWrap = document.getElementById('touchControls');
   if (tcWrap) tcWrap.classList.add('show');
 
+  // B1 FIX [001,039-041]: start tilt listener for tilt/gyro control games
+  if (typeof CONTROL_LAYOUT !== 'undefined' && CONTROL_LAYOUT[id]) {
+    const cType = CONTROL_LAYOUT[id].type;
+    if (cType === 'tilt' || cType === 'gyro') { try { initTilt(); } catch(e) {} }
+  }
+
   // bind canvas touch (carrom/temple/snake-classic + all canvas-driven)
   bindGameTouch(currentGame);
 
@@ -899,6 +1015,7 @@ function bootGame(id, engine) {
 function endGame(score, coinsEarned) {
   gameState.over = true;
   gameState.running = false;
+  stopTilt(); // B1 [010]: clean up tilt on game over
   gameState.score = score;
   gameState.coinsEarned = coinsEarned || 0;
   if (currentGame) { try { currentGame.pause(); } catch (e) {} }
@@ -906,10 +1023,9 @@ function endGame(score, coinsEarned) {
   // gameFX: death particles + screen shake + red flash
   if (window.gameFX) { try { window.gameFX.deathFX(); } catch(e) {} }
 
-  // award coins
+  // award coins from gameplay pickups (collected via onCoinCb during play)
   if (coinsEarned > 0) {
     state.coins += coinsEarned;
-    saveState(); updateCoinDisplay();
   }
 
   // best score
@@ -924,7 +1040,6 @@ function endGame(score, coinsEarned) {
   // coins = score * 10% (spec)
   const scoreCoins = Math.floor(score * 0.1);
   state.coins += scoreCoins;
-  saveState(); updateCoinDisplay();
 
   // ==== PROGRESSION (v6.6) ====
   // XP: score/100 base + new-best bonus + game-completed bonus
@@ -1080,15 +1195,30 @@ function endGame(score, coinsEarned) {
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 // ---- restart ----
+// B1 FIX [014-015]: full cleanup before restart — no stale state/timers carry over
 function restartGame() {
   if (!gameState.id) return;
+  const id = gameState.id;
+  // full cleanup (same as exitToHub minus go('arcade'))
+  unbindGameTouch();
+  stopTilt();
+  lockGameScroll(false);
+  if (currentGame) { try { currentGame.destroy(); } catch (e) {} }
+  currentGame = null;
+  currentEngine = null;
+  gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  window.removeEventListener('keydown', keyDown);
+  window.removeEventListener('keyup', keyUp);
+  stopTouchKeySync();
   document.getElementById('gameOverOverlay').classList.remove('show');
-  launchGame(gameState.id);
+  // re-launch fresh
+  launchGame(id);
 }
 
 // ---- exit to hub ----
 function exitToHub() {
   unbindGameTouch();
+  stopTilt(); // B1 [010]: clean up tilt listener
   lockGameScroll(false);
   // restore the user's global theme when leaving a game (skin-by-game off)
   if (typeof window.applyTheme === 'function' && typeof window.globalTheme === 'string') {
@@ -1145,6 +1275,7 @@ window.addEventListener('orientationchange', () => { setTimeout(updateGameOrient
 window.addEventListener('resize', () => { if (gameState.id) updateGameOrientation(); }, { passive: true });
 
 // ---- pause / resume ----
+// B1 FIX [008-009]: clear all input state on pause, restore on resume
 function togglePause() {
   if (!gameState.id || gameState.over) return;
   if (gameState.paused) {
@@ -1153,6 +1284,9 @@ function togglePause() {
     if (currentGame) { try { currentGame.resume(); } catch (e) {} }
   } else {
     gameState.paused = true;
+    // clear all held inputs so game doesn't "stuck" on resume
+    gameState.touches = { up: false, down: false, left: false, right: false, action: false, boost: false, drift: false, gas: false, brake: false, power: false };
+    gameState.keys = {};
     document.getElementById('pauseOverlay').classList.add('show');
     if (currentGame) { try { currentGame.pause(); } catch (e) {} }
   }

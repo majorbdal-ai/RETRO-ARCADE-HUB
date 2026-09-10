@@ -3,7 +3,7 @@
    pre-cache ALL 70 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.12.0';
+const CACHE = 'retro-arcade-hub-v7.13.0';
 const STATIC_CORE = [
   './',
   './index.html',
@@ -13,6 +13,11 @@ const STATIC_CORE = [
   './assets/logos.js',
   './games/core.js',
   './games/controls.js'
+];
+// B5 FIX [099-102]: add font/icon CDN to cache for offline use
+const CDN_FONTS = [
+  'https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&family=Space+Grotesk:wght@400;500;700&family=Lato:wght@400;700;900&display=swap',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 // Pre-cache ALL game engines so the entire arcade is playable offline.
 const ENGINE_PRELOAD = [
@@ -92,7 +97,18 @@ self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE)
       .then((c) => c.addAll(STATIC_CORE))
-      .then(() => caches.open(CACHE + '-engines').then((c) => c.addAll(ENGINE_PRELOAD)))
+      // B5 FIX [105]: cache engines individually — one 404 won't kill entire install
+      .then(() => caches.open(CACHE + '-engines').then(async (c) => {
+        for (const url of ENGINE_PRELOAD) {
+          try { await c.add(url); } catch (e) { /* skip missing engine */ }
+        }
+      }))
+      // B5 FIX [099-102]: cache font CDN for offline
+      .then(() => caches.open(CACHE + '-fonts').then(async (c) => {
+        for (const url of CDN_FONTS) {
+          try { await c.add(url); } catch (e) { /* skip if offline */ }
+        }
+      }))
       .then(() => self.skipWaiting())
   );
 });
@@ -100,7 +116,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE && k !== CACHE + '-engines').map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== CACHE && k !== CACHE + '-engines' && k !== CACHE + '-fonts').map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
