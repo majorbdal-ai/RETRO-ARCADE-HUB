@@ -1,28 +1,28 @@
 {
-  "rot": 5,
-  "updated": "2026-09-09T20:21:12.341Z",
+  "rot": 6,
+  "updated": "2026-09-10T02:56:30.763Z",
   "featured": [
-    "bubble-shooter",
     "neon-dash",
     "sling-birds",
     "cricket-sixer",
     "neon-racer",
-    "cyber-shooter"
+    "cyber-shooter",
+    "pixel-dungeon"
   ],
   "deal": {
-    "item": "veh-phantom",
-    "name": "PHANTOM CYCLE",
-    "pct": 10
+    "item": "fx-fire",
+    "name": "FIRE TRAIL",
+    "pct": 15
   },
-  "challenge": "tetris-blitz",
+  "challenge": "flappy-neon",
   "botBoost": [
-    1.05,
-    1.28,
-    1.41,
-    1.64,
-    1.87,
-    1,
-    1.23,
-    1.46
+    1.22,
+    1.45,
+    1.68,
+    1.81,
+    1.04,
+    1.27,
+    1.4,
+    1.63
   ]
 }
