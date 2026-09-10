@@ -12,7 +12,9 @@ const STATIC_CORE = [
   './manifest.webmanifest',
   './assets/logos.js',
   './games/core.js',
-  './games/controls.js'
+  './games/controls.js',
+  './robots.txt',
+  './sitemap.xml'
 ];
 // B5 FIX [099-102]: add font/icon CDN to cache for offline use
 const CDN_FONTS = [

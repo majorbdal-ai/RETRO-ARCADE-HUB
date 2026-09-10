@@ -20,6 +20,23 @@
 <meta name="twitter:title" content="RETRO ARCADE HUB — 70 Free Games">
 <meta name="twitter:description" content="Play 70 free retro arcade games on your phone.">
 <meta name="twitter:image" content="https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/assets/og-cover.svg">
+<!-- B7 SEO: canonical + JSON-LD structured data -->
+<link rel="canonical" href="https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "RETRO ARCADE HUB",
+  "url": "https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/",
+  "description": "Play 70 free retro arcade games on your phone. Snake, Tetris, Flappy Bird, and more classic games with neon theme.",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any (Web)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "genre": ["Arcade", "Retro", "Classic"],
+  "numberOfPlayers": "1",
+  "screenshot": "https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/assets/og-cover.svg"
+}
+</script>
 <!-- PWA manifest -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
@@ -89,7 +106,7 @@
   100% { transform: translateY(-42px) scale(1); opacity: 0; }
 }
 /* Smooth theme cross-fade on everything color-related */
-body,*{transition:background-color var(--theme-transition) ease,border-color var(--theme-transition) ease,box-shadow var(--theme-transition) ease,color var(--theme-transition) ease}
+body,.page,.cat-tab,.game-card,.nav-btn,.top-btn,.deal-banner,.deal-banner *{transition:background-color var(--theme-transition) ease,border-color var(--theme-transition) ease,box-shadow var(--theme-transition) ease,color var(--theme-transition) ease}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
 body{
