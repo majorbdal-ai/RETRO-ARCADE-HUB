@@ -70,6 +70,17 @@ if (sw) {
 } else {
   errs.push('sw.js missing'); fail = true;
 }
+// B10: every game id must have a GAME_TARGETS entry (stars/retry/mission consistency)
+const targetBlock = core.match(/const GAME_TARGETS\s*=\s*\{([\s\S]*?)\n\};/);
+if (!targetBlock) {
+  errs.push('GAME_TARGETS map missing in core.js'); fail = true;
+} else {
+  const targetIds = [...targetBlock[1].matchAll(/'([a-z0-9-]+)':/g)].map(m => m[1]);
+  const noTgt = ids.filter(i => !targetIds.includes(i));
+  if (noTgt.length) { errs.push('NO GAME_TARGET for: ' + noTgt.join(', ')); fail = true; }
+  const extraTgt = targetIds.filter(i => !ids.includes(i));
+  if (extraTgt.length) { errs.push('GAME_TARGET for unknown game: ' + extraTgt.join(', ')); fail = true; }
+}
 try {
   const vj = JSON.parse(fs.readFileSync(path.join(root, 'version.json'), 'utf8'));
   if (vj.games !== ids.length) {

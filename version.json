@@ -1,5 +1,5 @@
 {
-  "version": "7.14.0",
+  "version": "7.14.1",
   "games": 70,
   "build": "2026-09-10",
   "features": [
@@ -67,6 +67,8 @@
     "perf-blur-off-game",
     "registry-b10-checker",
     "b9-test-suite-security-input-cleanup-ci",
-    "coin-continue-revive"
+    "coin-continue-revive",
+    "targets-70-games",
+    "missions-22-games"
   ]
 }

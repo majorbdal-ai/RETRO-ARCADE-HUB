@@ -92,6 +92,29 @@ let currentEngine = null; // function
 let gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
 let reviveUsed = false;            // one coin-continue per session (arcade rule)
 let pendingReviveFloor = 0;        // score floor carried into the revived run
+// 70 games — per-game star/retry/mission targets (single source of truth)
+// 70 games — per-game star/retry/mission targets
+// 1★ = play & score something · 2★ = 60% · 3★ = beat target (realistic per-game goals)
+const GAME_TARGETS = {
+  'neon-racer': 800, 'cyber-shooter': 150, 'pixel-dungeon': 12, 'light-cycle': 600,
+  'neon-snake': 120, 'brick-breaker': 300, 'tetris-blitz': 12, 'flappy-neon': 50,
+  'pac-runner': 150, 'space-invaders': 40, 'tank-battle': 15, 'airstrike': 300,
+  'water-sort': 8, 'triple-sort': 25, 'fruit-slash': 40, 'fruit-merge': 32,
+  'bubble-shooter': 20, 'piano-tiles': 100, 'ludo-king': 1, 'carrom-pool': 5,
+  '2048': 512, 'hill-climb': 300, 'temple-run': 500, 'candy-crush': 60,
+  'snake-classic': 100, 'duck-hunt': 12, 'neon-dash': 100, 'color-switch': 30,
+  'neon-jumper': 150, 'stack-drop': 500, 'helix-drop': 200, 'traffic-racer': 700,
+  'dino-run': 300, 'sling-birds': 9, 'space-miner': 1000, 'neon-slam': 500,
+  'neon-tower': 1000, 'cosmic-dash': 80, 'lazer-maze': 6, 'time-rush': 60,
+  'pong': 15, 'table-tennis': 20, 'bowling-strike': 100, 'cricket-sixer': 100,
+  'hoop-dunk': 100, 'archery-master': 90, 'soccer-penalty': 15, 'athletics-sprint': 100,
+  'flow-free': 8, 'word-search': 6, 'memory-match': 8, 'mine-sweeper': 8,
+  'sudoku': 1, 'mastermind': 5, 'simon-says': 10, 'tic-tac-toe': 1,
+  'connect-four': 1, 'checkers': 10, 'slide-puzzle': 30, 'nonogram': 8,
+  'lucky-spin': 100, 'pinball': 7, 'crossy-neon': 25, 'trash-sorter': 12,
+  'ladder-climb': 300, 'math-dash': 10, 'bounce': 250, 'space-impact': 600,
+  'bantumi': 24, 'reversi': 2
+};
 // per-game touch/pointer binding (carrom, temple, snake-classic use canvas swipes)
 let canvasSwipe = { startX: 0, startY: 0, started: false };
 let swipeBinding = null; // { el, handlers } or null
@@ -1104,7 +1127,18 @@ function endGame(score, coinsEarned) {
       { id: 'ms-break60',   ico: '🧨', game: 'brick-breaker',  desc: 'Breakout: 60 pts',       target: 60,  reward: 55, prog: 0 },
       { id: 'ms-invaders20',ico: '👾', game: 'space-invaders', desc: 'Invaders: 20 kills',     target: 20,  reward: 60, prog: 0 },
       { id: 'ms-pac30',     ico: '👻', game: 'pac-runner',     desc: 'Pac: eat 30 dots',       target: 30,  reward: 60, prog: 0 },
-      { id: 'ms-neon100',   ico: '⚡', game: 'neon-dash',      desc: 'Neon Dash: 100 pts',     target: 100, reward: 55, prog: 0 }
+      // ==== EXPANDED COVERAGE v7.14 (every category has a score mission) ====
+      { id: 'ms-cycle600',  ico: '🏍️', game: 'light-cycle',    desc: 'Light Cycle: 600 travel', target: 600, reward: 65, prog: 0 },
+      { id: 'ms-helix200',  ico: '🌀', game: 'helix-drop',     desc: 'Helix: drop 200m',        target: 200, reward: 65, prog: 0 },
+      { id: 'ms-snake120',  ico: '🐍', game: 'neon-snake',     desc: 'Neon Snake: 120 pts',     target: 120, reward: 65, prog: 0 },
+      { id: 'ms-shooter150',ico: '🚀', game: 'cyber-shooter',  desc: 'Shooter: 150 pts',        target: 150, reward: 65, prog: 0 },
+      { id: 'ms-racer800',  ico: '🏎️', game: 'neon-racer',     desc: 'Racer: 800 pts',          target: 800, reward: 65, prog: 0 },
+      { id: 'ms-temple500', ico: '🗿', game: 'temple-run',     desc: 'Temple: run 500m',        target: 500, reward: 70, prog: 0 },
+      { id: 'ms-jumper150', ico: '🦘', game: 'neon-jumper',    desc: 'Jumper: 150 pts',         target: 150, reward: 65, prog: 0 },
+      { id: 'ms-switch30',  ico: '🎯', game: 'color-switch',   desc: 'Color Switch: 30',        target: 30,  reward: 60, prog: 0 },
+      { id: 'ms-crossy25',  ico: '🐔', game: 'crossy-neon',    desc: 'Crossy: 25 roads',        target: 25,  reward: 60, prog: 0 },
+      { id: 'ms-tetris12',  ico: '🧱', game: 'tetris-blitz',   desc: 'Tetris: 12 lines',        target: 12,  reward: 65, prog: 0 },
+      { id: 'ms-miner1000', ico: '🪨', game: 'space-miner',    desc: 'Miner: 1000 ore',         target: 1000,reward: 70, prog: 0 }
     ];
     shuffle(playPool); shuffle(scorePool);
     state.dailyQuest = { date: today, list: [playPool[0], scorePool[0], scorePool[1]], done: [] };
@@ -1161,8 +1195,7 @@ function endGame(score, coinsEarned) {
   }
   requestAnimationFrame(tick);
   // star rating: 1 star for beating score 0, 2 for 60% of target, 3 for beating target
-  const TGT = { 'flappy-neon':50,'neon-dash':100,'neon-jumper':100,'snake-classic':100,'dino-run':300,'temple-run':500,'traffic-racer':500,'helix-drop':200,'cyber-shooter':100,'space-invaders':20,'pac-runner':30,'brick-breaker':60,'pinball':7,'2048':512,'tetris-blitz':4,'space-miner':1000,'neon-slam':500 };
-  const t = TGT[gameState.id];
+  const t = GAME_TARGETS[gameState.id];
   const stars = finalScore <= 0 ? 0 : (!t ? (finalScore > 0 ? 1 : 0) : finalScore >= t ? 3 : finalScore >= t * 0.6 ? 2 : 1);
   const starEls = document.querySelectorAll('#overStars span');
   starEls.forEach((s, i) => {
@@ -1185,13 +1218,8 @@ function endGame(score, coinsEarned) {
   const nearEl = document.getElementById('overNearMiss');
   if (nearEl) {
     // Per-game "next milestone" targets (rounded, forgiving)
-    const TARGETS = {
-      'flappy-neon': 50, 'neon-dash': 100, 'neon-jumper': 100, 'snake-classic': 100,
-      'dino-run': 300, 'temple-run': 500, 'traffic-racer': 500, 'helix-drop': 200,
-      'cyber-shooter': 100, 'space-invaders': 20, 'pac-runner': 30, 'brick-breaker': 60,
-      'pinball': 7, '2048': 512, 'tetris-blitz': 4, 'space-miner': 1000, 'neon-slam': 500
-    };
-    const tgt = TARGETS[gameState.id];
+    const targets = GAME_TARGETS;
+    const tgt = targets[gameState.id];
     let msg = '';
     if (tgt && score < tgt) {
       const left = tgt - score;
@@ -1404,8 +1432,7 @@ function generateShareCard() {
   const level = (state.profile && state.profile.level) || 1;
 
   // Star rating (same logic as endGame)
-  const TGT = { 'flappy-neon':50,'neon-dash':100,'neon-jumper':100,'snake-classic':100,'dino-run':300,'temple-run':500,'traffic-racer':500,'helix-drop':200,'cyber-shooter':100,'space-invaders':20,'pac-runner':30,'brick-breaker':60,'pinball':7,'2048':512,'tetris-blitz':4,'space-miner':1000,'neon-slam':500 };
-  const t = TGT[gameState.id];
+  const t = GAME_TARGETS[gameState.id];
   const stars = score <= 0 ? 0 : (!t ? (score > 0 ? 1 : 0) : score >= t ? 3 : score >= t * 0.6 ? 2 : 1);
 
   const W = 600, H = 400;
@@ -1573,8 +1600,7 @@ function copyScoreText() {
   const game = GAMES.find(g => g.id === gameState.id) || {};
   const score = gameState.score || 0;
   const stars = '⭐'.repeat((() => {
-    const TGT = { 'flappy-neon':50,'neon-dash':100,'snake-classic':100,'dino-run':300 };
-    const t = TGT[gameState.id];
+    const t = GAME_TARGETS[gameState.id];
     return t ? (score >= t ? 3 : score >= t * 0.6 ? 2 : 1) : 1;
   })());
   const text = `🎮 ${game.name}: ${score.toLocaleString()} ${stars}\nRETRO ARCADE HUB — 70 free games!`;

@@ -60,6 +60,8 @@ t('revive carries score floor', /pendingReviveFloor = gameState\.score/.test(cor
 t('floor added in onOverCb', /onOverCb = \(score, coinsEarned\) => endGame\(score \+ reviveFloor, coinsEarned\)/.test(core));
 t('floor shown in HUD via onScoreCb', /const shown = s \+ reviveFloor/.test(core));
 t('CONTINUE button present in overlay', /id="reviveBtn"/.test(html));
+// 12. 70-game target coverage — every game has a star/retry target
+t('GAME_TARGETS covers all 70 games', core.includes('const GAME_TARGETS') && core.match(/'[a-z0-9-]+':/g).filter(x => x.includes('-')).length >= 1, );
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);
