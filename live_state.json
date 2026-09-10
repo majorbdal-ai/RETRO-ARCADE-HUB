@@ -1,28 +1,28 @@
 {
-  "rot": 8,
-  "updated": "2026-09-10T15:46:36.481Z",
+  "rot": 9,
+  "updated": "2026-09-10T20:23:12.319Z",
   "featured": [
-    "cricket-sixer",
     "neon-racer",
     "cyber-shooter",
     "pixel-dungeon",
     "light-cycle",
-    "tank-battle"
+    "tank-battle",
+    "bubble-shooter"
   ],
   "deal": {
-    "item": "fx-stars",
-    "name": "STARBURST",
-    "pct": 25
+    "item": "boost-2x",
+    "name": "2X SCORE",
+    "pct": 30
   },
-  "challenge": "space-invaders",
+  "challenge": "fruit-slash",
   "botBoost": [
-    1.66,
-    1.89,
-    1.02,
-    1.25,
-    1.48,
-    1.61,
-    1.84,
-    1.07
+    1.83,
+    1.06,
+    1.29,
+    1.42,
+    1.65,
+    1.88,
+    1.01,
+    1.24
   ]
 }
