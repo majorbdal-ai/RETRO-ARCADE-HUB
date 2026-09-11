@@ -347,7 +347,16 @@ const SFX = {
   hit()    { sfxTone(180, 0.12, 'sawtooth', 0.05, 90); },
   over()   { sfxTone(392, 0.18, 'sawtooth', 0.05, 130); setTimeout(() => sfxTone(196, 0.28, 'sawtooth', 0.05, 60), 160); },
   launch() { sfxTone(440, 0.1, 'square', 0.045, 880); },
-  win()    { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => sfxTone(f, 0.12, 'square', 0.045), i * 90)); }
+  win()    { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => sfxTone(f, 0.12, 'square', 0.045), i * 90)); },
+  // v7.15.1 signature sounds
+  flap()   { sfxTone(640, 0.07, 'square', 0.04, 320); },
+  shoot()  { sfxTone(880, 0.05, 'sawtooth', 0.03, 220); setTimeout(() => sfxTone(440, 0.08, 'sawtooth', 0.03, 110), 60); },
+  boost()  { sfxTone(140, 0.35, 'sawtooth', 0.04, 880); },
+  win2()   { [784, 988, 1175, 1568].forEach((f, i) => setTimeout(() => sfxTone(f, 0.14, 'triangle', 0.05), i * 100)); },
+  continue(){ [392, 523, 659].forEach((f, i) => setTimeout(() => sfxTone(f, 0.15, 'square', 0.05), i * 110)); },
+  error()  { sfxTone(200, 0.2, 'sawtooth', 0.04, 90); },
+  move()   { sfxTone(420, 0.04, 'square', 0.02); },
+  slide()  { sfxTone(300, 0.12, 'sawtooth', 0.03, 150); }
 };
 window.playSfx = (n) => { if (muted) return; try { SFX[n] && SFX[n](); } catch (e) {} };
 
