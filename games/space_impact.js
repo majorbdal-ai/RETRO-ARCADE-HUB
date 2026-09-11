@@ -5,6 +5,7 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
   // ── Constants ──
   const PLAYER_SPEED = 280;
 let diffMul = 1;  // v7.20 difficulty ramp
+  let raf = null, lastT = 0, running = false;
   const BULLET_SPEED = 520;
   const ENEMY_BULLET_SPEED = 220;
   const SHOOT_COOLDOWN = 0.18;
@@ -456,6 +457,18 @@ let diffMul = 1;  // v7.20 difficulty ramp
   function start() {
     initStars();
     resetGame();
+    running = true;
+    lastT = performance.now();
+    if (raf) cancelAnimationFrame(raf);
+    const loop = (ts) => {
+      if (!running) return;
+      const dt = Math.min(0.05, (ts - lastT) / 1000 || 0.016);
+      lastT = ts;
+      update(dt);
+      draw();
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
   }
 
   function update(dt) {
@@ -788,7 +801,10 @@ let diffMul = 1;  // v7.20 difficulty ramp
   }
 
   // ── Public API ──
-  return { start, update, draw, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; } };
+    function pauseGame() { paused = true; }
+  function resumeGame() { paused = false; if (raf) { cancelAnimationFrame(raf); } lastT = performance.now(); if (running) { raf = requestAnimationFrame(function loop(ts){ if(!running) return; const dt = Math.min(0.05,(ts-lastT)/1000||0.016); lastT = ts; update(dt); draw(); raf = requestAnimationFrame(loop); }); } }
+  function destroyGame() { running = false; if (raf) { cancelAnimationFrame(raf); raf = null; } }
+  return { start, update, draw, pause: pauseGame, resume: resumeGame, destroy: destroyGame, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; } };
 };
 
 // core.js compatibility: expose as window.spaceImpact
