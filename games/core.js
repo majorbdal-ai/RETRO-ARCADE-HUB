@@ -770,7 +770,6 @@ function initJoystick(elId, knobId, axis) {
   });
 }
 
-
 // ---- touch → keyboard bridge ----
 // Many engines read gameState.keys (keyboard codes). On mobile we translate
 // on-screen touches/swipes into key states so EVERY game gets touch controls.
@@ -1087,6 +1086,9 @@ function endGame(score, coinsEarned) {
   gameState.running = false;
   clearInterval(window._diffTimer);   // stop difficulty ramp on game end
   stopTilt(); // B1 [010]: clean up tilt on game over
+  // [P1 fix] sanitize score — NaN/Infinity/negative/string must never reach storage [046-050]
+  score = Math.max(0, Math.floor(Number(score) || 0));
+  coinsEarned = Math.max(0, Math.floor(Number(coinsEarned) || 0));
   gameState.score = score;
   gameState.coinsEarned = coinsEarned || 0;
   if (currentGame) { try { currentGame.pause(); } catch (e) {} }
@@ -1544,14 +1546,7 @@ window.setHUDLives = (n) => {
     el.style.display = 'none';
   }
 };
-function toggleFullscreen() {
-  if (document.fullscreenElement) {
-    if (document.exitFullscreen) document.exitFullscreen();
-  } else {
-    const el = document.getElementById('gameCanvasWrap') || document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen();
-  }
-}
+
 // ---- auto-pause when call / backgrounded (mobile) ----
 function onVisibilityChange() {
   if (document.hidden && gameState.id && !gameState.paused && !gameState.over) {

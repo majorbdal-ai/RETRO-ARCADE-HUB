@@ -1,7 +1,7 @@
 {
-  "version": "7.21.0",
+  "version": "7.22.0",
   "games": 70,
-  "build": "2026-09-11",
+  "build": "2026-09-12",
   "features": [
     "themes",
     "animation",

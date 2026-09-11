@@ -4,6 +4,7 @@ window.engines.reversi = function(canvas, ctx, onScore, onGameOver, onCoins) {
 
   // ── Constants ──
   const W = 800, H = 450;
+  let apiListeners = []; // listener refs for destroy cleanup [P1 fix]
 let diffMul = 1;  // v7.20 difficulty ramp
   const ROWS = 8, COLS = 8;
   const CELL = 45;
@@ -959,6 +960,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
     running = false;
     paused = true;
     if (raf) { cancelAnimationFrame(raf); raf = null; }
+    for (const l of apiListeners) { try { l.el.removeEventListener(l.ev, l.fn); } catch (e) {} }
+    apiListeners = [];
   }
 
   // ── Canvas Interaction ──
@@ -1011,12 +1014,15 @@ let diffMul = 1;  // v7.20 difficulty ramp
   }
 
   // Bind events
+  function onCanvasLeave() { hoverCell = null; }
   canvas.addEventListener('click', onCanvasClick);
   canvas.addEventListener('mousemove', onCanvasMove);
-  canvas.addEventListener('mouseleave', () => { hoverCell = null; });
+  canvas.addEventListener('mouseleave', onCanvasLeave);
   canvas.addEventListener('touchstart', onCanvasTouchStart, { passive: false });
   canvas.addEventListener('touchmove', onCanvasTouchMove, { passive: false });
   canvas.addEventListener('touchend', onCanvasTouchEnd);
+  // keep refs for destroy cleanup [P1 fix — listener leak on restart]
+  apiListeners = [{ el: canvas, ev: 'click', fn: onCanvasClick }, { el: canvas, ev: 'mousemove', fn: onCanvasMove }, { el: canvas, ev: 'mouseleave', fn: onCanvasLeave }, { el: canvas, ev: 'touchstart', fn: onCanvasTouchStart }, { el: canvas, ev: 'touchmove', fn: onCanvasTouchMove }, { el: canvas, ev: 'touchend', fn: onCanvasTouchEnd }];
 
   // Auto-start the loop
   running = true;

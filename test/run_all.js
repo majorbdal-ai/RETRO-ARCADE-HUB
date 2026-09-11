@@ -29,12 +29,33 @@ while ((m = re.exec(core))) {
   const fp = path.join(G, f);
   if (fs.existsSync(fp) && fs.readFileSync(fp,'utf8').includes('function '+fn+'(')) map[f.slice(0,-3)] = fn;
 }
+
+// New-format engines define window.engines.<name> instead of top-level function —
+// test them via their alias too [master: full 70/70 coverage]
+const aliasEngines = ['bounce','space_impact','bantumi','reversi'];
+for (const a of aliasEngines) {
+  const fp = path.join(G, a + '.js');
+  try { map[a] = 'window.engines.' + a; } catch(e) {}
+}
 const results = [];
+const legacyNames = ['bounce','space_impact','bantumi'];
 for (const [file, fn] of Object.entries(map)) {
   try {
     const code = fs.readFileSync(path.join(G, file + '.js'),'utf8');
     const run = new Function('canvas','ctx','onScore','onGameOver','onCoins','window', code + '; return ' + fn + ';');
     const engineFn = run(canvas, makeCtx(), ()=>{}, ()=>{}, ()=>{}, {});
+    if (legacyNames.includes(file)) {
+      // old-style 6-arg engine: (canvas, ctx, W, H, input, state) — returns API directly
+      const legacyInput = { pressed: (k)=>false, down: (k)=>false, keys: {} };
+      const stateStub = { score: 0, coins: 0 };
+      const eng = engineFn(canvas, makeCtx(), 800, 450, legacyInput, stateStub);
+      eng.setInput = eng.setInput || (()=>{});
+      eng.start();
+      for (let i=0;i<15;i++){ const cbs=Object.values(rafCbs); rafCbs={}; cbs.forEach(cb=>cb(performance.now())); }
+      eng.pause(); eng.resume && eng.resume(); eng.destroy();
+      results.push('PASS ' + file + ' (legacy)');
+      continue;
+    }
     const eng = engineFn(canvas, makeCtx(), ()=>{}, ()=>{}, ()=>{});
     eng.start();
     for (let i=0;i<25;i++){ const cbs=Object.values(rafCbs); rafCbs={}; cbs.forEach(cb=>cb(performance.now())); }

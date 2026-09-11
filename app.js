@@ -53,6 +53,23 @@ let state = {
   recentlyPlayed: store.get('rh_recently', []),
   combo: store.get('rh_combo', { count: 0, lastTime: 0, bestSession: 0 })
 };
+// [P1 hardening] normalize critical numerics on boot — never let poisoned storage reach UI [140-153]
+if (typeof state.coins !== 'number' || !isFinite(state.coins) || state.coins < 0) state.coins = 0;
+if (typeof state.profile.xp !== 'number' || !isFinite(state.profile.xp) || state.profile.xp < 0) state.profile.xp = 0;
+if (typeof state.profile.level !== 'number' || !isFinite(state.profile.level)) state.profile.level = 1;
+if (!state.profile.username || typeof state.profile.username !== 'string') state.profile.username = 'BIMAN_USER_92';
+if (state.scores && typeof state.scores === 'object') {
+  for (const k in state.scores) {
+    const v = state.scores[k];
+    if (typeof v !== 'number' || !isFinite(v) || v < 0) delete state.scores[k];
+  }
+}
+if (state.best && typeof state.best === 'object') {
+  for (const k in state.best) {
+    const v = state.best[k];
+    if (typeof v !== 'number' || !isFinite(v) || v < 0) delete state.best[k];
+  }
+}
 
 function saveState() {
   store.set(K.coins, state.coins);
@@ -120,15 +137,25 @@ async function authSubmit() {
 }
 async function refreshLeaderboard() {
   const r = await api('leaderboard');
-  if (!r.ok || !r.rows) return;
   const me = auth.user || state.profile.username;
   const list = document.getElementById('boardList');
-  if (list) list.innerHTML = r.rows.slice(0, 12).map((b, i) => {
-    const safeUser = escHTML(b.username);
+  // [P0 fix] API unavailable on GitHub Pages (no PHP) → use local scores from rah_scores
+  let rows = (r && r.ok && Array.isArray(r.rows)) ? r.rows : [];
+  if (!rows.length && state.scores) {
+    rows = Object.entries(state.scores)
+      .filter(([, sc]) => typeof sc === 'number' && isFinite(sc) && sc > 0)
+      .map(([gid, sc]) => ({ username: me, game: gid, score: sc }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 12);
+  }
+  if (!list) return;
+  if (!rows.length) { list.innerHTML = '<div style="padding:14px;text-align:center;color:var(--dim,#888)">🏆 Play games to set scores — leaderboard fills locally!</div>'; return; }
+  list.innerHTML = rows.map((b, i) => {
+    const safeUser = escHTML(String(b.username || '?').slice(0, 16));
     return `
     <div class="card rank-row ${b.username === me ? 'me' : ''}" style="margin-bottom:8px">
       <div class="rank-no">${i < 3 ? '<span class="crown">👑</span>' : '#' + (i + 1)}</div>
-      <div class="rank-avatar">${escHTML((b.username[0] || '?').toUpperCase())}</div>
+      <div class="rank-avatar">${escHTML((String(b.username || '?')[0] || '?').toUpperCase())}</div>
       <div class="rank-name">${safeUser}${b.username === me ? ' <span style="color:var(--cyan);font-size:10px">(YOU)</span>' : ''}</div>
       <div class="rank-score">${Number(b.score).toLocaleString()}</div>
     </div>`}).join('');
@@ -613,11 +640,8 @@ function renderDiscovery() {
       return (hb%1000)-(ha%1000);
     }).slice(0,10), '🔥'],
     ['topRow', [...GAMES].sort((a,b) => {
-      const ra = (aa) => 4.0 + ((aa.id.length*7+a.a ? 0 : 0) % 10)/10;
-      let ha=0, hb=0;
-      for (let k=0;k<a.id.length;k++) ha=(ha*31+a.id.charCodeAt(k))>>>0;
-      for (let k=0;k<b.id.length;k++) hb=(hb*31+b.id.charCodeAt(k))>>>0;
-      return (ha%10)-(hb%10);
+      const rate = (g) => { let h = 0; for (const ch of g.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return 4.0 + (h % 10) / 10; };
+      return rate(b) - rate(a);
     }).slice(0,10), '⭐'],
     ['newRow', [...GAMES].slice(-10).reverse(), '🆕']
   ];
@@ -1768,7 +1792,8 @@ function initErrorHandler() {
       const el = document.getElementById('errorScreen');
       const msg = document.getElementById('errorMsg');
       if (el && msg) {
-        msg.textContent = (e.message || 'Unknown error') + (e.filename ? ' in ' + e.filename.split('/').pop() : '');
+        // [P2 384] never surface raw error strings on screen — generic friendly message only
+        msg.textContent = 'The app hit a snag while starting. Tap RELOAD to try again — your progress is safe.';
         el.classList.add('show');
       }
     }
