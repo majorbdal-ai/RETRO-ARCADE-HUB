@@ -1,5 +1,5 @@
 {
-  "version": "7.16.1",
+  "version": "7.16.2",
   "games": 70,
   "build": "2026-09-11",
   "features": [
@@ -79,6 +79,9 @@
     "simon-hold-pads",
     "sfx-15-keys-unified",
     "pause-inside-ui",
-    "nokia-trio-sfx"
+    "nokia-trio-sfx",
+    "friends-board-deterministic",
+    "delete-account-complete",
+    "strict-mode-frame-fix"
   ]
 }

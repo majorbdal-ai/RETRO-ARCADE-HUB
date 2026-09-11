@@ -427,9 +427,15 @@ function confirmDelete() {
   if (v.toUpperCase() !== 'DELETE') { toast('Type DELETE to confirm'); return; }
   Object.values(K).forEach(k => localStorage.removeItem(k));
   state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, lastPlay: 0, streak: 0, streakClaimed: {}, favorites: [], recentlyPlayed: [], combo: { count: 0, lastTime: 0, bestSession: 0 } };
+  saveState();   // persist the reset (B3: state actually resets everywhere)
+  applyTheme((state.equipped && state.equipped.theme) || 'neon');
   closeDeleteModal();
   toast('Account deleted');
   go('home'); updateCoinDisplay();
+  if (typeof renderProfile === 'function') renderProfile();
+  if (typeof renderArcadeGrid === 'function') renderArcadeGrid();
+  // server-side delete (if backend ever connected) — best-effort
+  if (auth && auth.user) { try { api('delete_account', { username: auth.user }).then(() => {}); } catch (e) {} auth.user = null; }
 }
 /* ==================== RENDER: HOME ==================== */
 function isFav(id) { return (state.favorites || []).includes(id); }
@@ -976,7 +982,7 @@ function renderBoard(range = 'weekly', gameId = null) {
   const myName = state.profile.username;
   // live-rotated bot scores (deterministic per rot; falls back to 1.0)
   const boost = liveBotBoost() || [1,1,1,1,1,1,1,1];
-  let list = BOTS.map((b, i) => ({ ...b, score: Math.round(b.score * (boost[i] || 1)), me: false }));
+  let list = BOTS.map((b, i) => ({ ...b, score: Math.round(b.score * (boost[i] || 1)), me: false, bot: true }));
   // game-wise: show per-game best scores
   const gameSel = document.getElementById('boardGameSelect');
   if (range === 'game') {
@@ -993,7 +999,8 @@ function renderBoard(range = 'weekly', gameId = null) {
       list = BOTS.map((b, i) => ({
         ...b,
         score: Math.round((state.best[gameId] || 0) * (0.3 + (boost[i] || 1) * 0.5)),
-        me: false
+        me: false,
+        bot: true
       }));
       list.push({ name: myName, score: state.best[gameId] || 0, avatar: state.profile.avatar, me: true });
       list.sort((a, b) => b.score - a.score);
@@ -1006,7 +1013,7 @@ function renderBoard(range = 'weekly', gameId = null) {
     if (gameSel) gameSel.style.display = 'none';
     list.push({ name: myName, score: Math.max(myBest, 100), avatar: state.profile.avatar, me: true });
     if (range === 'alltime') list.forEach(b => b.score = Math.round(b.score * 1.7));
-    else if (range === 'friends') list = list.filter(b => b.me || Math.random() < 0.4);
+    else if (range === 'friends') list = list.filter(b => b.me || b.bot || b.friend); // no random exclude — show all friends/bots
     list.sort((a, b) => b.score - a.score);
   }
   const myRank = list.findIndex(b => b.me) + 1;
@@ -1262,7 +1269,7 @@ function cycleTheme() {
 }
 
 /* Dynamic particle / neon-arc background canvas — theme-aware (v6.4: bloom, trails, themed FX) */
-let themeBgCtx = null, themeBgRaf = null, themeParticles = [], themeShooting = [], themeTrail = [];
+let themeBgCtx = null, themeBgRaf = null, themeParticles = [], themeShooting = [], themeTrail = [], frame = 0; // B6: frame counter (declared — strict-mode safe)
 let themeFx = 'web';  // 'web' | 'matrix' | 'stars' | 'sunset' | 'gold'
 function initThemeCanvas() {
   const c = document.getElementById('themeCanvas');
