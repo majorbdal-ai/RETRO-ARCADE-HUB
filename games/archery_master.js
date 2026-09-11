@@ -106,7 +106,8 @@ function archeryMaster(canvas, ctx, onScore, onGameOver, onCoins) {
             arrow = null;
           } else if (arrowsLeft <= 0) {
             over = true;
-            onGameOver(score, coins);
+            if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
             if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
           }
         }, 1000);

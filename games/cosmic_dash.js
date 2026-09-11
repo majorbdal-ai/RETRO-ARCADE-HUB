@@ -51,7 +51,8 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
     callScore();
-    if (typeof onGameOver === 'function') onGameOver(score, coins);
+    if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
   }
 
   function spawnObstacle() {

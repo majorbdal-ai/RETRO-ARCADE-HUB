@@ -4,6 +4,7 @@ window.engines.reversi = function(canvas, ctx, onScore, onGameOver, onCoins) {
 
   // ── Constants ──
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   const ROWS = 8, COLS = 8;
   const CELL = 45;
   const BOARD_W = COLS * CELL;  // 360
@@ -272,7 +273,7 @@ window.engines.reversi = function(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function scheduleAITurn() {
     phase = 'aiThink';
-    aiThinkTimer = 0.5;  // 0.5s delay
+    aiThinkTimer = 0.5 / diffMul;  // 0.5s delay
   }
 
   function doAITurn() {
@@ -342,6 +343,9 @@ window.engines.reversi = function(canvas, ctx, onScore, onGameOver, onCoins) {
     }
 
     onScore(`${d.player} - ${d.ai}`);
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, gameOverResult === 'win' ? '#ffd700' : '#ff4444', 22); } catch(e){} gameFX.shake(gameOverResult === 'win' ? 3 : 5); }
+    if (coins > 0) { onCoins(coins); coins = 0; }
+    if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
 
   function handlePlayerMove(r, c) {
@@ -1022,7 +1026,7 @@ window.engines.reversi = function(canvas, ctx, onScore, onGameOver, onCoins) {
   // Start with title screen
   start();
 
-  return { start, pause, resume, destroy, setInput };
+  return { start, pause, resume, destroy, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput };
 };
 
 // core.js compatibility: expose as window.reversi

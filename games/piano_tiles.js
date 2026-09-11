@@ -1,5 +1,6 @@
 function pianoTiles(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false, over = false, overSent = false;
   let score = 0, coins = 0, keys = {}, touches = {};
   let tiles = [], tileSpeed = 200, spawnTimer = 0, spawnInterval = 1.2;
@@ -91,7 +92,7 @@ function pianoTiles(canvas, ctx, onScore, onGameOver, onCoins) {
       missFlash = 0;
       // Difficulty ramp
       const lv = levelOf();
-      tileSpeed = Math.min(520, 200 + score * 6 + (lv - 1) * 40);
+      tileSpeed = Math.min(520, (200 + score * 6 + (lv - 1) * 40) * diffMul);
       spawnInterval = Math.max(0.24, 1.2 - score * 0.022 - (lv - 1) * 0.04);
       // Level-up celebration
       if (score > 0 && score % 10 === 0) {
@@ -136,7 +137,8 @@ function pianoTiles(canvas, ctx, onScore, onGameOver, onCoins) {
           vibrate([80, 40, 120]);
           shakeT = 0.28;
           if (typeof onScore === 'function') onScore(score);
-          if (typeof onGameOver === 'function') onGameOver(score, coins);
+          if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
         }
       }
     }
@@ -327,6 +329,7 @@ function pianoTiles(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
-    setInput: function(t, k) { touches = t || {}; keys = k || {}; }
+    setInput: function(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };
 }

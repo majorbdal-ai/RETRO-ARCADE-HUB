@@ -4,6 +4,7 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
 
   // ── Constants ──
   const PLAYER_SPEED = 280;
+let diffMul = 1;  // v7.20 difficulty ramp
   const BULLET_SPEED = 520;
   const ENEMY_BULLET_SPEED = 220;
   const SHOOT_COOLDOWN = 0.18;
@@ -497,6 +498,7 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
       waveDelay -= dt;
       if (waveDelay <= 0) {
         lives--;
+        if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
         if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
         if (lives <= 0) {
           phase = 'gameOver';
@@ -553,7 +555,7 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
           y: player.y + player.h / 2 - 1.5,
           w: 10, h: 3
         });
-        shootTimer = SHOOT_COOLDOWN;
+        shootTimer = SHOOT_COOLDOWN / diffMul;
         // every other shot: compact laser blip (anti-spam, low gain)
         if (typeof window.sfxTone === 'function' && Math.floor(performance.now() / 360) % 2 === 0) {
           try { window.sfxTone(880 + Math.random() * 120, 0.05, 'square', 0.045); } catch (e) {}
@@ -786,7 +788,7 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
   }
 
   // ── Public API ──
-  return { start, update, draw };
+  return { start, update, draw, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; } };
 };
 
 // core.js compatibility: expose as window.spaceImpact

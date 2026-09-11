@@ -1,5 +1,6 @@
 function athleticsSprint(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   const RACE = 100;
   let raf = null, last = 0, running = false, over = false, overSent = false;
   let score = 0, coins = 0, keys = {}, touches = {};
@@ -32,7 +33,8 @@ function athleticsSprint(canvas, ctx, onScore, onGameOver, onCoins) {
     score = sc;
     callScore();
     callCoins();
-    if (typeof onGameOver === 'function') onGameOver(sc, c);
+    if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(sc, c);
   }
 
   function fmt(t) {
@@ -83,7 +85,7 @@ function athleticsSprint(canvas, ctx, onScore, onGameOver, onCoins) {
       const fatigue = stamina <= 0 ? 1.8 : 1;
       power = Math.max(0, power - 40 * fatigue * dt);
       stamina = Math.max(0, stamina - 11 * dt);
-      speed = 2.5 + power * 0.085;
+      speed = (2.5 + power * 0.085) * diffMul;
       distance = distance + speed * dt;
       kmh = speed * 3.6;
       legPhase = legPhase + speed * dt * 1.3;
@@ -280,5 +282,5 @@ function athleticsSprint(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
 
-  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput };
+  return { start: start, pause: pause, resume: resume, destroy: destroy, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput: setInput };
 }

@@ -103,7 +103,8 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
           onScore(score);
           if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
           if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
-          if (passedCount >= rings.length) { levelClear(); return; }
+          if (passedCount >= rings.length) { if (typeof gameFX !== 'undefined') { try { var __r2 = canvas.getBoundingClientRect(); gameFX.burst(__r2.left + (W/2) * __r2.width / canvas.width, __r2.top + (H/2) * __r2.height / canvas.height, '#ffd700', 22); } catch(e){} gameFX.shake(2); }
+      levelClear(); return; }
         }
         continue;
       }
@@ -159,7 +160,8 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
     running = false;
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     cancelAnimationFrame(raf);
-    onGameOver(score, coins);
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
   }
 
   function draw() {

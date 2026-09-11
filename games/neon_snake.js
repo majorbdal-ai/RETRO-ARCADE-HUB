@@ -5,6 +5,7 @@
 function neonSnake(canvas, ctx, onScore, onGameOver, onCoins) {
   // ---- state ----
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false;
   let score = 0, coins = 0;
   let over = false, deathTimer = 0;
@@ -243,7 +244,7 @@ function neonSnake(canvas, ctx, onScore, onGameOver, onCoins) {
       }
 
       // speed up
-      speed = Math.max(0.05, speed - 0.003);
+      speed = Math.max(0.03, speed - 0.003) / diffMul;
       updateLevel();
       spawnFood();
     } else {
@@ -262,6 +263,7 @@ function neonSnake(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function die(headNow) {
     over = true;
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
     deathTimer = 0;
     running = false;
     shakeTimer = 0.4;
@@ -538,6 +540,7 @@ function neonSnake(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
-    controls: { joystick: false, boost: false, action: false, drift: false }
+    controls: { joystick: false, boost: false, action: false, drift: false },
+    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };
 }

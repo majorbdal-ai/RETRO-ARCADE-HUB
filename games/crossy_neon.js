@@ -60,7 +60,8 @@ function crossyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
     callScore();
     if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     if (navigator.vibrate) { try { navigator.vibrate(150); } catch (e) {} }
-    if (typeof onGameOver === 'function') onGameOver(score, coins);
+    if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
   }
 
   function movePlayer(dx, dy) {

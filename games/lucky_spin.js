@@ -1,6 +1,7 @@
 function luckySpin(canvas, ctx, onScore, onGameOver, onCoins){
   "use strict";
   var W=800,H=450,CX=560,CY=225,R=150;
+let diffMul = 1;  // v7.20 difficulty ramp
   var SEG=[
     {t:'+50',v:50,c:'#ff3b5c'},
     {t:'+100',v:100,c:'#ffb020'},
@@ -97,7 +98,7 @@ function luckySpin(canvas, ctx, onScore, onGameOver, onCoins){
     for(i=pops.length-1;i>=0;i--){q=pops[i];q.life-=dt;q.y-=30*dt;if(q.life<=0)pops.splice(i,1);}
     for(i=parts.length-1;i>=0;i--){
       q=parts[i];
-      q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=500*dt;q.life-=dt;
+      q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=500*diffMul*dt;q.life-=dt;
       if(q.life<=0)parts.splice(i,1);
     }
     if(state==='idle'){
@@ -138,7 +139,8 @@ function luckySpin(canvas, ctx, onScore, onGameOver, onCoins){
     reported=true;over=true;running=false;
     cancelAnimationFrame(raf);
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
-    if(onGameOver)onGameOver(score,coins);
+    if(onGameOver)if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score,coins);
   }
   function neonText(t,x,y,c,size,align,glow){
     ctx.save();
@@ -286,6 +288,7 @@ function luckySpin(canvas, ctx, onScore, onGameOver, onCoins){
   }
   return {
     start:start,pause:pause,resume:resume,destroy:destroy,
-    setInput:function(t,k){touches=t;keys=k;}
+    setInput:function(t,k){touches=t;keys=k;},
+    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };
 }

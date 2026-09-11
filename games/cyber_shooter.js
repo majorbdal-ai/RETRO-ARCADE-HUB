@@ -384,7 +384,8 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
     over = true; running = false; if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
-    onGameOver(Math.floor(score), coins);
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(Math.floor(score), coins);
   }
 
   return {

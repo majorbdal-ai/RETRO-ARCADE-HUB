@@ -10,6 +10,7 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
 
   // ── Constants ──
   const PIT_RADIUS   = 28;
+let diffMul = 1;  // v7.20 difficulty ramp
   const STONE_R      = 5;
   const BOARD_LEFT   = 120;
   const BOARD_RIGHT  = 680;
@@ -157,7 +158,8 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
     if (ps > ais)      { winner = 0; score = ps; if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} } }
     else if (ais > ps) { winner = 1; score = ps; if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} } }
     else               { winner = 2; score = ps; if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} } }
-    phase = 'over';
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      phase = 'over';
     // report score to core once (core's endGame hooks: XP/missions/stars)
     if (typeof window.endGame === 'function' && !window._bantumiReported) {
       window._bantumiReported = true;
@@ -578,7 +580,7 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
 
     if (phase === 'sowing') {
       sowTimer += dt;
-      while (sowTimer >= SOW_DELAY) {
+      while (sowTimer >= (SOW_DELAY / diffMul)) {
         sowTimer -= SOW_DELAY;
         if (!sowStep()) { afterSow(); break; }
       }
@@ -602,7 +604,7 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
     else drawHUD();
   }
 
-  return { start, update, draw, pause };
+  return { start, update, draw, pause, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; } };
 };
 
 // core.js compatibility: expose as window.bantumi

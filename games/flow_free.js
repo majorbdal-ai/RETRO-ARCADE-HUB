@@ -89,7 +89,8 @@ function flowFree(canvas, ctx, onScore, onGameOver, onCoins) {
     if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
     if (level > LEVELS.length) {
       over = true;
-      if (onGameOver) onGameOver(score, coins);
+      if (onGameOver) if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
     } else {
       loadLevel(level);
     }

@@ -1,5 +1,6 @@
 function mathDash(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false, over = false, overSent = false;
   let score = 0, coins = 0, keys = {}, touches = {};
   let time = 0, state = 'play';
@@ -12,7 +13,7 @@ function mathDash(canvas, ctx, onScore, onGameOver, onCoins) {
   function reset() {
     over = false; overSent = false;
     score = 0; coins = 0; time = 0; combo = 0; shake = 0;
-    timeLeft = 30; state = 'play'; flash = null;
+    timeLeft = 30; state = 'play'; flash = null; diffMul = 1;
     newQuestion();
   }
 
@@ -79,7 +80,8 @@ function mathDash(canvas, ctx, onScore, onGameOver, onCoins) {
     overSent = true; over = true; state = 'over';
     callScore();
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
-    if (typeof onGameOver === 'function') onGameOver(score, coins);
+    if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
   }
 
   function update(dt) {
@@ -231,5 +233,5 @@ function mathDash(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
 
-  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput };
+  return { start: start, pause: pause, resume: resume, destroy: destroy, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput: setInput };
 }

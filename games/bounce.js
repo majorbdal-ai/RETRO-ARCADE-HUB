@@ -11,6 +11,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
 
   // ── Constants ──
   const BALL_RADIUS = 8;
+let diffMul = 1;  // v7.20 difficulty ramp
   const BALL_BASE_SPEED = 340;
   const PADDLE_W = 100;
   const PADDLE_H = 14;
@@ -311,7 +312,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
         if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       }
 
-      ball.speed = Math.min(ball.speed + 2, 550);
+      ball.speed = Math.min(ball.speed + 2 * diffMul, 550);
       return true;
     }
     return false;
@@ -376,6 +377,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
       if (serveTimer <= 0) {
         if (lives <= 0) {
           phase = 'gameOver';
+      if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
           if (typeof window.endGame === 'function') {
             window.endGame(score, coins);
           }
@@ -844,7 +846,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
   }
 
   // ── Public API ──
-  return { start: start, update: update, draw: draw, pause: pause, resume: resume, setInput: (t, k) => { input.touches = t || {}; input.keys = k || {}; } };
+  return { start: start, update: update, draw: draw, pause: pause, resume: resume, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput: (t, k) => { input.touches = t || {}; input.keys = k || {}; } };
 };
 
 // core.js compatibility: expose as window.bounce

@@ -1,5 +1,6 @@
 function wordSearch(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false, over = false, score = 0, coins = 0;
   let keys = {}, touches = {};
   let board = [], words = [], foundWords = [];
@@ -162,7 +163,8 @@ function wordSearch(canvas, ctx, onScore, onGameOver, onCoins) {
           if (!finished) {
             finished = true;
             over = true;
-            onGameOver(score, coins);
+            if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
           }
         }, 900);
       }
@@ -171,7 +173,7 @@ function wordSearch(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function update(dt) {
     if (over) return;
-    timer -= dt;
+    timer -= dt * diffMul;
     if (timer <= 0) {
       over = true;
       if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
@@ -310,5 +312,5 @@ function wordSearch(canvas, ctx, onScore, onGameOver, onCoins) {
     }
   }
 
-  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; } };
+  return { start, pause, resume, destroy, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput: (t, k) => { touches = t; keys = k; } };
 }

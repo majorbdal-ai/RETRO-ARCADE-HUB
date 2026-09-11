@@ -1,5 +1,6 @@
 function fruitMerge(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false, over = false, score = 0, coins = 0;
   let keys = {}, touches = {};
   let fruits = [], nextFruit = null, aimX = W / 2, aiming = false, lineTimer = 0, gameOverTimer = 0;
@@ -160,7 +161,7 @@ function fruitMerge(canvas, ctx, onScore, onGameOver, onCoins) {
 
     for (const f of fruits) {
       if (f.merging || f.popTimer > 0) continue;
-      f.vy += GRAVITY * dt;
+      f.vy += GRAVITY * diffMul * dt;
       f.x += f.vx * dt;
       f.y += f.vy * dt;
       f.vx *= FRICTION;
@@ -190,7 +191,8 @@ function fruitMerge(canvas, ctx, onScore, onGameOver, onCoins) {
       if (gameOverTimer > 1.2) {
         over = true;
         if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
-        onGameOver(score, coins);
+        if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
       }
     } else {
       gameOverTimer = 0;
@@ -316,5 +318,5 @@ function fruitMerge(canvas, ctx, onScore, onGameOver, onCoins) {
   function resume() { if (!over && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(loop); } }
   function destroy() { running = false; cancelAnimationFrame(raf); }
 
-  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; } };
+  return { start, pause, resume, destroy, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput: (t, k) => { touches = t; keys = k; } };
 }

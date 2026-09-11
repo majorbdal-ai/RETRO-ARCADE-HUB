@@ -1,6 +1,7 @@
 function ticTacToe(canvas, ctx, onScore, onGameOver, onCoins) {
   'use strict';
   var W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   var CS = 116, OX = (W - 3 * CS) / 2, OY = 74;
   var raf = null, last = 0, running = false, over = false;
   var keys = {}, touches = {};
@@ -91,7 +92,8 @@ function ticTacToe(canvas, ctx, onScore, onGameOver, onCoins) {
     }
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     over = true;
-    if (onGameOver) onGameOver(score, coins);
+    if (onGameOver) if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
   }
 
   function checkEnd() {
@@ -298,6 +300,7 @@ function ticTacToe(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
-    setInput: function (t, k) { touches = t || {}; keys = k || {}; }
+    setInput: function (t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };
 }

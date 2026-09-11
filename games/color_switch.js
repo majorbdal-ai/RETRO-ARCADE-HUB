@@ -4,6 +4,7 @@
    ============================================================ */
 function colorSwitch(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   const COLORS = ['#ff3b6b', '#ffd93b', '#3bff8f', '#3bc9ff'];
   const COLOR_NAMES = ['RED', 'YELLOW', 'GREEN', 'BLUE'];
   const BALL_R = 11;
@@ -118,7 +119,8 @@ function colorSwitch(canvas, ctx, onScore, onGameOver, onCoins) {
     callScore();
     setTimeout(() => {
       if (score > highScore) highScore = score;
-      if (typeof onGameOver === 'function') onGameOver(score, coins);
+      if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
     }, 500);
   }
 
@@ -173,7 +175,7 @@ function colorSwitch(canvas, ctx, onScore, onGameOver, onCoins) {
     ringTimer = ringTimer - dt;
     if (ringTimer <= 0) {
       spawnRing();
-      ringTimer = Math.max(0.5, 0.95 - score * 0.006);
+      ringTimer = Math.max(0.5, (0.95 - score * 0.006) / diffMul);
     }
 
     // update level
@@ -499,5 +501,5 @@ function colorSwitch(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
 
-  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput };
+  return { start: start, pause: pause, resume: resume, destroy: destroy, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput: setInput };
 }

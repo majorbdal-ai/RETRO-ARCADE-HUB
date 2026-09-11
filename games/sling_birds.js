@@ -1,5 +1,6 @@
 function slingBirds(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false, over = false, score = 0, coins = 0;
   let keys = {}, touches = {};
   let birds = [];
@@ -77,7 +78,7 @@ function slingBirds(canvas, ctx, onScore, onGameOver, onCoins) {
     for (let i = birds.length - 1; i >= 0; i--) {
       const b = birds[i];
       if (!b.alive) continue;
-      b.vy += 600 * dt;
+      b.vy += 600 * diffMul * dt;
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       b.timer -= dt;
@@ -137,7 +138,8 @@ function slingBirds(canvas, ctx, onScore, onGameOver, onCoins) {
         }
         over = true;
         if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
-        onGameOver(score, coins);
+        if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
       }
     }
   }
@@ -260,6 +262,7 @@ function slingBirds(canvas, ctx, onScore, onGameOver, onCoins) {
     pause,
     resume,
     destroy,
-    setInput: (t, k) => { touches = t; keys = k; }
+    setInput: (t, k) => { touches = t; keys = k; },
+    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };
 }

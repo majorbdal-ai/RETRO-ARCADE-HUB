@@ -1,5 +1,6 @@
 function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false, over = false, score = 0, coins = 0;
   let keys = {}, touches = {};
 
@@ -177,7 +178,7 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
         // No match — streak broken, flip both back after brief delay (ramps with level)
         streak = 0;
         lock = true;
-        const delay = Math.max(0.45, flipDelayBase - (level - 1) * 0.05);
+        const delay = Math.max(0.45, (flipDelayBase - (level - 1) * 0.05) / diffMul);
         matchTimer = delay;
         sfx('error');
         vibe('err');
@@ -436,5 +437,5 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
   function pause() { running = false; cancelAnimationFrame(raf); }
   function resume() { if (!over && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(loop); } }
   function destroy() { running = false; cancelAnimationFrame(raf); }
-  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; } };
+  return { start, pause, resume, destroy, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput: (t, k) => { touches = t; keys = k; } };
 }

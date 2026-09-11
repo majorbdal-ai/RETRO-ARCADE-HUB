@@ -6,6 +6,7 @@
 function carromPool(canvas, ctx, onScore, onGameOver, onCoins) {
   // ---- state ----
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false;
   let score = 0, coins = 0;
   let over = false;
@@ -117,8 +118,8 @@ function carromPool(canvas, ctx, onScore, onGameOver, onCoins) {
     aiming = false;
     if (aimVec && aimVec.len > 10 && striker.inHand) {
       const power = aimVec.len / 140; // 0..1
-      striker.vx = (aimVec.dx / aimVec.len) * 720 * power;
-      striker.vy = (aimVec.dy / aimVec.len) * 720 * power;
+      striker.vx = (aimVec.dx / aimVec.len) * 720 * power * diffMul;
+      striker.vy = (aimVec.dy / aimVec.len) * 720 * power * diffMul;
       striker.inHand = false;
       if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
     }
@@ -237,7 +238,8 @@ function carromPool(canvas, ctx, onScore, onGameOver, onCoins) {
       // check game over: all pieces pocketed
       if (PIECES.every(p => !p.alive)) {
         // end turn
-        onGameOver(Math.floor(score), coins);
+        if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(Math.floor(score), coins);
         over = true;
         return;
       }
@@ -383,6 +385,7 @@ function carromPool(canvas, ctx, onScore, onGameOver, onCoins) {
     // touch handled via canvas pointer events; no buttons needed
     controls: { joystick: false, boost: false, action: false, drift: false },
     // expose for touch binding
-    pointerDown, pointerMove, pointerUp
+    pointerDown, pointerMove, pointerUp,
+    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };
 }

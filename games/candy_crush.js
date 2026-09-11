@@ -6,6 +6,7 @@
 function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
   // ---- state ----
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false;
   let score = 0, coins = 0;
   let over = false;
@@ -439,7 +440,7 @@ function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
       const p = confetti[i];
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.vy += 300 * dt;
+      p.vy += 300 * diffMul * dt;
       p.life -= dt;
       if (p.life <= 0) confetti.splice(i, 1);
     }
@@ -624,7 +625,8 @@ function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
     if (raf) cancelAnimationFrame(raf);
     sfx('over');
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
-    onGameOver(Math.floor(score), coins);
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(Math.floor(score), coins);
   }
 
   // ---- pointer / touch input ----
@@ -698,6 +700,7 @@ function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
       if (t && t.pointerMove) handlePointerMove(t.pointerMove.x, t.pointerMove.y);
       if (t && t.pointerEnd) handlePointerEnd(t.pointerEnd.x, t.pointerEnd.y);
     },
-    controls: { joystick: false, boost: false, action: false, drift: false }
+    controls: { joystick: false, boost: false, action: false, drift: false },
+    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };
 }

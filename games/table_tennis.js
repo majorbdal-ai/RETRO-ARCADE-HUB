@@ -1,6 +1,7 @@
 function tableTennis(canvas, ctx, onScore, onGameOver, onCoins) {
   'use strict';
   var W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   var raf = null, last = 0, running = false, over = false;
   var keys = {}, touches = {};
   var score = 0, coins = 0;
@@ -27,7 +28,7 @@ function tableTennis(canvas, ctx, onScore, onGameOver, onCoins) {
     var sp = 330 + rnd(0, 60);
     ball.vx = fromP ? -sp : sp;
     ball.vy = rnd(-90, 90);
-    ball.speed = sp;
+    ball.speed = sp * diffMul;
     state = 'play';
     rally = 0;
   }
@@ -43,7 +44,8 @@ function tableTennis(canvas, ctx, onScore, onGameOver, onCoins) {
       bScore++;
       if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     }
-    if (pScore >= 11) { over = true; if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} } if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} } if (onGameOver) onGameOver(pScore, coins); return; }
+    if (pScore >= 11) { over = true; if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} } if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} } if (onGameOver) if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(pScore, coins); return; }
     if (bScore >= 11) { over = true; if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} } if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} } if (onGameOver) onGameOver(pScore, coins); return; }
     server = (server + 1) % 2;
     state = 'serve';
@@ -272,6 +274,7 @@ function tableTennis(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
-    setInput: function (t, k) { touches = t || {}; keys = k || {}; }
+    setInput: function (t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };
 }

@@ -202,7 +202,8 @@ function ludoKing(canvas, ctx, onScore, onGameOver, onCoins) {
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate([120, 60, 120]); } catch (e) {} }
     if (players.red.homeCount === 4) { coins += 100; onCoins(100); }
-    onGameOver(score, coins);
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
   }
 
   function reset() {

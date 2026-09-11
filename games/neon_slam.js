@@ -1,5 +1,6 @@
 function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false, over = false, overSent = false;
   let score = 0, coins = 0, keys = {}, touches = {};
   let time = 0, state = 'play', shake = 0;
@@ -62,8 +63,10 @@ function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
   function die() {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     callScore();
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
 
@@ -127,7 +130,7 @@ function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
     let dir = 0;
     if (key('ArrowLeft') || key('KeyA') || t('left')) dir -= 1;
     if (key('ArrowRight') || key('KeyD') || t('right')) dir += 1;
-    const paddleSpeed = 14;
+    const paddleSpeed = 14 * diffMul;
     paddle.x += dir * paddleSpeed;
     // Mouse/touch pointer tracked in targetX (set by app)
     if (touches.pointerX !== undefined) {
@@ -457,5 +460,5 @@ function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
   function getHelp() { return 'MOVE: ARROWS/WASD OR DRAG · SPACE RELEASE BALL · BREAK ALL BRICKS · CATCH POWERUPS'; }
 
-  return { start, pause, resume, destroy, setInput, getHelp };
+  return { start, pause, resume, destroy, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput, getHelp };
 }

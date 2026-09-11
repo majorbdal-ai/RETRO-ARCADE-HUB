@@ -117,7 +117,8 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
     // Vibrate pattern
     vibrate(stateWin ? [50, 30, 80, 30, 120] : [100, 50, 100]);
     if (typeof window.playSfx === 'function') { try { window.playSfx(stateWin ? 'win2' : 'over'); } catch (e) {} }
-    if (typeof onGameOver === 'function') onGameOver(score, coins);
+    if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(score, coins);
   }
 
   function pointFor(who) {

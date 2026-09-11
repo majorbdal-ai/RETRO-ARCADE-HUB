@@ -140,6 +140,7 @@ function waterSort(canvas, ctx, onScore, onGameOver, onCoins) {
     pourAnim = { fromIdx, toIdx, t: 0, color: COLORS[fromColor] };
 
     if (isSorted()) {
+      if (typeof gameFX !== 'undefined') { try { var __r2 = canvas.getBoundingClientRect(); gameFX.burst(__r2.left + (W/2) * __r2.width / canvas.width, __r2.top + (H/2) * __r2.height / canvas.height, '#ffd700', 22); } catch(e){} gameFX.shake(2); }
       won = true;
       score = moves * 100;
       onScore(score);
@@ -489,7 +490,8 @@ function waterSort(canvas, ctx, onScore, onGameOver, onCoins) {
       try { navigator.vibrate(200); } catch (e) {}
     }
     if (won && typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
-    onGameOver(Math.floor(score), coins);
+    if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+      onGameOver(Math.floor(score), coins);
   }
 
   // ---- public API ----
