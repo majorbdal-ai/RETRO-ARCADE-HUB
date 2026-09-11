@@ -778,6 +778,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
           </div>
           <button class="btn btn-primary" onclick="go('arcade')" style="width:100%;max-width:280px;padding:var(--space-md);font-size:var(--font-md);margin-top:var(--space-sm)"><i class="fa-solid fa-rocket"></i> START PLAYING</button>
         </div>
+        <div id="dailyBonusHero" style="margin-top:14px;width:100%;max-width:360px"></div>
         <div class="hero-visual" style="position:absolute;right:0;bottom:0;width:180px;height:180px;opacity:.15;pointer-events:none">
           <svg viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" width="180" height="180">
             <circle cx="90" cy="90" r="80" stroke="var(--cyan)" stroke-width="2" stroke-dasharray="500" stroke-dashoffset="0" fill="none"><animate attributeName="stroke-dashoffset" from="500" to="0" dur="3s" repeatCount="indefinite"/></circle>
@@ -1080,6 +1081,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div class="stat-box"><h3 style="color:var(--green,#39FF88)" id="statRevives">0</h3><p>REVIVES</p></div>
       </div>
       <div class="widget" id="streakWidget"></div>
+      <div class="widget" id="dailyBonusWidget"></div>
       <div class="widget">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <b style="font-size:13px;color:#fff">ACHIEVEMENTS</b>

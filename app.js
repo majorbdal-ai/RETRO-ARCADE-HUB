@@ -42,6 +42,7 @@ let state = {
   equipped: store.get(K.equipped, { skin: null, vehicle: null, effect: null, theme: 'neon' }),
   daily: store.get(K.daily, {}),
   stats: store.get(K.stats, { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }),
+  dailyBonus: store.get('rh_dailyBonus', null),
   best: store.get(K.best, {}),
   achievements: store.get(K.achievements, []),
   dailyQuest: store.get(K.dailyQuest, {}),
@@ -70,6 +71,7 @@ function saveState() {
   store.set('rh_favorites', state.favorites);
   store.set('rh_recently', state.recentlyPlayed);
   store.set('rh_combo', state.combo);
+  store.set('rh_dailyBonus', state.dailyBonus);
 }
 
 /* ==================== API LAYER (InfinityFree PHP backend) ==================== */
@@ -426,7 +428,7 @@ function confirmDelete() {
   const v = document.getElementById('deleteInput').value.trim();
   if (v.toUpperCase() !== 'DELETE') { toast('Type DELETE to confirm'); return; }
   Object.values(K).forEach(k => localStorage.removeItem(k));
-  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, lastPlay: 0, streak: 0, streakClaimed: {}, favorites: [], recentlyPlayed: [], combo: { count: 0, lastTime: 0, bestSession: 0 } };
+  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, lastPlay: 0, streak: 0, streakClaimed: {}, favorites: [], recentlyPlayed: [], combo: { count: 0, lastTime: 0, bestSession: 0 }, dailyBonus: null };
   saveState();   // persist the reset (B3: state actually resets everywhere)
   applyTheme((state.equipped && state.equipped.theme) || 'neon');
   closeDeleteModal();
@@ -510,6 +512,61 @@ function streakLast7(now = Date.now()) {
     out.push({ played, today: i === 0 });
   }
   return out;
+}
+/* ==================== DAILY BONUS (7-day escalating coin claim) ==================== */
+const DAILY_BONUS = [120, 150, 200, 260, 340, 450, 600];
+function dailyBonusInfo(now = Date.now()) {
+  const today = dayStart(now);
+  const db = state.dailyBonus || { day: 0, lastClaim: 0 };
+  const sameDay = db.lastClaim >= today;
+  let day = (db.day || 0) % 7;                 // 0..6, cycles every 7 days
+  if (db.lastClaim && !sameDay && (db.lastClaim < dayStart(db.lastClaim) + 86400000)) {
+    const yest = today - 86400000;
+    const wasYest = db.lastClaim >= yest && db.lastClaim < today;
+    if (!wasYest) day = 0;                      // missed a day → reset to day 1
+  }
+  return {
+    today, day,                                             // next claimable index 0..6
+    claimedToday: sameDay,
+    amount: DAILY_BONUS[day],
+    claimed: db.lastClaim ? dayStart(db.lastClaim) : 0
+  };
+}
+function bonusChipHtml(d) {
+  const rewards = DAILY_BONUS.map((amt, i) =>
+    `<span class="sd-reward${i === d.day && !d.claimedToday ? ' got' : ''}" style="${i === d.day && !d.claimedToday ? 'border-color:#FFD700;color:#FFE600' : ''}">${i + 1}d · ${amt.toLocaleString()}🪙</span>`
+  ).join('');
+  const btn = d.claimedToday
+    ? `<div style="font-size:11px;color:var(--green);font-weight:700">✓ CLAIMED — come back tomorrow!</div>`
+    : `<button class="btn btn-primary" onclick="claimDailyBonus(event)" style="width:100%;padding:12px;font-size:13px;margin-top:8px"><i class="fa-solid fa-gift"></i> CLAIM ${d.amount.toLocaleString()} 🪙</button>`;
+  return `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:26px">🎁</span>
+      <div style="flex:1;min-width:150px">
+        <div style="font-size:13px;color:#fff;font-weight:800">DAILY BONUS</div>
+        <div style="font-size:10px;color:var(--sub)">Day ${d.day + 1}/7 · FREE coins, resets if you miss a day</div>
+      </div>
+      <span style="font-size:22px;font-weight:900;font-family:'Orbitron',sans-serif;color:var(--gold,#FFD700)">+${d.amount.toLocaleString()}</span>
+    </div>
+    <div class="streak-rewards" style="margin-top:8px">${rewards}</div>
+    ${btn}`;
+}
+function renderDailyBonus() {
+  const d = dailyBonusInfo();
+  const hero = document.getElementById('dailyBonusHero');
+  if (hero) hero.innerHTML = `<div class="widget" style="padding:12px 14px;background:linear-gradient(135deg,rgba(255,180,0,.12),rgba(255,59,107,.08));border:1px solid rgba(255,180,0,.35)">${bonusChipHtml(d)}</div>`;
+  const w = document.getElementById('dailyBonusWidget');
+  if (w) w.innerHTML = `<b style="font-size:13px;color:#fff">🎁 DAILY BONUS</b><div style="margin-top:8px">${bonusChipHtml(d)}</div>`;
+}
+function claimDailyBonus(e) {
+  if (e) e.stopPropagation();
+  const d = dailyBonusInfo();
+  if (d.claimedToday) { toast('Already claimed today — come back tomorrow!'); return; }
+  state.dailyBonus = { day: (d.day + 1) % 7, lastClaim: d.today };
+  state.coins += d.amount;
+  saveState(); updateCoinDisplay(); renderDailyBonus();
+  if (typeof renderProfile === 'function') renderProfile();
+  toast('🎁 Daily Bonus +' + d.amount.toLocaleString() + ' 🪙');
+  if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e2) {} }
 }
 function renderStreak() {
   const wrap = document.getElementById('streakWidget');
@@ -652,6 +709,9 @@ function renderHome() {
     // NEW UI: Featured Carousel (horizontal scroll with featured games)
     renderFeaturedCarousel();
   }
+
+  // v7.17: daily bonus on home hero (fresh state every render)
+  renderDailyBonus();
 
   // NEW UI: Home Category Tabs
   let currentHomeCat = 'ALL';
@@ -1082,6 +1142,7 @@ function renderProfile() {
   const profMusic = document.getElementById('profMusicBtn');
   if (profMusic && window.AppMusic) profMusic.innerText = window.AppMusic.isPlaying() ? 'MUSIC: ON' : 'MUSIC: OFF';
   renderStreak();
+  renderDailyBonus();
 
   // ACHIEVEMENTS (visual grid, v7.5 redesign) — v7.15: dynamic count
   const ACH_META = [

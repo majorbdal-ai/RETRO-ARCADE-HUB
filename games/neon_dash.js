@@ -115,6 +115,7 @@ function neonDash(canvas, ctx, onScore, onGameOver, onCoins) {
         obs.passed = true;
         score += 10;
         if (typeof onScore === 'function') onScore(score);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
         if (score % 100 === 0) {
           coins += 1;
           if (typeof onCoins === 'function') onCoins(coins);
@@ -124,6 +125,7 @@ function neonDash(canvas, ctx, onScore, onGameOver, onCoins) {
         if (score % 150 === 0) {
           burst(player.x + player.w / 2, player.y + player.h / 2, '#ffd93b', 24, 260, 0.7);
           vibrate([40, 30, 40]);
+          if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
         }
         gameSpeed = 1 + score * 0.002;
       }
@@ -135,6 +137,7 @@ function neonDash(canvas, ctx, onScore, onGameOver, onCoins) {
         burst(player.x + player.w / 2, player.y + player.h / 2, '#ff4d5e', 26, 280, 0.6);
         shakeT = 0.3;
         vibrate(120);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
         over = true;
         callGameOver();
         return;
@@ -171,6 +174,7 @@ function neonDash(canvas, ctx, onScore, onGameOver, onCoins) {
     if (overSent) return;
     overSent = true;
     if (typeof onScore === 'function') onScore(score);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
 

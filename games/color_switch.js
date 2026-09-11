@@ -114,6 +114,7 @@ function colorSwitch(canvas, ctx, onScore, onGameOver, onCoins) {
     spawnParticles(ball.x, ball.y, COLORS[ball.color], 35, 200);
     spawnParticles(ball.x, ball.y, '#ffffff', 15, 120);
     vibrate([80, 40, 120]);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     callScore();
     setTimeout(() => {
       if (score > highScore) highScore = score;
@@ -151,6 +152,7 @@ function colorSwitch(canvas, ctx, onScore, onGameOver, onCoins) {
       spawnParticles(ball.x, ball.y, COLORS[ball.color], 6, 60);
       spawnScorePopup(ball.x, ball.y - 25, COLOR_NAMES[ball.color], COLORS[ball.color]);
       vibrate(10);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
     }
     prevPressed = pressNow;
 
@@ -204,6 +206,7 @@ function colorSwitch(canvas, ctx, onScore, onGameOver, onCoins) {
               streakCount++;
               // match particles
               spawnParticles(ball.x, ball.y, COLORS[ball.color], 12, 100);
+              if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
             } else {
               die();
             }
@@ -219,6 +222,7 @@ function colorSwitch(canvas, ctx, onScore, onGameOver, onCoins) {
               ball.y = rg.cy + side * (rg.r + BALL_R);
               ball.vy = (side > 0 ? 1 : -1) * Math.max(Math.abs(ball.vy) * 0.85, 260);
               streakCount++;
+              if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
             } else {
               die();
             }

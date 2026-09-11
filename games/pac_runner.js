@@ -240,6 +240,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
         onScore(score);
         coins += 1;
         onCoins(1);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
       }
     }
     dots = dots.filter(d => !d.eaten);
@@ -253,6 +254,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
         coins += 5;
         onCoins(5);
         startFright();
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       }
     }
     powerPellets = powerPellets.filter(p => !p.eaten);
@@ -383,6 +385,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
     onScore(score);
     coins += points / 10;
     onCoins(points / 10);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
   }
 
   function respawnGhost(g) {
@@ -397,6 +400,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
   function loseLife() {
     lives--;
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     if (lives <= 0) {
       gameOver();
       return;
@@ -653,6 +657,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
     running = false;
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate([200, 100, 200]); } catch (e) {} }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

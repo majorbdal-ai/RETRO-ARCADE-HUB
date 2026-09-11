@@ -132,12 +132,14 @@ function lightCycle(canvas, ctx, onScore, onGameOver, onCoins) {
     // wall collision
     if (nc < 0 || nc >= GRID_COLS || nr < 0 || nr >= GRID_ROWS) {
       cycle.alive = false;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       return;
     }
 
     // trail/self collision
     if (getCell(nc, nr)) {
       cycle.alive = false;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       return;
     }
 
@@ -269,12 +271,14 @@ function lightCycle(canvas, ctx, onScore, onGameOver, onCoins) {
       onScore(score);
       coins += 5;
       onCoins(5);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       roundActive = false;
       roundDelay = 2.0;
       if (playerWins >= 3) {
         // player wins match!
         score += 500;
         onScore(score);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
         gameOver();
         return;
       }
@@ -437,6 +441,7 @@ function lightCycle(canvas, ctx, onScore, onGameOver, onCoins) {
     running = false;
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

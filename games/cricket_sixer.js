@@ -122,10 +122,13 @@ function cricketSixer(canvas, ctx, onScore, onGameOver, onCoins) {
           score += timing.points;
           if (timing.points === 6) coins++;
           onScore(score);
+          if (typeof window.playSfx === 'function') { try { window.playSfx(timing.points === 6 ? 'win2' : 'pop'); } catch (e) {} }
+          if (navigator.vibrate) { try { navigator.vibrate(timing.points === 6 ? [50, 30, 60] : 25); } catch (e) {} }
         } else {
           lastResult = 'MISS';
           resultTimer = 1.5;
           wickets--;
+          if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
           if (wickets <= 0) { gameOver(); return; }
         }
       }
@@ -136,6 +139,7 @@ function cricketSixer(canvas, ctx, onScore, onGameOver, onCoins) {
         wickets--;
         ball.active = false;
         swinging = false;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
         if (wickets <= 0) { gameOver(); return; }
         setTimeout(deliverBall, 1500);
       }
@@ -150,6 +154,8 @@ function cricketSixer(canvas, ctx, onScore, onGameOver, onCoins) {
           score += timing.points;
           if (timing.points === 6) coins++;
           onScore(score);
+          if (typeof window.playSfx === 'function') { try { window.playSfx(timing.points === 6 ? 'win2' : 'pop'); } catch (e) {} }
+          if (navigator.vibrate) { try { navigator.vibrate(timing.points === 6 ? [50, 30, 60] : 25); } catch (e) {} }
         }
       }
 
@@ -185,6 +191,7 @@ function cricketSixer(canvas, ctx, onScore, onGameOver, onCoins) {
     over = true;
     running = false;
     cancelAnimationFrame(raf);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(score, coins);
   }
 

@@ -73,6 +73,7 @@ function soccerPenalty(canvas, ctx, onScore, onGameOver, onCoins) {
     phase = 'shot';
     shots++;
     vibrate(30);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
     // Ball trail particles
     spawnParticles(ball.x, ball.y, '#ffffff', 4, 40, 0.4);
   }
@@ -169,6 +170,7 @@ function soccerPenalty(canvas, ctx, onScore, onGameOver, onCoins) {
         goalFlash = 0.5;
         shakeAmount = 8;
         vibrate([50, 30, 80]);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
         // Goal celebration particles
         spawnParticles(ball.x, ball.y, '#3bff8f', 25, 200, 1.0);
         spawnParticles(ball.x, ball.y, '#ffd93b', 15, 160, 0.8);
@@ -196,6 +198,7 @@ function soccerPenalty(canvas, ctx, onScore, onGameOver, onCoins) {
       if (ball.x > W || ball.y > H || ball.y < 0) {
         streak = 0;
         vibrate(40);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
         spawnParticles(ball.x, Math.min(ball.y, H), '#ff8c3b', 8, 100, 0.5);
         spawnCelebration('MISS!', ball.x, Math.min(ball.y, H) - 20, '#ff8c3b');
         recordShot(false);
@@ -219,6 +222,7 @@ function soccerPenalty(canvas, ctx, onScore, onGameOver, onCoins) {
         coins += Math.floor(score / 100);
         onCoins(coins);
         over = true;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
         onGameOver(score, coins);
       } else {
         phase = 'aim';

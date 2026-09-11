@@ -1,5 +1,5 @@
 {
-  "version": "7.16.3",
+  "version": "7.16.4",
   "games": 70,
   "build": "2026-09-11",
   "features": [
@@ -83,6 +83,8 @@
     "friends-board-deterministic",
     "delete-account-complete",
     "strict-mode-frame-fix",
-    "sfx-batch-10-popular-games"
+    "sfx-batch-10-popular-games",
+    "daily-bonus-7day",
+    "sfx-batch-10-action-sports"
   ]
 }

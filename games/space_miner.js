@@ -79,12 +79,14 @@ function spaceMiner(canvas, ctx, onScore, onGameOver, onCoins) {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
     callScore();
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
   
   function takeDamage(amount) {
     ship.hp -= amount;
     shake = 0.3;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     if (ship.hp <= 0) die();
   }
   
@@ -101,6 +103,7 @@ function spaceMiner(canvas, ctx, onScore, onGameOver, onCoins) {
       // Level up bonus
       heal(1);
       score += 50; callScore();
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
     }
   }
   
@@ -108,6 +111,7 @@ function spaceMiner(canvas, ctx, onScore, onGameOver, onCoins) {
     const mult = upgrades.cargo;
     score += m.value * mult; callScore();
     coins += m.coinValue * mult; callCoins();
+    if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
     addXP(m.value);
     // particle burst
     for (let i = 0; i < 8; i++) {
@@ -121,6 +125,8 @@ function spaceMiner(canvas, ctx, onScore, onGameOver, onCoins) {
   
   function destroyAsteroid(ast, isBoss) {
     asteroidsDestroyed++;
+    if (typeof window.playSfx === 'function') { try { window.playSfx(isBoss ? 'win2' : 'pop'); } catch (e) {} }
+    if (isBoss && navigator.vibrate) { try { navigator.vibrate([60, 30, 80]); } catch (e) {} }
     // spawn minerals
     const mineralCount = isBoss ? 15 : (ast.type === 'legendary' ? 5 : ast.type === 'rare' ? 3 : 2);
     for (let i = 0; i < mineralCount; i++) {

@@ -83,6 +83,7 @@ function stackDrop(canvas, ctx, onScore, onGameOver, onCoins) {
       spawnParticles(b.x + b.w / 2, b.y, '#00ffff', 15);
       onScore(score);
       placed = true;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
     } else {
       const top = blocks[blocks.length - 1];
       const overlap = Math.min(b.x + b.w, top.x + top.w) - Math.max(b.x, top.x);
@@ -90,6 +91,7 @@ function stackDrop(canvas, ctx, onScore, onGameOver, onCoins) {
       if (overlap <= 0) {
         over = true;
         vibrate([100, 50, 100]);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
         onGameOver(score, coins);
         return;
       }
@@ -108,6 +110,7 @@ function stackDrop(canvas, ctx, onScore, onGameOver, onCoins) {
         spawnParticles(b.x + b.w / 2, b.y, '#00ff00', 25);
         spawnParticles(b.x + b.w / 2, b.y, '#ffffff', 8);
         spawnComboPopup(b.x + b.w / 2, b.y - 10, 'PERFECT x' + combo + ' +' + pts, '#00ff00');
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       } else {
         b.perfect = false;
         combo = 0;
@@ -126,6 +129,7 @@ function stackDrop(canvas, ctx, onScore, onGameOver, onCoins) {
         totalScore += 10;
         coins += 1;
         vibrate(15);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
         spawnParticles(b.x + b.w / 2, b.y, '#ff6600', 10);
         spawnComboPopup(b.x + b.w / 2, b.y - 10, '+10', '#ff8800');
       }
@@ -147,6 +151,7 @@ function stackDrop(canvas, ctx, onScore, onGameOver, onCoins) {
     if (stackTop < H / 2) {
       over = true;
       vibrate([50, 30, 50, 30, 150]);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
       onGameOver(score, coins);
     }
   }

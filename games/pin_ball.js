@@ -66,6 +66,7 @@ function pinBall(canvas, ctx, onScore, onGameOver, onCoins) {
   function die() {
     if (overSent) return;
     ballsLeft--;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     if (ballsLeft <= 0) {
       overSent = true; over = true; state = 'over';
       callScore();
@@ -113,6 +114,7 @@ function pinBall(canvas, ctx, onScore, onGameOver, onCoins) {
         ball.launched = true;
         launching = false;
         launchPower = 0;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
       } else {
         launchPower = 0;
       }
@@ -154,6 +156,8 @@ function pinBall(canvas, ctx, onScore, onGameOver, onCoins) {
           b.hit = 0.2;
           addFlash(b.x, b.y, b.color);
           coins++; callCoins();
+          if (typeof window.playSfx === 'function') { try { window.playSfx(combo >= 3 ? 'win2' : 'pop'); } catch (e) {} }
+          if (navigator.vibrate) { try { navigator.vibrate(Math.min(15 + combo * 5, 40)); } catch (e) {} }
         }
       }
 
@@ -166,12 +170,14 @@ function pinBall(canvas, ctx, onScore, onGameOver, onCoins) {
           addFlash(tg.x + tg.w / 2, tg.y, tg.color);
           coins += 2; callCoins();
           ball.vy = -Math.abs(ball.vy) * 0.9;
+          if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
           // Check if all targets lit
           if (targets.every(t => t.lit)) {
             score += 1000; callScore();
             coins += 10; callCoins();
             targets.forEach(t => t.lit = false);
             addFlash(W / 2, H / 2, '#ffd93b');
+            if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
           }
         }
       }
@@ -198,6 +204,7 @@ function pinBall(canvas, ctx, onScore, onGameOver, onCoins) {
           const power = Math.abs(flipperSpeed) > 0.3 ? 550 : 200;
           ball.vx = nx * power + (f.side === 'left' ? 60 : -60);
           ball.vy = Math.min(ny * power, -180);
+          if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
         }
       }
 

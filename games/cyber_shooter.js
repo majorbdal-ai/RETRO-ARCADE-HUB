@@ -12,7 +12,7 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
 
   const P = { x: W / 2 - 20, y: H - 70, w: 40, h: 44, speed: 320 };
   let lives = 3;
-  let fireTimer = 0;
+  let fireTimer = 0, shotCount = 0;
   const FIRE_INTERVAL = 0.15;
 
   let bullets = [];
@@ -171,6 +171,9 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
     if (fireTimer <= 0) {
       bullets.push({ x: P.x + P.w / 2 - 3, y: P.y - 10, w: 6, h: 14, speed: 700 });
       fireTimer = FIRE_INTERVAL;
+      // every-other-shot blip (anti-spam) — shoot counter toggles
+      shotCount = (shotCount + 1) % 2;
+      if (shotCount === 0 && typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
     }
 
     for (const b of bullets) b.y -= b.speed * dt;
@@ -241,6 +244,7 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
             score += 100 * wave; onScore(score);
             spawnExplosion(e.x + e.w / 2, e.y + e.h / 2, e.color, 10);
             enemies.splice(ei, 1); spawnPickup(e.x + e.w / 2, e.y + e.h / 2);
+            if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
           }
           break;
         }
@@ -256,6 +260,8 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
             spawnExplosion(boss.x + boss.w / 2, boss.y + boss.h / 2, '#FF10F0', 40);
             for (let c = 0; c < 8; c++) spawnPickup(boss.x + boss.w / 2 + (c - 3.5) * 20, boss.y + boss.h / 2);
             boss = null; bossActive = false; waveActive = false; waveDelay = 2.0;
+            if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+            if (navigator.vibrate) { try { navigator.vibrate([60, 30, 80]); } catch (e) {} }
           }
         }
       }
@@ -268,6 +274,7 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
         enemyBullets.splice(bi, 1); lives--;
         spawnExplosion(P.x + P.w / 2, P.y + P.h / 2, '#FF4444', 8);
         if (navigator.vibrate) navigator.vibrate(80);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
         if (lives <= 0) { gameOver(); return; }
       }
     }
@@ -374,6 +381,7 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
   function gameOver() {
     over = true; running = false; if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

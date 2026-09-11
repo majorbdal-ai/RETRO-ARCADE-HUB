@@ -10,6 +10,8 @@ const suites = [
   ['consistency.js', 'registry'],
   ['security.js',    'security/input/cleanup'],
   ['run_all.js',     'engine lifecycle'],
+  ['daily_bonus_test.js', 'daily bonus logic'],
+  ['streak_test.js', 'streak logic'],
 ];
 let total = 0, failed = 0;
 for (const [file, label] of suites) {
