@@ -6,6 +6,7 @@ function airStrike(canvas, ctx, onScore, onGameOver, onCoins) {
   var keys = {}, touches = {};
   var score = 0, coins = 0, wave = 1, bombs = 12;
   var plane = null, targets = [], bombsA = [], booms = [], sparks = [];
+  var diffMul = 1;   // v7.18 difficulty ramp
   var held = false, prevHeld = false, time = 0, reticleX = 0;
   var stars = [];
   var TANK = 0, JEEP = 1;
@@ -89,7 +90,7 @@ function airStrike(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function reset() {
     score = 0; coins = 0; wave = 1; bombs = 12;
-    plane = { x: 100, y: 70, dir: 1, speed: 245, vx: 245 };
+    plane = { x: 100, y: 70, dir: 1, speed: 245 * diffMul, vx: 245 * diffMul };
     targets = []; bombsA = []; booms = []; sparks = [];
     held = false; prevHeld = false; time = 0; reticleX = 0;
     stars = [];
@@ -330,6 +331,7 @@ function airStrike(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
-    setInput: function (t, k) { touches = t || {}; keys = k || {}; }
+    setInput: function (t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; }
   };
 }

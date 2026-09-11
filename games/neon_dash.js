@@ -7,6 +7,7 @@ function neonDash(canvas, ctx, onScore, onGameOver, onCoins) {
   let scrollSpeed = 300;
   let spawnTimer = 0;
   let gameSpeed = 1;
+  let difficultyMult = 1;   // v7.18 difficulty ramp
   let particles = [], dust = [], flashT = 0, shakeT = 0, time = 0;
   let speedLines = [];
   const GROUND = 330;
@@ -127,7 +128,7 @@ function neonDash(canvas, ctx, onScore, onGameOver, onCoins) {
           vibrate([40, 30, 40]);
           if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
         }
-        gameSpeed = 1 + score * 0.002;
+        gameSpeed = (1 + score * 0.002) * difficultyMult;
       }
 
       if (player.x < obs.x + obs.w &&
@@ -361,6 +362,11 @@ function neonDash(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
-    setInput: (t, k) => { touches = t || {}; keys = k || {}; }
+    setInput: (t, k) => { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+    }
   };
 }

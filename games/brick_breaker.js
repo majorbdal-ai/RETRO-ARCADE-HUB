@@ -42,6 +42,7 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
   // input
   let touches = { left: false, right: false, action: false };
   let keys = {};
+  let difficultyMult = 1;   // v7.18 difficulty ramp
 
   // ---- helpers ----
   function rect(x, y, w, h, color, glow) {
@@ -105,7 +106,7 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
       r: 7,
       vx: vx || 0,
       vy: vy || 0,
-      speed: 350,
+      speed: Math.min(350 * difficultyMult, 560), // v7.18: cap so ball isn't too fast
       active: false // becomes active when served
     };
   }
@@ -136,6 +137,7 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
     particles = [];
     createBricks();
     serving = true;
+    difficultyMult = 1;
     // place initial ball on paddle
     const b = createBall(PADDLE.x + PADDLE.w / 2, PADDLE.y - 10);
     balls.push(b);
@@ -496,6 +498,20 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+      // recolor live balls' speed (capped)
+      for (const b of balls) {
+        const sp = Math.hypot(b.vx, b.vy);
+        if (sp > 0) {
+          const ns = Math.min(350 * difficultyMult, 560);
+          b.vx = (b.vx / sp) * ns;
+          b.vy = (b.vy / sp) * ns;
+        }
+      }
+    },
     controls: { joystick: false, boost: false, action: true, drift: false }
   };
 }

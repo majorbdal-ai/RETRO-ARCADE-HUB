@@ -16,6 +16,7 @@ function neonRacer(canvas, ctx, onScore, onGameOver, onCoins) {
   const laneW = 140;
   const roadLeft = (W - laneW * LANES) / 2;
   let roadSpeed = 300; // base px/s
+  let trafficDiff = 1;   // v7.18 difficulty ramp
   let laneOffsets = [0, 0, 0, 0];
 
   // player car
@@ -66,7 +67,6 @@ function neonRacer(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function reset() {
     score = 0; coins = 0; over = false;
-    roadSpeed = 300;
     level = 1;
     nextLevelScore = 1000;
     enemies = []; pickups = [];
@@ -82,7 +82,7 @@ function neonRacer(canvas, ctx, onScore, onGameOver, onCoins) {
     const lane = Math.floor(Math.random() * LANES);
     if (enemies.some(e => e.lane === lane && e.y < 120)) return;
     const color = ['#FF10F0', '#FFE600', '#39FF88', '#F97316'][Math.floor(Math.random() * 4)];
-    enemies.push({ lane, y: -100, w: 44, h: 76, color, speed: roadSpeed * (0.9 + Math.random() * 0.6) });
+    enemies.push({ lane, y: -100, w: 44, h: 76, color, speed: roadSpeed * (0.9 + Math.random() * 0.6) * trafficDiff });
   }
   function spawnPickup() {
     const lane = Math.floor(Math.random() * LANES);
@@ -331,6 +331,10 @@ function neonRacer(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
-    controls: { joystick: false, boost: true, action: false, drift: false }
+    controls: { joystick: false, boost: true, action: false, drift: false },
+    setDifficulty(level) {
+      const m = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1;
+      trafficDiff = m;
+    }
   };
 }

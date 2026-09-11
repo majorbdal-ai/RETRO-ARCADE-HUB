@@ -14,6 +14,7 @@ function bubbleShooter(canvas, ctx, onScore, onGameOver, onCoins) {
   let bubbles = [];
   let shake = 0;
   let combo = 0;
+  let difficultyMult = 1;   // v7.18 difficulty ramp
 
   function randomColor() { return COLORS[Math.floor(Math.random() * COLORS.length)]; }
 
@@ -34,6 +35,7 @@ function bubbleShooter(canvas, ctx, onScore, onGameOver, onCoins) {
     coins = 0;
     combo = 0;
     shake = 0;
+    difficultyMult = 1;
     over = false;
     onScore(score);
   }
@@ -107,8 +109,8 @@ function bubbleShooter(canvas, ctx, onScore, onGameOver, onCoins) {
   function shoot() {
     if (currentBubble.flying) return;
     currentBubble.flying = true;
-    currentBubble.vx = Math.cos(shooter.angle) * 500;
-    currentBubble.vy = Math.sin(shooter.angle) * 500;
+    currentBubble.vx = Math.cos(shooter.angle) * 500 * difficultyMult;
+    currentBubble.vy = Math.sin(shooter.angle) * 500 * difficultyMult;
     if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
   }
 
@@ -324,5 +326,10 @@ function bubbleShooter(canvas, ctx, onScore, onGameOver, onCoins) {
   function pause() { running = false; cancelAnimationFrame(raf); }
   function resume() { if (!over && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(loop); } }
   function destroy() { running = false; cancelAnimationFrame(raf); }
-  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; } };
+  function setDifficulty(level) {
+    const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+    const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+    difficultyMult = m[l];
+  }
+  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; }, setDifficulty };
 }

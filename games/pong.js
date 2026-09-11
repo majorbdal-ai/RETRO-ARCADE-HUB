@@ -12,6 +12,8 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
   let rallyCount = 0; // consecutive hits without scoring
   let maxRally = 0;
   let serveCount = 0; // how many serves (for difficulty)
+  let difficultyMult = 1;   // v7.18 difficulty ramp
+  const BALL_SPEED_CAP = 720 * 2; // ~2x base cap
 
   function vibrate(ms) {
     try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
@@ -49,6 +51,7 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
     particles = [];
     hitFlash = 0; shakeAmount = 0;
     rallyCount = 0; maxRally = 0; serveCount = 0;
+    difficultyMult = 1;
   }
 
   function callScore() { if (typeof onScore === 'function') onScore(score); }
@@ -58,7 +61,7 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
     serveCount++;
     const a = (Math.random() * 0.7 - 0.35);
     // Speed increases slightly each serve for intensity
-    const baseSpeed = 300 + Math.min(serveCount * 5, 60);
+    const baseSpeed = (300 + Math.min(serveCount * 5, 60)) * difficultyMult;
     const sp = baseSpeed + Math.random() * 30;
     ball.x = W / 2; ball.y = H / 2;
     ball.vx = Math.cos(a) * sp * dir;
@@ -81,7 +84,7 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
     if (ball.y < pad.y - 4 || ball.y > pad.y + PH + 4) return;
     const off = (ball.y - (pad.y + PH / 2)) / (PH / 2);
     let sp = Math.hypot(ball.vx, ball.vy);
-    sp = Math.max(300, Math.min(sp * 1.05, 720));
+    sp = Math.max(300, Math.min(sp * 1.05, Math.min(720 * difficultyMult, BALL_SPEED_CAP)));
     const ang = off * 0.75;
     const dir = side < 0 ? 1 : -1;
     ball.vx = Math.cos(ang) * sp * dir;
@@ -429,5 +432,10 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
 
-  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput };
+  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput,
+    setDifficulty: function(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+    } };
 }

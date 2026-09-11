@@ -40,6 +40,7 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
   let fuel = 100;
   let maxFuel = 100;
   let fuelDepleteRate = 8; // per second when driving
+  let difficultyMult = 1;   // v7.18 difficulty ramp
 
   // upgrades (level 1-5)
   let upgrades = {
@@ -77,6 +78,22 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
+  }
+
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    const r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    const p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
   }
 
   // simple hash for procedural terrain
@@ -143,6 +160,7 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     fuel = 100;
     maxFuel = 100;
     fuelDepleteRate = 8;
+    difficultyMult = 1;
     fuelCans = [];
     coinItems = [];
     spawnTimer = 0;
@@ -190,7 +208,7 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
 
     if (isGas && fuel > 0) {
       // apply force along terrain
-      const engineForce = 400 * speedMul;
+      const engineForce = 400 * speedMul * difficultyMult;
       car.vx += cosA * engineForce * dt;
       car.vy += sinA * engineForce * dt;
       fuel -= fuelDepleteRate * dt;
@@ -253,7 +271,7 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     const normalizedAngle = absAngle > Math.PI ? Math.PI * 2 - absAngle : absAngle;
 
     // speed cap
-    const maxSpeed = 500 * speedMul;
+    const maxSpeed = 500 * speedMul * difficultyMult;
     const currentSpeed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
     if (currentSpeed > maxSpeed) {
       car.vx = (car.vx / currentSpeed) * maxSpeed;
@@ -316,6 +334,7 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
         ci.collected = true;
         coins += 5;
         onCoins(5);
+        fx_burstAt(ci.x - cameraX, ci.y, '#FFE600', 5);
         if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
       }
       if (ci.x < cameraX - 200) { coinItems.splice(i, 1); continue; }
@@ -576,6 +595,7 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+    fx_shake(4);
     onGameOver(Math.floor(score), coins);
   }
 
@@ -593,6 +613,11 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+    },
     controls: { joystick: false, boost: true, action: false, drift: true }
   };
 }

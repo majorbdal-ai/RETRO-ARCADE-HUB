@@ -39,6 +39,10 @@ function waterSort(canvas, ctx, onScore, onGameOver, onCoins) {
   let keys = {};
   let tapX = -1, tapY = -1;
 
+  // difficulty ramp
+  let diffLevel = 0;
+  let moveLimit = 0; // 0 = unlimited; >0 = lose when moves exceed
+
   // ---- helpers ----
   function rect(x, y, w, h, color, glow) {
     ctx.shadowBlur = glow || 12;
@@ -164,6 +168,12 @@ function waterSort(canvas, ctx, onScore, onGameOver, onCoins) {
           gameOver();
         }
       }, 3000);
+    } else if (moveLimit > 0 && moves >= moveLimit) {
+      // Move limit exceeded — lose
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
+      score = Math.max(0, moves * 10);
+      onScore(score);
+      setTimeout(function() { if (!over) gameOver(); }, 800);
     }
   }
 
@@ -310,7 +320,7 @@ function waterSort(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.shadowColor = '#FFE600';
     ctx.fillStyle = '#FFE600';
     ctx.font = '14px monospace';
-    ctx.fillText('MOVES: ' + moves, W / 2, 58);
+    ctx.fillText('MOVES: ' + moves + (moveLimit > 0 ? ' / ' + moveLimit : ''), W / 2, 58);
     ctx.shadowBlur = 0;
 
     const positions = getBottlePositions();
@@ -507,6 +517,12 @@ function waterSort(canvas, ctx, onScore, onGameOver, onCoins) {
         keys.KeyU = false;
       }
     },
-    controls: { joystick: false, boost: false, action: true, drift: false }
+    controls: { joystick: false, boost: false, action: true, drift: false },
+    setDifficulty: function(level) {
+      var l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      diffLevel = l;
+      // Move limit imposed at higher difficulty — forces efficient solving
+      moveLimit = [0, 0, 25, 20, 16, 12][l];
+    }
   };
 }

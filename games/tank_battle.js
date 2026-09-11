@@ -37,7 +37,7 @@ function tankBattle(canvas, ctx, onScore, onGameOver, onCoins) {
   function startWave() {
     wave = wave + 1;
     spawnQueue = Math.min(2 + wave, 10);
-    spawnTimer = 0.4;
+    spawnTimer = 0.4 / diffMul;
     waveState = 'spawning';
     banner = 'WAVE ' + wave;
     bannerT = 1.4;
@@ -94,7 +94,7 @@ function tankBattle(canvas, ctx, onScore, onGameOver, onCoins) {
         else if (wave >= 2 && r < 0.5) type = 1;
         enemies.push(makeEnemy(type));
         spawnQueue = spawnQueue - 1;
-        spawnTimer = 0.7;
+        spawnTimer = 0.7 / diffMul;
       }
       if (spawnQueue <= 0 && enemies.length === 0) {
         waveState = 'clear';
@@ -426,5 +426,5 @@ function tankBattle(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
 
-  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput };
+  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput, setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; } };
 }

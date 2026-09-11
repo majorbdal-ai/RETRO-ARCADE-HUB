@@ -34,6 +34,7 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
 
   let enemySpeed = 100;
   let enemyFireRate = 2.0;
+  let difficultyMult = 1;   // v7.18 difficulty ramp
 
   let touches = { left: false, right: false, up: false, down: false };
   let keys = {};
@@ -76,6 +77,7 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
     boss = null; bossActive = false;
     pickups = [];
     enemySpeed = 100; enemyFireRate = 2.0;
+    difficultyMult = 1;
     P.x = W / 2 - 20; P.y = H - 70;
     particles = [];
   }
@@ -391,6 +393,13 @@ function cyberShooter(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+      enemySpeed = Math.min(350, 100 * difficultyMult + wave * 18);
+      enemyFireRate = Math.max(0.6, 2.0 * difficultyMult - wave * 0.1);
+    },
     controls: { joystick: true, boost: false, action: false, drift: false }
   };
 }

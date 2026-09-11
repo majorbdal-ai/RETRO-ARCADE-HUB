@@ -3,6 +3,22 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
   let raf = null, last = 0, running = false, over = false, score = 0, coins = 0;
   let keys = {}, touches = {};
 
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    const r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    const p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
+  }
+
   const CELL = 50;
   const BOARD_X = 150;
   const BOARD_Y = 25;
@@ -16,6 +32,8 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
   let aiThinking = 0;
   let gameStarted = false;
   let aiDelay = 0;
+  let aiDelayScale = 1.0; // multiplied with base delay (difficulty ramp)
+  let diffLevel = 0;
   let moveLog = [];
 
   const COLORS = {
@@ -127,6 +145,7 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
         onScore(score);
         board[cap.r][cap.c].piece = null;
         if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
+        fx_burstAt(BOARD_X + cap.c * CELL + CELL / 2, BOARD_Y + cap.r * CELL + CELL / 2, p.color === 'red' ? '#ff3366' : '#33ccff', 8);
       }
     }
     // Promotion
@@ -204,7 +223,7 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
       if (valid) {
         applyMove(selected.r, selected.c, row, col, valid.captures);
         selected = null;
-        if (currentPlayer === 'black') aiDelay = 0.5;
+        if (currentPlayer === 'black') aiDelay = 0.5 * aiDelayScale;
       } else {
         selected = null;
       }
@@ -224,7 +243,7 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
       aiDelay -= dt;
       if (aiDelay <= 0) {
         aiMove();
-        aiDelay = 0.5;
+        aiDelay = 0.5 * aiDelayScale;
       }
     }
 
@@ -261,7 +280,7 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
     applyMove(choice.r, choice.c, choice.move.r, choice.move.c, choice.move.captures);
     // If mustCapture chain, continue
     if (mustCapture) {
-      aiDelay = 0.2;
+      aiDelay = 0.2 * aiDelayScale;
     }
     if (currentPlayer !== 'red' && pieceCount.black > 0 && checkGameOver()) {
       gameOver();
@@ -279,6 +298,8 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
       score += 50;
       coins += 3;
       onScore(score);
+      fx_burstAt(W / 2, H / 2, '#FFD700', 12);
+      fx_shake(2);
     }
     if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
     onGameOver(score, coins);
@@ -385,5 +406,11 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
   function pause() { running = false; cancelAnimationFrame(raf); }
   function resume() { if (!over && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(loop); } }
   function destroy() { running = false; cancelAnimationFrame(raf); }
-  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; } };
+  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; },
+  setDifficulty: (level) => {
+    const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+    diffLevel = l;
+    // AI responds faster at higher difficulty
+    aiDelayScale = [1.0, 0.9, 0.75, 0.6, 0.45, 0.3][l];
+  } };
 }

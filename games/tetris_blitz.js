@@ -36,6 +36,7 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
   let nextPiece = null;
   let fallTimer = 0;
   let fallInterval = 0.8; // seconds per fall
+  let difficultyMult = 1;
   let level = 1;
   let linesCleared = 0;
   let lineClearAnim = 0; // rows being cleared (for flash)
@@ -64,6 +65,22 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
+  }
+
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    const r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    const p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
   }
 
   function reset() {
@@ -158,6 +175,14 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
       // chiptune sound: pop per line, win2 jingle for tetris
       if (typeof window.playSfx === 'function') { try { window.playSfx(cleared >= 4 ? 'win2' : 'pop'); } catch (e) {} }
       if (navigator.vibrate) { try { navigator.vibrate(cleared >= 4 ? 60 : 30); } catch (e) {} }
+      // visual juice
+      if (cleared >= 4) {
+        fx_shake(3);
+        fx_burstAt(W / 2, GRID_Y + GRID_H / 2, '#FFE600', 16);
+        fx_burstAt(W / 2, GRID_Y + GRID_H / 2, current && current.color ? current.color : '#00FFFF', 10);
+      } else {
+        fx_shake(1);
+      }
       // coin bonus for tetrises
       if (cleared >= 4) { coins += 50; onCoins(50); }
       else if (cleared >= 2) { coins += 10; onCoins(10); }
@@ -171,7 +196,7 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
       // level up every 10 lines
       level = Math.floor(linesCleared / 10) + 1;
       // increase speed with level
-      fallInterval = Math.max(0.05, 0.8 - (level - 1) * 0.07);
+      fallInterval = Math.max(0.05, (0.8 - (level - 1) * 0.07) / difficultyMult);
       lineClearAnim = 0.25;
     }
   }
@@ -502,6 +527,12 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+      fallInterval = 0.8 / difficultyMult;
+    },
     // which controls this game needs
     controls: { joystick: true, boost: false, action: true, drift: false }
   };

@@ -9,7 +9,8 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
   var streak = 0, maxStreak = 0; // consecutive hits without miss
   var muzzleFlash = 0; // muzzle flash timer
   var lastMilestone = 0; // track distance milestones for celebration
-  var hintTimer = 3; // control hint display
+  var hintTimer = 3;
+  var diffMul = 1;   // v7.18 difficulty ramp // control hint display
   var shakeTimer = 0, shakeIntensity = 0; // canvas shake
 
   // Safe SFX/haptic wrappers
@@ -52,7 +53,7 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
   function spawnDuck() {
     var cfg = getRoundConfig();
     var dir = Math.random() < 0.5 ? 1 : -1;
-    var baseSpeed = 60 + Math.random() * 40;
+    var baseSpeed = (60 + Math.random() * 40) * diffMul;
     var speed = baseSpeed * cfg.duckSpeed;
     var yPos = 40 + Math.random() * 200;
     var isFast = Math.random() < cfg.fastChance;
@@ -554,6 +555,7 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
         crosshair.x = Math.max(0, Math.min(W, crosshair.x + touches.moveX * 10));
         crosshair.y = Math.max(0, Math.min(H, crosshair.y + touches.moveY * 10));
       }
-    }
+    },
+    setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; }
   };
 }

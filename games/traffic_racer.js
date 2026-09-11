@@ -8,6 +8,7 @@ function trafficRacer(canvas, ctx, onScore, onGameOver, onCoins) {
   let targetLane = 1;
   let obstacles = [], fuelPacks = [], fuel = 100, roadOffset = 0;
   let scrollSpeed = 250, difficulty = 0, spawnTimer = 0, fuelTimer = 0;
+  let difficultyMult = 1;   // v7.18 difficulty ramp: layered on built-in score difficulty
 
   // --- NEW: particles, effects, near-miss tracking ---
   let particles = [], speedLines = [], shakeTimer = 0;
@@ -288,7 +289,7 @@ function trafficRacer(canvas, ctx, onScore, onGameOver, onCoins) {
 
     // Difficulty ramp
     difficulty = Math.min(score / 100, 1);
-    scrollSpeed = 250 + difficulty * 200;
+    scrollSpeed = (250 + difficulty * 200) * difficultyMult;
     levelDisplay = Math.floor(difficulty * 10) + 1;
 
     // Near-miss bonus timer decay
@@ -439,6 +440,11 @@ function trafficRacer(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
-    setInput: function(t, k) { touches = t || {}; keys = k || {}; }
+    setInput: function(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty: function(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+    }
   };
 }

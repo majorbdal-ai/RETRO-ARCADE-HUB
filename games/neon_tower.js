@@ -21,7 +21,7 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
   function reset() {
     over = false; overSent = false;
     score = 0; coins = 0; time = 0; shake = 0;
-    state = 'play'; blockWidth = 200; blockSpeed = 3; maxBlocks = 0; lives = 3;
+    state = 'play'; blockWidth = 200; blockSpeed = 3 * diffMul; maxBlocks = 0; lives = 3;
     blocks = [];
     // base block
     blocks.push({ x: W/2, y: H - 60, w: blockWidth, h: 30, color: COLORS[0] });
@@ -88,7 +88,7 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
 
     // Next block
     blockWidth = Math.max(40, newBlock.w * 0.92);
-    blockSpeed = Math.min(8, 3 + blocks.length * 0.05);
+    blockSpeed = Math.min(8, 3 + blocks.length * 0.05) * diffMul;
     currentBlock = {
       x: (Math.random() < 0.5 ? -1 : 1) * (W/2 + blockWidth/2),
       y: newBlock.y - 30,
@@ -276,5 +276,11 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
   function getHelp() { return 'TAP/SPACE TO DROP BLOCK · PERFECT STACK FOR COMBO · BUILDS TOWER'; }
 
-  return { start, pause, resume, destroy, setInput, getHelp };
+  // difficulty ramp (v7.18): extra block speed multiplier
+  let diffMul = 1;
+  function setDifficulty(level) {
+    diffMul = [1, 1.1, 1.25, 1.4, 1.6, 1.8][Math.min(5, level)] || 1;
+  }
+
+  return { start, pause, resume, destroy, setInput, getHelp, setDifficulty };
 }

@@ -48,6 +48,22 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
     beep(freq, dur);
   }
 
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    const r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    const p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
+  }
+
   // ---- helpers ----
   function cellRect(x, y, color, glow) {
     ctx.shadowBlur = glow || 8;
@@ -123,6 +139,7 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
       coins += 5;
       onCoins(5);
       sfx('coin', 880, 0.08);
+      fx_shake(1);
       growTimer += 1;
       stepInterval = Math.max(0.07, stepInterval - 0.003);
       spawnFood();
@@ -237,6 +254,7 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
     over = true; running = false;
     if (raf) cancelAnimationFrame(raf);
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+    fx_shake(5);
     onGameOver(Math.floor(score), coins);
   }
 
@@ -254,6 +272,11 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      stepInterval = 0.18 / m[l];
+    },
     // keypad arrows/swipe — no buttons needed (arrows on keyboard)
     controls: { joystick: false, boost: false, action: false, drift: false },
     onKey, onSwipe

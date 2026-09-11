@@ -26,6 +26,7 @@ function spaceMiner(canvas, ctx, onScore, onGameOver, onCoins) {
   let bossTimer = 0;
   let wave = 1;
   let asteroidsDestroyed = 0;
+  let difficultyMult = 1;   // v7.18 difficulty ramp
   
   function key(n) { return !!keys[n]; }
   function t(n) { return !!touches[n]; }
@@ -56,7 +57,7 @@ function spaceMiner(canvas, ctx, onScore, onGameOver, onCoins) {
         hp: size * (type === 'legendary' ? 3 : type === 'rare' ? 2 : 1),
         maxHp: size * (type === 'legendary' ? 3 : type === 'rare' ? 2 : 1),
         type: type,
-        speed: 30 + wave * 5 + Math.random() * 20,
+        speed: (30 + wave * 5 + Math.random() * 20) * difficultyMult,
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.02,
         value: Math.floor(size / 2) * (type === 'legendary' ? 10 : type === 'rare' ? 5 : 1),
@@ -685,6 +686,11 @@ function spaceMiner(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
   function getHelp() { return 'MOVE: ARROWS/WASD · MINE: HOLD SPACE/E · COLLECT MINERALS · UPGRADE SHIP · DEFEAT BOSSES'; }
+  function setDifficulty(level) {
+    const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+    const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+    difficultyMult = m[l];
+  }
   
-  return { start, pause, resume, destroy, setInput, getHelp };
+  return { start, pause, resume, destroy, setInput, getHelp, setDifficulty };
 }

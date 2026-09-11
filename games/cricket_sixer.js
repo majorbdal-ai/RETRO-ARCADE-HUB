@@ -30,7 +30,8 @@ function cricketSixer(canvas, ctx, onScore, onGameOver, onCoins) {
   let lastResult = '';
   let resultTimer = 0;
   let timingBar = 0;
-  let timingSpeed = 2;
+  let diffMul = 1;   // v7.18 difficulty ramp
+  let timingSpeed = 2 * diffMul;
   let level = 1;
   let laneOffset = 0;
   let deliveries = [];
@@ -362,5 +363,5 @@ function cricketSixer(canvas, ctx, onScore, onGameOver, onCoins) {
   function pause() { running = false; cancelAnimationFrame(raf); }
   function resume() { if (!over && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(loop); } }
   function destroy() { running = false; cancelAnimationFrame(raf); }
-  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; } };
+  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; }, setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; } };
 }

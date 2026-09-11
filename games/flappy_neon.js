@@ -22,7 +22,7 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
   let pipeInterval = 1.8; // seconds between pipes
   let pipeGap = 130; // vertical gap
   const PIPE_W = 56;
-  const PIPE_SPEED = 160;
+  let pipeSpeed = 160;
 
   // coins between pipes
   let coinDrops = [];
@@ -61,6 +61,22 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.shadowBlur = 0;
   }
 
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    const r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    const p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
+  }
+
   function reset() {
     score = 0; coins = 0; over = false;
     BIRD.y = H / 2;
@@ -70,6 +86,7 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
     pipeTimer = 0;
     pipeInterval = 1.8;
     pipeGap = 130;
+    pipeSpeed = 160;
     trail = [];
     pipesPassed = 0;
     speedMul = 1;
@@ -160,7 +177,7 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
     }
 
     // move pipes
-    const spd = PIPE_SPEED * speedMul;
+    const spd = pipeSpeed * speedMul;
     for (const p of pipes) {
       p.x -= spd * dt;
     }
@@ -176,6 +193,7 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
         p.passed = true;
         score++;
         onScore(score);
+        fx_burstAt(BIRD.x + BIRD.w / 2, BIRD.y + BIRD.h / 2, '#00FFFF', 6);
         if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} } // v7.15 pipe ding
       }
     }
@@ -391,6 +409,7 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
     running = false;
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+    fx_shake(4);
     onGameOver(Math.floor(score), coins);
   }
 
@@ -408,6 +427,13 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      pipeSpeed = 160 * m[l];
+      pipeInterval = 1.8 / m[l];
+      pipeGap = Math.max(95, 130 - l * 4);
+    },
     // which controls this game needs
     controls: { joystick: false, boost: false, action: true, drift: false }
   };

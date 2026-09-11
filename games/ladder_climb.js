@@ -3,7 +3,7 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
   let raf = null, last = 0, running = false, over = false, overSent = false;
   let score = 0, coins = 0, keys = {}, touches = {};
   let time = 0, climber = null, holds = [], speed = 0, state = 'play';
-  let hand = 0, combo = 0;
+  let hand = 0, combo = 0, diffMul = 1;
 
   function key(n) { return !!keys[n]; }
   function t(n) { return !!touches[n]; }
@@ -129,7 +129,7 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
       return;
     }
 
-    speed = 90 + score * 1.2;
+    speed = (90 + score * 1.2) * diffMul;
     render();
   }
 
@@ -247,5 +247,5 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
 
-  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput };
+  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput, setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; } };
 }

@@ -58,6 +58,8 @@ function ludoKing(canvas, ctx, onScore, onGameOver, onCoins) {
   let pendingMoves = [];
   let moveAnim = null;
   let switchT = 0, botTimer = 0;
+  let botDelayScale = 1.0; // multiplied with base delay (difficulty ramp)
+  let diffLevel = 0;
   let msg = '', msgT = 0, msgColor = '#FFFFFF';
   let flash = [];
   let actEdge = false, tapPt = null, kp = {};
@@ -180,7 +182,7 @@ function ludoKing(canvas, ctx, onScore, onGameOver, onCoins) {
     if (rollValue === 6) {
       flashMsg('EXTRA TURN!', '#39FF88');
       phase = 'roll';
-      if (turn === 'blue') botTimer = 0.8;
+      if (turn === 'blue') botTimer = 0.8 * botDelayScale;
     } else {
       switchTurn();
     }
@@ -190,7 +192,7 @@ function ludoKing(canvas, ctx, onScore, onGameOver, onCoins) {
     turn = turn === 'red' ? 'blue' : 'red';
     pendingMoves = [];
     phase = 'roll';
-    if (turn === 'blue') { botTimer = 0.7; flashMsg('BOT TURN', '#FF10F0'); }
+    if (turn === 'blue') { botTimer = 0.7 * botDelayScale; flashMsg('BOT TURN', '#FF10F0'); }
     else flashMsg('YOUR TURN', '#FF4444');
   }
 
@@ -513,6 +515,12 @@ function ludoKing(canvas, ctx, onScore, onGameOver, onCoins) {
       }
     },
     // which controls this game needs
-    controls: { joystick: false, boost: false, action: true, drift: false }
+    controls: { joystick: false, boost: false, action: true, drift: false },
+    setDifficulty: function(level) {
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      diffLevel = l;
+      // Bot delay multiplier: at level 5 bot thinks at ~30% of normal time
+      botDelayScale = [1.0, 0.85, 0.7, 0.55, 0.4, 0.3][l];
+    }
   };
 }

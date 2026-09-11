@@ -2,6 +2,7 @@ function neonJumper(canvas, ctx, onScore, onGameOver, onCoins) {
   'use strict';
   var W = 800, H = 450;
   var G = 1500, JUMP = 830, PR = 13;
+  var diffMul = 1;
   var raf = null, last = 0, running = false, over = false;
   var keys = {}, touches = {};
   var score = 0, coins = 0;
@@ -427,6 +428,7 @@ function neonJumper(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
-    setInput: function (t, k) { touches = t || {}; keys = k || {}; }
+    setInput: function (t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; }
   };
 }

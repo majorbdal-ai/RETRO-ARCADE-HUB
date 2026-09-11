@@ -12,8 +12,26 @@ function nonogram(canvas, ctx, onScore, onGameOver, onCoins) {
   var board = []; // 0=empty, 1=filled, 2=marked X
   var selectedRow = -1, selectedCol = -1;
   var timer = 0;
+  var penaltyTime = 0;
+  var diffLevel = 0;
   var message = 'NONOGRAM — Tap = fill, Hold = mark X';
   var msgTimer = 3;
+
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    var r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    var p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
+  }
 
   // Pre-made 10x10 puzzles
   var puzzles = [
@@ -102,7 +120,7 @@ function nonogram(canvas, ctx, onScore, onGameOver, onCoins) {
   var clues = { rowClues: [], colClues: [] };
 
   function reset() {
-    score = 0; coins = 0; timer = 0;
+    score = 0; coins = 0; timer = 0; penaltyTime = 0;
     selectedRow = -1; selectedCol = -1;
     var p = puzzles[Math.floor(Math.random() * puzzles.length)];
     solution = p.solution;
@@ -137,6 +155,16 @@ function nonogram(canvas, ctx, onScore, onGameOver, onCoins) {
       board[r][c] = board[r][c] === 1 ? 0 : 1;
     }
     if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
+    // Row / column complete detection — burst at the completed line
+    if (!mark && board[r][c] === 1) {
+      var rowDone = true, colDone = true;
+      for (var i = 0; i < SIZE; i++) {
+        if (solution[r][i] === 1 && board[r][i] !== 1) rowDone = false;
+        if (solution[i][c] === 1 && board[i][c] !== 1) colDone = false;
+      }
+      if (rowDone) fx_burstAt(offsetX + SIZE * cellSize / 2, offsetY + r * cellSize + cellSize / 2, '#0ff', 8);
+      if (colDone) fx_burstAt(offsetX + c * cellSize + cellSize / 2, offsetY + SIZE * cellSize / 2, '#0ff', 8);
+    }
     // Check win
     if (checkWin()) {
       over = true;
@@ -145,6 +173,7 @@ function nonogram(canvas, ctx, onScore, onGameOver, onCoins) {
       coins = Math.floor(score / 100);
       onScore(score);
       if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+      fx_burstAt(W / 2, H / 2, '#0f0', 12);
       onGameOver(score, coins);
     }
   }
@@ -164,7 +193,7 @@ function nonogram(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function update(dt) {
     if (over) return;
-    timer += dt;
+    timer += dt + penaltyTime * dt;
     if (msgTimer > 0) msgTimer -= dt;
 
     // Mouse/touch click
@@ -416,6 +445,12 @@ function nonogram(canvas, ctx, onScore, onGameOver, onCoins) {
     setInput: function(t, k) {
       touches = t || {};
       keys = k || {};
+    },
+    setDifficulty: function(level) {
+      var l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      diffLevel = l;
+      // timer pressure: harder levels accelerate the clock
+      penaltyTime = [0, 0.1, 0.2, 0.35, 0.5, 0.7][l];
     }
   };
 }

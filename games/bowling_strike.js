@@ -5,6 +5,7 @@ function bowlingStrike(canvas, ctx, onScore, onGameOver, onCoins) {
   let pins = [], ball = null, phase = 'aim', frame = 1, roll = 1, frameScore = 0;
   let totalScore = 0, throwing = false, settleTimer = 0, throwTime = 0;
   let powerX = W / 2, powerDir = 1, powerSpeed = 240;
+  let diffMul = 1;   // v7.18 difficulty ramp
   let laneEndY = H - 60, pinStartY = 60, pinSpacing = 30;
   let sweepTimer = 0, messageTimer = 0, message = '';
   let pressed = false, pressEdge = false;
@@ -117,7 +118,7 @@ function bowlingStrike(canvas, ctx, onScore, onGameOver, onCoins) {
     pressed = held;
 
     if (phase === 'aim') {
-      powerX += powerDir * powerSpeed * dt;
+      powerX += powerDir * powerSpeed * diffMul * dt;
       if (powerX > LANE_R - 30) { powerDir = -1; powerX = LANE_R - 30; }
       if (powerX < LANE_L + 30) { powerDir = 1; powerX = LANE_L + 30; }
       if (pressEdge) bowlBall();
@@ -368,5 +369,5 @@ function bowlingStrike(canvas, ctx, onScore, onGameOver, onCoins) {
   function resume() { if (!over && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(loop); } }
   function destroy() { running = false; cancelAnimationFrame(raf); }
 
-  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; } };
+  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; }, setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; } };
 }

@@ -8,6 +8,7 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
   let gravity = 1200;   // px/s²
   let flipGravity = false;
   let speed = 300;      // world scroll speed
+  let difficultyMult = 1;   // v7.18 difficulty ramp
   let obstacles = [];
   let stars = [];
   let portals = [];
@@ -133,7 +134,7 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
     callScore();
 
     // speed ramp
-    speed = Math.min(650, 300 + distance * 0.02);
+    speed = Math.min(650, (300 + distance * 0.02) * difficultyMult);
 
     // gravity
     player.vy += (flipGravity ? -1 : 1) * gravity * dt;
@@ -394,6 +395,11 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
   function getHelp() { return 'TAP/SPACE TO THRUST · FLIP GRAVITY THROUGH PORTALS · DODGE OBSTACLES'; }
+  function setDifficulty(level) {
+    const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+    const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+    difficultyMult = m[l];
+  }
 
-  return { start, pause, resume, destroy, setInput, getHelp };
+  return { start, pause, resume, destroy, setInput, getHelp, setDifficulty };
 }

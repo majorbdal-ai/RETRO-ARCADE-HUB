@@ -3,12 +3,30 @@ function mineSweeper(canvas, ctx, onScore, onGameOver, onCoins) {
   let raf = null, last = 0, running = false, over = false, score = 0, coins = 0;
   let keys = {}, touches = {};
   let gameOverSent = false;
+
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    const r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    const p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
+  }
   const ROWS = 9, COLS = 9, MINES = 10;
   const CELL = 40, PAD_X = (W - COLS * CELL) / 2, PAD_Y = (H - ROWS * CELL) / 2 + 10;
   let grid = [], revealed = [], flagged = [], gameOver = false, gameWon = false;
   let firstClick = true, flagCount = 0;
   let mouseX = -1, mouseY = -1, mouseDown = false;
   let holdTimer = 0, holdThreshold = 0.4, isHolding = false;
+  let diffLevel = 0;
+  let timePenalty = 0; // fake "time pressure" added to elapsed score cost (difficulty ramp)
 
   function reset() {
     over = false; gameOverSent = false; score = 0; coins = 0;
@@ -132,6 +150,9 @@ function mineSweeper(canvas, ctx, onScore, onGameOver, onCoins) {
       revealAll();
       if (navigator.vibrate) { try { navigator.vibrate([80, 30, 120]); } catch (e) {} }
       if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
+      fx_shake(6);
+      fx_burstAt(PAD_X + c * CELL + CELL / 2, PAD_Y + r * CELL + CELL / 2, '#ff0044', 10);
+      fx_burstAt(PAD_X + c * CELL + CELL / 2, PAD_Y + r * CELL + CELL / 2, '#FFE600', 8);
       if (!gameOverSent) {
         gameOverSent = true;
         over = true;
@@ -146,9 +167,10 @@ function mineSweeper(canvas, ctx, onScore, onGameOver, onCoins) {
     if (checkWin()) {
       gameWon = true;
       coins += 50;
-      score += MINES * 5;
+      score += Math.max(10, MINES * 5 - Math.floor(timePenalty * 50));
       onScore(score);
       if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+      fx_burstAt(W / 2, H / 2, '#00ff88', 10);
       revealAll();
       if (!gameOverSent) {
         gameOverSent = true;
@@ -342,6 +364,16 @@ function mineSweeper(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
-    setInput: function(t, k) { touches = t || {}; keys = k || {}; }
+    setInput: function(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty: function(level) {
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      diffLevel = l;
+      // No countdown timer in this engine — apply pressure two ways:
+      //  1) flag threshold shrinks → long-press flagging is snappier but
+      //     mis-taps reveal faster (same hold window logic, just shorter)
+      holdThreshold = Math.max(0.22, 0.4 - l * 0.03);
+      //  2) tiny score reduction on win (time-pressure feel)
+      timePenalty = [0, 0.1, 0.2, 0.3, 0.4, 0.5][l];
+    }
   };
 }

@@ -6,6 +6,8 @@ function flowFree(canvas, ctx, onScore, onGameOver, onCoins) {
   var raf = null, last = 0, running = false, over = false;
   var keys = {}, touches = {};
   var score = 0, coins = 0, level = 1;
+  var levelSkip = 0; // bonus levels advanced on completion (difficulty ramp)
+  var diffLevel = 0;
   var docks = [], used = [], locks = [], owner = [], path = [], active = -1;
   var time = 0, prevDirs = {}, prevAct = false, prevSpace = false;
 
@@ -83,7 +85,7 @@ function flowFree(canvas, ctx, onScore, onGameOver, onCoins) {
     if (onScore) onScore(score);
     var nc = Math.floor(score / 200);
     if (nc !== coins) { coins = nc; if (onCoins) onCoins(coins); }
-    level++;
+    level += 1 + levelSkip;
     if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
     if (level > LEVELS.length) {
       over = true;
@@ -316,6 +318,12 @@ function flowFree(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
-    setInput: function (t, k) { touches = t || {}; keys = k || {}; }
+    setInput: function (t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty: function(level) {
+      var l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      diffLevel = l;
+      // Higher difficulty skips ahead through levels faster
+      levelSkip = [0, 0, 1, 1, 2, 2][l];
+    }
   };
 }

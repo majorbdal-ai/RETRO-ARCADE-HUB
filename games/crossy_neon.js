@@ -112,7 +112,7 @@ function crossyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
       const row = rows[i];
       for (let j = 0; j < row.vehicles.length; j++) {
         const v = row.vehicles[j];
-        v.x += v.speed * dt;
+        v.x += v.speed * speedMul * dt;
         if (v.speed > 0 && v.x > W + 80) v.x = -v.w - 40;
         if (v.speed < 0 && v.x + v.w < -80) v.x = W + 40;
       }
@@ -317,6 +317,11 @@ function crossyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
   function resume() { if (!over && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(loop); } }
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
+  // difficulty ramp (v7.18): speed multiplier applied to all vehicles
+  let speedMul = 1;
+  function setDifficulty(level) {
+    speedMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1;
+  }
 
-  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput };
+  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput, setDifficulty: setDifficulty };
 }

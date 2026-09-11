@@ -1,9 +1,10 @@
 function soccerPenalty(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
   let raf = null, last = 0, running = false, over = false, score = 0, coins = 0;
+  let diffMul = 1;   // v7.18 difficulty ramp
   let keys = {}, touches = {};
   let ball = { x: 180, y: 300, vx: 0, vy: 0, r: 12, active: false };
-  let goalie = { x: 400, y: 200, w: 50, h: 70, target: 400, speed: 180 };
+  let goalie = { x: 400, y: 200, w: 50, h: 70, target: 400, speed: 180 * diffMul };
   let goal = { x: 290, y: 90, w: 220, h: 160 };
   let shots = 0;
   let maxShots = 5;
@@ -45,7 +46,7 @@ function soccerPenalty(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function reset() {
     ball = { x: 180, y: 300, vx: 0, vy: 0, r: 12, active: false };
-    goalie = { x: 400, y: 200, w: 50, h: 70, target: 400, speed: 180 };
+    goalie = { x: 400, y: 200, w: 50, h: 70, target: 400, speed: 180 * diffMul };
     shots = 0;
     score = 0;
     coins = 0;
@@ -575,6 +576,7 @@ function soccerPenalty(canvas, ctx, onScore, onGameOver, onCoins) {
     pause,
     resume,
     destroy,
-    setInput: (t, k) => { touches = t; keys = k; }
+    setInput: (t, k) => { touches = t; keys = k; },
+    setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; }
   };
 }

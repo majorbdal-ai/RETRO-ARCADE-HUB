@@ -15,8 +15,26 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
   var cellsFilled = 0;
   var totalGivens = 0;
   var timer = 0;
+  var penaltyTime = 0; // extra seconds added to timer on level-up (difficulty ramp)
+  var diffLevel = 0;
   var message = '';
   var msgTimer = 0;
+
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    var r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    var p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
+  }
 
   // Simple puzzle generator (pre-made patterns)
   var puzzles = [
@@ -77,7 +95,7 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function reset() {
     score = 0; coins = 0; hintsLeft = 3; mistakes = 0;
-    timer = 0; selectedCell = -1;
+    timer = 0; penaltyTime = 0; selectedCell = -1;
     message = 'SUDOKU — Tap cell, then tap number 1-9';
     msgTimer = 3;
     generatePuzzle();
@@ -121,6 +139,7 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
       message = '✓ Correct! +' + pts;
       msgTimer = 1;
       if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
+      fx_burstAt(offsetX + c * cellSize + cellSize / 2, offsetY + r * cellSize + cellSize / 2, '#00ff66', 6);
 
       // Check win
       if (cellsFilled === 81) {
@@ -130,6 +149,8 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
         coins += 10;
         onScore(score);
         if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+        fx_burstAt(W / 2, H / 2, '#00ff66', 12);
+        fx_shake(2);
         onGameOver(score, coins);
       }
     } else {
@@ -213,7 +234,7 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function update(dt) {
     if (over) return;
-    timer += dt;
+    timer += dt + penaltyTime * dt;
     if (msgTimer > 0) msgTimer -= dt;
 
     // Keyboard input
@@ -458,6 +479,14 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
     setInput: function(t, k) {
       touches = t || {};
       keys = k || {};
+    },
+    setDifficulty: function(level) {
+      var l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      diffLevel = l;
+      // timer pressure: harder levels make the clock tick faster
+      penaltyTime = [0, 0.08, 0.16, 0.25, 0.35, 0.5][l];
+      // and reduce available hints
+      hintsLeft = Math.max(0, 3 - Math.floor(l / 2));
     }
   };
 }

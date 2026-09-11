@@ -24,8 +24,9 @@ function archeryMaster(canvas, ctx, onScore, onGameOver, onCoins) {
     arrow = null;
   }
 
+  var diffMul = 1;   // v7.18 difficulty ramp
   function newWind() {
-    wind = (Math.random() - 0.5) * 120;
+    wind = (Math.random() - 0.5) * 120 * diffMul;
   }
 
   function shoot() {
@@ -374,6 +375,7 @@ function archeryMaster(canvas, ctx, onScore, onGameOver, onCoins) {
     setInput: function(t, k) {
       touches = t || {};
       keys = k || {};
-    }
+    },
+    setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; }
   };
 }

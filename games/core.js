@@ -1053,6 +1053,21 @@ function bootGame(id, engine) {
   if (typeof currentGame.setInput === 'function') currentGame.setInput(gameState.touches, gameState.keys);
   currentGame.start();
 
+  // ---- v7.18 difficulty ramp: universal hook ----
+  // Every 15s of play, call engine.setDifficulty(level) if exposed (0..5).
+  // Engines that don't implement it skip silently; progressive engines speed up built-in.
+  clearInterval(window._diffTimer);
+  window._diffLevel = 0;
+  window._diffTimer = setInterval(() => {
+    if (!gameState.running || gameState.paused || gameState.over) return;
+    window._diffLevel = Math.min(5, window._diffLevel + 1);
+    if (typeof currentGame.setDifficulty === 'function') {
+      try { currentGame.setDifficulty(window._diffLevel); } catch (e) {}
+      // subtle ramp feedback: haptic pulse on each level-up
+      if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+    }
+  }, 15000);
+
   // wire keyboard
   window.addEventListener('keydown', keyDown);
   window.addEventListener('keyup', keyUp);
@@ -1067,6 +1082,7 @@ function bootGame(id, engine) {
 function endGame(score, coinsEarned) {
   gameState.over = true;
   gameState.running = false;
+  clearInterval(window._diffTimer);   // stop difficulty ramp on game end
   stopTilt(); // B1 [010]: clean up tilt on game over
   gameState.score = score;
   gameState.coinsEarned = coinsEarned || 0;
@@ -1330,6 +1346,7 @@ function reviveGame() {
 
 // ---- exit to hub ----
 function exitToHub() {
+  clearInterval(window._diffTimer);   // stop difficulty ramp timer on exit
   unbindGameTouch();
   stopTilt(); // B1 [010]: clean up tilt listener
   lockGameScroll(false);

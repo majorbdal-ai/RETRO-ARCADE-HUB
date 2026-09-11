@@ -6,6 +6,8 @@ function connectFour(canvas, ctx, onScore, onGameOver, onCoins) {
   const BX = 100, BY = 60, CS = 52;
   const NULL = 0, PLAYER = 1, BOT = 2;
   const BOT_THINK = 0.65;
+  let botThinkMul = 1.0; // multiplied with BOT_THINK (difficulty ramp)
+  let diffLevel = 0;
   let board = [], playerTurn = true, winner = 0, winCells = [];
   let botTimer = BOT_THINK, dropAnim = null, msg = '', msgTimer = 0;
   let curCol = 3, pressed = false, pressEdge = false, gameEndSent = false;
@@ -16,7 +18,7 @@ function connectFour(canvas, ctx, onScore, onGameOver, onCoins) {
     playerTurn = true;
     winner = 0;
     winCells = [];
-    botTimer = BOT_THINK;
+    botTimer = BOT_THINK * botThinkMul;
     dropAnim = null;
     msg = '';
     msgTimer = 0;
@@ -195,7 +197,7 @@ function connectFour(canvas, ctx, onScore, onGameOver, onCoins) {
       }
       if (pressEdge && board[0][curCol] === NULL) {
         playerTurn = false;
-        botTimer = BOT_THINK;
+        botTimer = BOT_THINK * botThinkMul;
         placeDisc(curCol, PLAYER);
       }
     }
@@ -334,5 +336,11 @@ function connectFour(canvas, ctx, onScore, onGameOver, onCoins) {
   function resume() { if (!over && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(loop); } }
   function destroy() { running = false; cancelAnimationFrame(raf); }
 
-  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; } };
+  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; },
+  setDifficulty: (level) => {
+    const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+    diffLevel = l;
+    // Bot reacts faster at higher difficulty
+    botThinkMul = [1.0, 0.85, 0.7, 0.55, 0.4, 0.25][l];
+  } };
 }

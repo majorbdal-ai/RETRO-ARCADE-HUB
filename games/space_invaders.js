@@ -48,6 +48,7 @@ function spaceInvaders(canvas, ctx, onScore, onGameOver, onCoins) {
 
   // difficulty
   let alienSpeedMul = 1;
+  let difficultyMult = 1;
 
   // stars background
   let stars = [];
@@ -78,6 +79,22 @@ function spaceInvaders(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
+  }
+
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    const r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    const p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
   }
 
   function reset() {
@@ -181,15 +198,15 @@ function spaceInvaders(canvas, ctx, onScore, onGameOver, onCoins) {
     if (wave % 5 === 0) {
       // boss wave: spawn boss, no regular aliens
       spawnBoss();
-      alienFireRate = Math.max(0.4, 1.5 - wave * 0.05);
+      alienFireRate = Math.max(0.4, (1.5 - wave * 0.05) * difficultyMult);
     } else {
       spawnAliens();
       alienDir = 1;
       alienMoveTimer = 0;
       // difficulty scaling
-      alienMoveInterval = Math.max(0.15, 0.6 - wave * 0.04);
-      alienFireRate = Math.max(0.4, 1.5 - wave * 0.05);
-      alienSpeedMul = 1 + wave * 0.1;
+      alienMoveInterval = Math.max(0.15, (0.6 - wave * 0.04) / difficultyMult);
+      alienFireRate = Math.max(0.4, (1.5 - wave * 0.05) * difficultyMult);
+      alienSpeedMul = (1 + wave * 0.1) * difficultyMult;
     }
   }
 
@@ -348,6 +365,7 @@ function spaceInvaders(canvas, ctx, onScore, onGameOver, onCoins) {
           score += a.score;
           onScore(score);
           if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} } // v7.15 alien down
+          fx_burstAt(a.x + a.w / 2, a.y + a.h / 2, a.color, 6);
           spawnExplosion(a.x + a.w / 2, a.y + a.h / 2, a.color);
           // coin drop
           if (Math.random() < 0.15) {
@@ -362,6 +380,7 @@ function spaceInvaders(canvas, ctx, onScore, onGameOver, onCoins) {
     // check if wave cleared
     if (!bossActive && aliens.length === 0 && wave > 0 && waveDelay <= 0) {
       waveDelay = 2.0;
+      fx_burstAt(W / 2, H / 3, '#FFD700', 12);
     }
 
     // bullet-boss collision
@@ -723,6 +742,7 @@ function spaceInvaders(canvas, ctx, onScore, onGameOver, onCoins) {
     running = false;
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+    fx_shake(5);
     onGameOver(Math.floor(score), coins);
   }
 
@@ -740,6 +760,14 @@ function spaceInvaders(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+      alienSpeedMul = difficultyMult;
+      alienMoveInterval = 0.6 / difficultyMult;
+      alienFireRate = 1.5 * difficultyMult;
+    },
     // which controls this game needs
     controls: { joystick: true, boost: false, action: false, drift: false }
   };

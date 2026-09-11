@@ -22,6 +22,7 @@ function fruitSlash(canvas, ctx, onScore, onGameOver, onCoins) {
   let timeLeft = GAME_TIME;
   let spawnTimer = 0;
   let difficulty = 1;
+  let difficultyMult = 1;   // v7.18 difficulty ramp
 
   // fruits
   const FRUIT_COLORS = ['#FF10F0', '#00FFFF', '#39FF88', '#FFE600', '#FF6644'];
@@ -232,6 +233,7 @@ function fruitSlash(canvas, ctx, onScore, onGameOver, onCoins) {
     timeLeft = GAME_TIME;
     spawnTimer = 0;
     difficulty = 1;
+    difficultyMult = 1;
     fruits = [];
     slashTrails = [];
     splashes = [];
@@ -271,7 +273,7 @@ function fruitSlash(canvas, ctx, onScore, onGameOver, onCoins) {
     spawnTimer -= dt;
     if (spawnTimer <= 0) {
       spawnFruit();
-      spawnTimer = Math.max(0.3, FRUIT_INTERVAL - difficulty * 0.03);
+      spawnTimer = Math.max(0.3, (FRUIT_INTERVAL - difficulty * 0.03) / difficultyMult);
       bombChance = Math.min(0.25, 0.12 + difficulty * 0.005);
     }
 
@@ -692,6 +694,11 @@ function fruitSlash(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); detachEvents(); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+    },
     controls: { joystick: false, boost: false, action: false, drift: false }
   };
 }

@@ -29,6 +29,7 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
   let obstaclesTimer = 0;
   let speed = 260;
   const SPEED_UP = 8;
+  let difficultyMult = 1;   // v7.18 difficulty ramp
 
   // monkey trailing
   let monkeyX = -60, monkeyY = GROUND_Y - 40;
@@ -54,6 +55,22 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.shadowBlur = 0;
   }
 
+  // ==== VISUAL JUICE (gameFX) — discrete events only ====
+  function fx_toScreen(gx, gy) {
+    const r = canvas.getBoundingClientRect();
+    return { x: r.left + r.width * (gx / W), y: r.top + r.height * (gy / H) };
+  }
+  function fx_shake(intensity) {
+    if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} }
+  }
+  function fx_burst(x, y, color, count) {
+    if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} }
+  }
+  function fx_burstAt(gx, gy, color, count) {
+    const p = fx_toScreen(gx, gy);
+    fx_burst(p.x, p.y, color, count);
+  }
+
   function reset() {
     score = 0; coins = 0; over = false;
     player.x = LANE_X[1]; player.y = GROUND_Y; player.lane = 1;
@@ -61,6 +78,7 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
     player.jetpack = 0;
     obstacles = []; coinsList = []; obstaclesTimer = 0;
     speed = 260;
+    difficultyMult = 1;
     monkeyX = -60;
     swipeStart = null;
   }
@@ -109,7 +127,7 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
     if (over || !running) return;
 
     // difficulty
-    speed = Math.min(560, speed + SPEED_UP * dt);
+    speed = Math.min(560 * difficultyMult, speed + SPEED_UP * dt);
     score += Math.floor(speed * dt * 0.1);
     onScore(score);
 
@@ -353,6 +371,7 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+    fx_shake(4);
     onGameOver(Math.floor(score), coins);
   }
 
@@ -370,6 +389,11 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
+    setDifficulty(level) {
+      const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
+    },
     // swipe controls only — bind via canvas pointer events
     controls: { joystick: false, boost: false, action: false, drift: false },
     swipe

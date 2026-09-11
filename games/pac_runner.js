@@ -26,6 +26,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
   const GHOST_COLORS = ['#FF10F0', '#00FFFF', '#FF8800', '#FF4444'];
   let ghosts = [];
   const GHOST_SPEED = 120;
+  let ghostDiff = 1;
   let ghostMode = 'chase'; // 'chase', 'frightened', 'eaten'
   let frightTimer = 0;
   const FRIGHT_DURATION = 5;
@@ -162,7 +163,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
       const center = getCellCenter(gs.col, gs.row);
       ghosts.push({
         col: gs.col, row: gs.row, x: center.x, y: center.y,
-        dir: 'left', targetDir: 'left', speed: GHOST_SPEED + level * 10,
+        dir: 'left', targetDir: 'left', speed: (GHOST_SPEED + level * 10) * ghostDiff,
         color: gs.color, mode: 'chase', eaten: false, respawnTimer: 0
       });
     }
@@ -393,7 +394,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
     g.col = 9; g.row = 4; g.x = center.x; g.y = center.y;
     g.eaten = false;
     g.mode = ghostMode;
-    g.speed = GHOST_SPEED + level * 10;
+    g.speed = (GHOST_SPEED + level * 10) * ghostDiff;
     g.dir = 'left'; g.targetDir = 'left';
   }
 
@@ -422,7 +423,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
         g.col = sp.col; g.row = sp.row; g.x = sc.x; g.y = sc.y;
         g.eaten = false;
         g.mode = 'chase';
-        g.speed = GHOST_SPEED + level * 10;
+        g.speed = (GHOST_SPEED + level * 10) * ghostDiff;
         g.dir = 'left'; g.targetDir = 'left';
       }
     }
@@ -451,7 +452,7 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
         g.col = sp.col; g.row = sp.row; g.x = sc.x; g.y = sc.y;
         g.eaten = false;
         g.mode = 'chase';
-        g.speed = GHOST_SPEED + level * 15;
+        g.speed = (GHOST_SPEED + level * 15) * ghostDiff;
         g.dir = 'left'; g.targetDir = 'left';
       }
     }
@@ -675,6 +676,10 @@ function pacRunner(canvas, ctx, onScore, onGameOver, onCoins) {
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },
-    controls: { joystick: false, boost: false, action: false, drift: false }
+    controls: { joystick: false, boost: false, action: false, drift: false },
+    setDifficulty(lvl) {
+      const m = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, lvl)] || 1;
+      ghostDiff = m;   // ghost speed multiplier (applied per-respawn)
+    }
   };
 }

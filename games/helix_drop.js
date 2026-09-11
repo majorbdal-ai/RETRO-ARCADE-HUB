@@ -271,5 +271,10 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
   function pause() { running = false; cancelAnimationFrame(raf); }
   function resume() { if (!over && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(loop); } }
   function destroy() { running = false; cancelAnimationFrame(raf); }
-  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; } };
+  return { start, pause, resume, destroy, setInput: (t, k) => { touches = t; keys = k; },
+    setDifficulty: function(level) {
+      const m = [1, 1.2, 1.45, 1.75, 2.1, 2.5][Math.min(5, level)] || 1;
+      targetFallSpeed = m;
+    }
+  };
 }

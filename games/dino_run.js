@@ -9,6 +9,7 @@ function dinoRun(canvas, ctx, onScore, onGameOver, onCoins) {
   var obstacles = [];
   var spawnTimer = 0, spawnInterval = 1.8;
   var speed = 250;
+  var difficultyMult = 1;
   var distance = 0;
   var frameCount = 0;
   var highScore = 0;
@@ -54,14 +55,13 @@ function dinoRun(canvas, ctx, onScore, onGameOver, onCoins) {
     onScore(score);
 
     // Speed increases over time
-    speed = 250 + distance * 0.02;
-    if (speed > 600) speed = 600;
+    speed = Math.min(600, 250 + distance * 0.02) * difficultyMult;
 
     // Spawn
     spawnTimer -= dt;
     if (spawnTimer <= 0) {
       spawnObstacle();
-      spawnTimer = Math.max(0.6, spawnInterval - distance * 0.0002);
+      spawnTimer = Math.max(0.6, spawnInterval - distance * 0.0002) / difficultyMult;
     }
 
     // Jump
@@ -143,6 +143,8 @@ function dinoRun(canvas, ctx, onScore, onGameOver, onCoins) {
   function endGame() {
     over = true;
     if (score > highScore) highScore = score;
+    if (window.gameFX) { try { window.gameFX.shake(5); } catch (e) {} }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(score, coins);
   }
 
@@ -359,6 +361,11 @@ function dinoRun(canvas, ctx, onScore, onGameOver, onCoins) {
     setInput: function(t, k) {
       touches = t || {};
       keys = k || {};
+    },
+    setDifficulty: function(level) {
+      var m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+      var l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+      difficultyMult = m[l];
     }
   };
 }

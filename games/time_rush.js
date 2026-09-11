@@ -15,6 +15,7 @@ function timeRush(canvas, ctx, onScore, onGameOver, onCoins) {
   let player = { x: 100, y: H/2, vy: 0, r: 15, rot: 0 };
   let gravity = 900;
   let speed = 320;
+  let difficultyMult = 1;   // v7.18 difficulty ramp
   let obstacles = [];
   let stars = [];
   let distance = 0;
@@ -148,7 +149,7 @@ function timeRush(canvas, ctx, onScore, onGameOver, onCoins) {
     distance += speed * dt;
     score = Math.floor(distance / 10);
     callScore();
-    speed = Math.min(600, 320 + distance * 0.02);
+    speed = Math.min(600, (320 + distance * 0.02) * difficultyMult);
 
     player.vy += gravity * dt;
     player.y += player.vy * dt;
@@ -385,6 +386,11 @@ function timeRush(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
   function getHelp() { return 'TAP/SPACE TO JUMP · HOLD ↓/Z TO REWIND TIME · DODGE OBSTACLES'; }
+  function setDifficulty(level) {
+    const m = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+    const l = Math.max(0, Math.min(5, Math.floor(level) || 0));
+    difficultyMult = m[l];
+  }
 
-  return { start, pause, resume, destroy, setInput, getHelp };
+  return { start, pause, resume, destroy, setInput, getHelp, setDifficulty };
 }
