@@ -1,5 +1,5 @@
 {
-  "version": "7.16.0",
+  "version": "7.16.1",
   "games": 70,
   "build": "2026-09-11",
   "features": [
@@ -78,6 +78,7 @@
     "sound-7-iconic-games",
     "simon-hold-pads",
     "sfx-15-keys-unified",
-    "pause-inside-ui"
+    "pause-inside-ui",
+    "nokia-trio-sfx"
   ]
 }

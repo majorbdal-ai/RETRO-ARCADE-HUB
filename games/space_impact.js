@@ -497,8 +497,10 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
       waveDelay -= dt;
       if (waveDelay <= 0) {
         lives--;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
         if (lives <= 0) {
           phase = 'gameOver';
+          if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
           return;
         }
         player.x = 80;
@@ -552,6 +554,10 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
           w: 10, h: 3
         });
         shootTimer = SHOOT_COOLDOWN;
+        // every other shot: compact laser blip (anti-spam, low gain)
+        if (typeof window.sfxTone === 'function' && Math.floor(performance.now() / 360) % 2 === 0) {
+          try { window.sfxTone(880 + Math.random() * 120, 0.05, 'square', 0.045); } catch (e) {}
+        }
       }
     }
 
@@ -580,6 +586,7 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
       if (allSpawned && enemies.length === 0) {
         waveNum++;
         startWave();
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       }
     }
 
@@ -658,6 +665,7 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
         spawnParticles(e.x + e.w / 2, e.y + e.h / 2, e.color, 15);
         score += ALIEN_TYPES[e.type] ? ALIEN_TYPES[e.type].pts : 10;
         spawnPickup(e.x, e.y, ALIEN_TYPES[e.type] ? ALIEN_TYPES[e.type].coin : 10);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
         enemies.splice(i, 1);
       }
     }
@@ -671,6 +679,7 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
           e.hp--;
           bullets.splice(bi, 1);
           spawnParticles(b.x, b.y, '#fff', 4);
+          if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
           break;
         }
       }
@@ -713,6 +722,7 @@ window.engines.space_impact = function(canvas, ctx, W, H, input, state) {
       if (rectsOverlap(pk, player)) {
         coins += pk.value;
         score += pk.value;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
         pickups.splice(i, 1);
       }
     }

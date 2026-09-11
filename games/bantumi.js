@@ -116,6 +116,7 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
     sowLast = pos;
     sowIdx++;
     const c = pitXY(pos);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
     spawnBurst(c.x, c.y, sowPlayer === 0 ? C_GREEN : C_CYAN, 2);
     return true;
   }
@@ -124,6 +125,7 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
     const p = sowPlayer;
     // Extra turn?
     if ((p === 0 && sowLast === 6) || (p === 1 && sowLast === 13)) {
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       phase = p === 0 ? 'playerTurn' : 'aiThink';
       if (p === 1) { aiTimer = 0; }
       return;
@@ -137,6 +139,7 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
         const cp1 = pitXY(sowLast), cp2 = pitXY(opp);
         spawnBurst(cp1.x, cp1.y, C_GOLD, 10);
         spawnBurst(cp2.x, cp2.y, C_GOLD, 10);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
         board[sowLast] = 0;
         board[opp] = 0;
       }
@@ -151,10 +154,15 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
   function finishGame() {
     cleanupBoard();
     const ps = board[6], ais = board[13];
-    if (ps > ais)      { winner = 0; score = ps; }
-    else if (ais > ps) { winner = 1; score = ps; }
-    else               { winner = 2; score = ps; }
+    if (ps > ais)      { winner = 0; score = ps; if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} } }
+    else if (ais > ps) { winner = 1; score = ps; if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} } }
+    else               { winner = 2; score = ps; if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} } }
     phase = 'over';
+    // report score to core once (core's endGame hooks: XP/missions/stars)
+    if (typeof window.endGame === 'function' && !window._bantumiReported) {
+      window._bantumiReported = true;
+      window.endGame(score, 0);
+    }
   }
 
   // ── AI (Medium) ──
@@ -242,10 +250,16 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
 
   // ── Click handling ──
   function handleClick(x, y) {
-    if (phase === 'title' || phase === 'over') { launchGame(); return; }
+    if (phase === 'title' || phase === 'over') {
+      if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
+      launchGame(); return;
+    }
     if (phase !== 'playerTurn') return;
     const pit = hitPit(x, y);
-    if (pit >= 0 && board[pit] > 0) sow(pit);
+    if (pit >= 0 && board[pit] > 0) {
+      if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
+      sow(pit);
+    }
   }
 
   // ── Canvas events ──
@@ -514,6 +528,7 @@ window.engines.bantumi = function(canvas, ctx, W, H, input, state) {
     score = 0; winner = -1; overSent = false;
     particles = [];
     hoverPit = -1;
+    window._bantumiReported = false;   // allow endGame report for this run
   }
 
   // ── Public API ──

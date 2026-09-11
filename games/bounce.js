@@ -195,6 +195,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
     ball.vy = Math.sin(angle) * ball.speed;
     ball.active = true;
     ball.stuck = false;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('jump'); } catch (e) {} }
   }
 
   function initLevel(lvl) {
@@ -260,6 +261,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
       ball.y = paddle.y - ball.radius - 1;
       paddle.glow = 1;
       spawnParticles(ball.x, ball.y, '#00FF88', 4);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       return true;
     }
     return false;
@@ -299,11 +301,14 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
         comboCount++;
         comboTimer = 2;
         spawnBrickParticles(brick.x, brick.y, brick.w, brick.h, brick.color);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
         if (Math.random() < 0.12) {
           spawnCoinDrop(brick.x + brick.w / 2, brick.y + brick.h / 2);
+          if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
         }
       } else {
         spawnParticles(cx, cy, brick.color, 3);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       }
 
       ball.speed = Math.min(ball.speed + 2, 550);
@@ -455,6 +460,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
       shakeTimer = 0.3;
       shakeIntensity = 6;
       spawnParticles(ball.x, H, '#FF3B3B', 15);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       return;
     }
 
@@ -467,6 +473,7 @@ window.engines.bounce = function(canvas, ctx, W, H, input, state) {
         if (checkLevelComplete()) {
           phase = 'levelComplete';
           score += level * 500;
+          if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
           var colors = ['#FF3B3B', '#00FF88', '#FFFF00', '#00B0FF', '#FF4081'];
           for (let j = 0; j < 40; j++) {
             spawnParticles(W / 2, H / 2, colors[Math.floor(rand(0, 5))], 1);
