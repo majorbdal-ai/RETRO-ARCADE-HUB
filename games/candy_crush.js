@@ -690,6 +690,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
     update() {/* handled internally */},
     render() { render(); },
     pause() { running = false; if (raf) cancelAnimationFrame(raf); },
+    destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) {

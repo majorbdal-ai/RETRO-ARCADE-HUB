@@ -329,6 +329,7 @@ function neonRacer(canvas, ctx, onScore, onGameOver, onCoins) {
       raf = requestAnimationFrame(loop);
     },
     pause() { running = false; if (raf) cancelAnimationFrame(raf); },
+    destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     resume() { if (over || running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); },
     destroy() { running = false; if (raf) cancelAnimationFrame(raf); },
     setInput(t, k) { touches = t || {}; keys = k || {}; },

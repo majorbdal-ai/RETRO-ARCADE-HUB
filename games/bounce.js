@@ -846,7 +846,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
   }
 
   // ── Public API ──
-  return { start: start, update: update, draw: draw, pause: pause, resume: resume, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput: (t, k) => { input.touches = t || {}; input.keys = k || {}; } };
+  function destroyGame() { try { cancelAnimationFrame(raf); } catch(e){} } return { start: start, update: update, draw: draw, pause: pause, resume: resume, destroy: destroyGame, setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }, setInput: (t, k) => { input.touches = t || {}; input.keys = k || {}; } };
 };
 
 // core.js compatibility: expose as window.bounce

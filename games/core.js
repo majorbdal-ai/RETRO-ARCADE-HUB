@@ -898,6 +898,7 @@ window.gameFX = {
     setTimeout(() => wrap.classList.remove('fx-shake'), dur);
   },
   burst(x, y, color, count = 8) {
+    count = Math.min(20, Math.max(0, count | 0)); // [MASTER] perf: hard cap 20 dom particles
     for (let i = 0; i < count; i++) {
       const el = document.createElement('div');
       el.className = 'fx-particle';
@@ -1080,6 +1081,8 @@ function bootGame(id, engine) {
 
 // ---- end game ---- (spring score pop + theme accent on overlay)
 function endGame(score, coinsEarned) {
+  // [MASTER] double-submit guard: an engine calling onGameOver twice must not double-award
+  if (gameState.over) return;
   gameState.over = true;
   gameState.running = false;
   clearInterval(window._diffTimer);   // stop difficulty ramp on game end
