@@ -508,8 +508,13 @@ function pressed(control, isDown, ev) {
   if (ev && ev.preventDefault) ev.preventDefault();
   gameState.touches[control] = isDown;
   if (isDown) {
+    // own-press priority: a virtual button's own press beats any stale shared swipe/DPad mapping
+    gameState.touchOwn = gameState.touchOwn || {};
+    gameState.touchOwn[control] = true;
     if (navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
     if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
+  } else {
+    if (gameState.touchOwn) gameState.touchOwn[control] = false;
   }
   // touch ripple — visual press feedback on the control (throttled)
   const now = Date.now();
@@ -673,6 +678,15 @@ function drawControls(gameId) {
   else if (type === 'tap') {
     html += `<div class="ctrl-spacer"></div>`;
     html += `<div class="ctrl-tap-area" id="ctrlTap" onclick="pressed('action',true,event);setTimeout(()=>pressed('action',false,event),80)"><i class="fa-solid fa-hand-pointer"></i><span>TAP</span></div>`;
+  }
+  // Simon: 4 hold-to-press pads (WATCH seq → HOLD the matching pad + RELEASE)
+  else if (type === 'simon') {
+    html += `<div class="ctrl-simon" id="ctrlSimon">` +
+      `<button class="ctrl-btn simon-pad simon-g" ontouchstart="pressed('up',true,event)" ontouchend="pressed('up',false,event)" ontouchcancel="pressed('up',false,event)" onmousedown="pressed('up',true,event)" onmouseup="pressed('up',false,event)" onmouseleave="pressed('up',false,event)"><i class="fa-solid fa-square"></i>GREEN</button>` +
+      `<button class="ctrl-btn simon-pad simon-r" ontouchstart="pressed('right',true,event)" ontouchend="pressed('right',false,event)" ontouchcancel="pressed('right',false,event)" onmousedown="pressed('right',true,event)" onmouseup="pressed('right',false,event)" onmouseleave="pressed('right',false,event)"><i class="fa-solid fa-square"></i>RED</button>` +
+      `<button class="ctrl-btn simon-pad simon-y" ontouchstart="pressed('left',true,event)" ontouchend="pressed('left',false,event)" ontouchcancel="pressed('left',false,event)" onmousedown="pressed('left',true,event)" onmouseup="pressed('left',false,event)" onmouseleave="pressed('left',false,event)"><i class="fa-solid fa-square"></i>YELLOW</button>` +
+      `<button class="ctrl-btn simon-pad simon-b" ontouchstart="pressed('down',true,event)" ontouchend="pressed('down',false,event)" ontouchcancel="pressed('down',false,event)" onmousedown="pressed('down',true,event)" onmouseup="pressed('down',false,event)" onmouseleave="pressed('down',false,event)"><i class="fa-solid fa-square"></i>BLUE</button>` +
+      `</div>`;
   } else {
     html += `<div class="ctrl-spacer"></div>`;
   }

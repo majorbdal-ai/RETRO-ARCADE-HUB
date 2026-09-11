@@ -1,5 +1,5 @@
 {
-  "version": "7.15.0",
+  "version": "7.15.1",
   "games": 70,
   "build": "2026-09-11",
   "features": [
@@ -75,6 +75,7 @@
     "achievements-v8",
     "revive-stat",
     "sfx-engine-webaudio",
-    "sound-7-iconic-games"
+    "sound-7-iconic-games",
+    "simon-hold-pads"
   ]
 }

@@ -71,7 +71,7 @@ const CONTROL_LAYOUT = {
   'mine-sweeper':    { type: 'tap',        hint: 'TAP REVEAL · HOLD TO FLAG' },
   'sudoku':          { type: 'tap',        hint: 'TAP CELL · TAP NUMBER' },
   'mastermind':      { type: 'tap',        hint: 'TAP 4 COLORS · AUTO CHECK' },
-  'simon-says':      { type: 'tap',        hint: 'WATCH · REPEAT THE SEQUENCE' },
+  'simon-says':      { type: 'simon',      hint: 'WATCH · HOLD + RELEASE THE PADS' },
   'tic-tac-toe':     { type: 'radial',     hint: 'RADIAL A/B/X/Y · TAP TO PLACE X' },
   'connect-four':    { type: 'tap',        hint: 'TAP COLUMN TO DROP DISC' },
   'checkers':        { type: 'tap',        hint: 'TAP PIECE · TAP DESTINATION' },
