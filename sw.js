@@ -11,6 +11,7 @@ const STATIC_CORE = [
   './version.json',
   './manifest.webmanifest',
   './assets/logos.js',
+  './games/sfx.js',
   './games/core.js',
   './games/controls.js',
   './robots.txt',

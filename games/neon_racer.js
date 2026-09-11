@@ -159,6 +159,7 @@ function neonRacer(canvas, ctx, onScore, onGameOver, onCoins) {
 
     // boost handling
     if (touches.boost || keys.KeyB || keys.Space) {
+      if (P.boostTime <= 0 && typeof window.playSfx === 'function') { try { window.playSfx('boost'); } catch (e) {} } // v7.15
       P.boostTime = 3; // hold for 3s boost
     } else {
       P.boostTime = Math.max(0, P.boostTime - dt);

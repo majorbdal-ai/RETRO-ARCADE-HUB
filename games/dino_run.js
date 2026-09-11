@@ -70,6 +70,7 @@ function dinoRun(canvas, ctx, onScore, onGameOver, onCoins) {
       dino.grounded = false;
       touches.action = false;
       keys.Space = false;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('flap'); } catch (e) {} } // v7.15 jump
     }
 
     // Slide (hold down)

@@ -80,6 +80,10 @@ function pianoTiles(canvas, ctx, onScore, onGameOver, onCoins) {
       const tx = best.lane * LANE_W + best.w / 2;
       const ty = Math.min(best.y + best.h, HIT_LINE);
       burst(tx, ty, '#ff00ff', 10);
+      // piano note — pitch rises with combo (v7.15)
+      if (typeof window.sfxTone === 'function') {
+        try { window.sfxTone(392 + Math.min(12, combo) * 40, 0.09, 'triangle', 0.16); } catch (e) {}
+      }
       // perfect if close to hit line
       const distToLine = Math.abs(best.y + best.h - HIT_LINE);
       if (distToLine < 40) perfectCount++;

@@ -73,6 +73,8 @@
     "soundtrack-music",
     "sound-persist-mute",
     "achievements-v8",
-    "revive-stat"
+    "revive-stat",
+    "sfx-engine-webaudio",
+    "sound-7-iconic-games"
   ]
 }

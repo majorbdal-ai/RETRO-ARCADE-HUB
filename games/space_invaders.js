@@ -238,6 +238,7 @@ function spaceInvaders(canvas, ctx, onScore, onGameOver, onCoins) {
     if (P.fireTimer <= 0) {
       bullets.push({ x: P.x + P.w / 2 - 3, y: P.y - 8, w: 6, h: 14, speed: 500 });
       P.fireTimer = BULLET_INTERVAL;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} } // v7.15
     }
 
     // move player bullets
@@ -346,6 +347,7 @@ function spaceInvaders(canvas, ctx, onScore, onGameOver, onCoins) {
           bullets.splice(bi, 1);
           score += a.score;
           onScore(score);
+          if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} } // v7.15 alien down
           spawnExplosion(a.x + a.w / 2, a.y + a.h / 2, a.color);
           // coin drop
           if (Math.random() < 0.15) {

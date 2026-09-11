@@ -142,6 +142,7 @@ function neonSnake(canvas, ctx, onScore, onGameOver, onCoins) {
       level = newLevel;
       levelUpTimer = 2.0;
       spawnScorePopup(W / 2, H / 2 - 40, 'LEVEL ' + level + '!', '#00ffff');
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} } // v7.15
       vibrate([30, 20, 30, 20, 60]);
     }
   }
@@ -228,6 +229,7 @@ function neonSnake(canvas, ctx, onScore, onGameOver, onCoins) {
         onCoins(3);
         spawnParticles(cx, cy, '#ff00ff', 25, 160);
         spawnScorePopup(cx, cy, '+3 BONUS!', '#ff00ff');
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} } // v7.15
         vibrate([30, 15, 30, 15, 50]);
       } else {
         score = snake.length;
@@ -236,6 +238,7 @@ function neonSnake(canvas, ctx, onScore, onGameOver, onCoins) {
         onCoins(1);
         spawnParticles(cx, cy, '#FFE600', 12, 100);
         spawnScorePopup(cx, cy, '+' + snake.length, '#FFE600');
+        if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} } // v7.15
         vibrate(20);
       }
 

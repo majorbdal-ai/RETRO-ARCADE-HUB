@@ -80,6 +80,7 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
   function flap() {
     if (over || !running) return;
     BIRD.vy = FLAP_FORCE;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('flap'); } catch (e) {} } // v7.15 sound
   }
 
   function spawnPipe() {
@@ -175,6 +176,7 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
         p.passed = true;
         score++;
         onScore(score);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} } // v7.15 pipe ding
       }
     }
 
@@ -206,6 +208,7 @@ function flappyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
         c.taken = true;
         coins += 25;
         onCoins(25);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} } // v7.15 pickup
       }
     }
 

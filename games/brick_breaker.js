@@ -205,6 +205,7 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
         b.vy = Math.sin(angle) * speed;
         // ensure going up
         if (b.vy > -50) b.vy = -50;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} } // v7.15 paddle tap
       }
 
       // brick collisions
@@ -231,6 +232,7 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
             br.alive = false;
             score += br.points;
             onScore(score);
+            if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} } // v7.15 brick break
             spawnParticles(br.x + br.w / 2, br.y + br.h / 2, br.color, 8);
 
             // coin drop: 10% chance
