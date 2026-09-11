@@ -112,6 +112,7 @@ function mineSweeper(canvas, ctx, onScore, onGameOver, onCoins) {
     flagCount += flagged[r][c] ? 1 : -1;
     score = Math.max(0, score);
     onScore(score);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
   }
 
   function handleClick(r, c) {
@@ -129,6 +130,8 @@ function mineSweeper(canvas, ctx, onScore, onGameOver, onCoins) {
       // Hit a mine
       gameOver = true;
       revealAll();
+      if (navigator.vibrate) { try { navigator.vibrate([80, 30, 120]); } catch (e) {} }
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       if (!gameOverSent) {
         gameOverSent = true;
         over = true;
@@ -137,6 +140,7 @@ function mineSweeper(canvas, ctx, onScore, onGameOver, onCoins) {
       return;
     }
 
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
     revealCell(r, c);
 
     if (checkWin()) {
@@ -144,6 +148,7 @@ function mineSweeper(canvas, ctx, onScore, onGameOver, onCoins) {
       coins += 50;
       score += MINES * 5;
       onScore(score);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       revealAll();
       if (!gameOverSent) {
         gameOverSent = true;

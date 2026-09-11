@@ -136,6 +136,7 @@ function nonogram(canvas, ctx, onScore, onGameOver, onCoins) {
       // Fill
       board[r][c] = board[r][c] === 1 ? 0 : 1;
     }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
     // Check win
     if (checkWin()) {
       over = true;
@@ -143,6 +144,7 @@ function nonogram(canvas, ctx, onScore, onGameOver, onCoins) {
       if (score < 100) score = 100;
       coins = Math.floor(score / 100);
       onScore(score);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       onGameOver(score, coins);
     }
   }

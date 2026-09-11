@@ -159,6 +159,7 @@ function tripleSort(canvas, ctx, onScore, onGameOver, onCoins) {
         score += 50;
         onScore(score);
         matched = true;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
         // Don't increment i since items shifted
         continue;
       }
@@ -456,6 +457,7 @@ function tripleSort(canvas, ctx, onScore, onGameOver, onCoins) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       try { navigator.vibrate(200); } catch (e) {}
     }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

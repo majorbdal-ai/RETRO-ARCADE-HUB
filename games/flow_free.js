@@ -84,6 +84,7 @@ function flowFree(canvas, ctx, onScore, onGameOver, onCoins) {
     var nc = Math.floor(score / 200);
     if (nc !== coins) { coins = nc; if (onCoins) onCoins(coins); }
     level++;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
     if (level > LEVELS.length) {
       over = true;
       if (onGameOver) onGameOver(score, coins);
@@ -116,6 +117,7 @@ function flowFree(canvas, ctx, onScore, onGameOver, onCoins) {
         }
         locks[nr][nc] = active;
         path = [];
+        if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
         var nx = nextUnfinished(active);
         if (nx === -1) levelComplete();
         else active = nx;

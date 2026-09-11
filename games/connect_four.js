@@ -69,6 +69,7 @@ function connectFour(canvas, ctx, onScore, onGameOver, onCoins) {
     const r = dropRow(col);
     if (r === null) return false;
     board[r][col] = player;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
     dropAnim = { r, c: col, y: BY - 20, targetY: rowY(r), player };
     const w = hasWon(player, board);
     if (w) {
@@ -137,13 +138,16 @@ function connectFour(canvas, ctx, onScore, onGameOver, onCoins) {
       coins += 20;
       onScore(score);
       msg = 'YOU WIN!';
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
     } else if (winner === BOT) {
       msg = 'BOT WINS';
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     } else {
       score += 25;
       coins += 5;
       onScore(score);
       msg = 'DRAW';
+      if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
     }
     msgTimer = 2;
     onGameOver(score, coins);

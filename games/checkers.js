@@ -126,6 +126,7 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
         if (p.king) score += 5;
         onScore(score);
         board[cap.r][cap.c].piece = null;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
       }
     }
     // Promotion
@@ -133,6 +134,7 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
     if (piece.color === 'black' && toR === 7) piece.king = true;
     board[toR][toC].piece = piece;
     lastMove = { fromR, fromC, toR, toC };
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
 
     if (captures.length > 0) {
       // Check for chain capture
@@ -278,6 +280,7 @@ function checkers(canvas, ctx, onScore, onGameOver, onCoins) {
       coins += 3;
       onScore(score);
     }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
     onGameOver(score, coins);
   }
 

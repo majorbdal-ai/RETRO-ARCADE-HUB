@@ -155,6 +155,8 @@ function wordSearch(canvas, ctx, onScore, onGameOver, onCoins) {
       coins += 5;
       foundFlash = { cells: cells.slice(), timer: 1.2 };
       onScore(score);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate(60); } catch (e) {} }
       if (foundWords.length >= words.length) {
         setTimeout(() => {
           if (!finished) {
@@ -172,6 +174,7 @@ function wordSearch(canvas, ctx, onScore, onGameOver, onCoins) {
     timer -= dt;
     if (timer <= 0) {
       over = true;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
       onGameOver(score, coins);
       return;
     }

@@ -1,5 +1,5 @@
 {
-  "version": "7.16.4",
+  "version": "7.17.0",
   "games": 70,
   "build": "2026-09-11",
   "features": [
@@ -85,6 +85,7 @@
     "strict-mode-frame-fix",
     "sfx-batch-10-popular-games",
     "daily-bonus-7day",
-    "sfx-batch-10-action-sports"
+    "sfx-batch-10-action-sports",
+    "sfx-batch-10-puzzle-board"
   ]
 }

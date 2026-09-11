@@ -130,6 +130,7 @@ function waterSort(canvas, ctx, onScore, onGameOver, onCoins) {
     const fromColor = bottles[fromIdx].pop();
     bottles[toIdx].push(fromColor);
     moves++;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
 
     // pour animation
     pourAnim = { fromIdx, toIdx, t: 0, color: COLORS[fromColor] };
@@ -138,6 +139,8 @@ function waterSort(canvas, ctx, onScore, onGameOver, onCoins) {
       won = true;
       score = moves * 100;
       onScore(score);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate([60, 30, 60]); } catch (e) {} }
       // spawn confetti
       for (let i = 0; i < 80; i++) {
         confetti.push({
@@ -475,6 +478,7 @@ function waterSort(canvas, ctx, onScore, onGameOver, onCoins) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       try { navigator.vibrate(200); } catch (e) {}
     }
+    if (won && typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

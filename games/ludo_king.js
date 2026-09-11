@@ -114,7 +114,7 @@ function ludoKing(canvas, ctx, onScore, onGameOver, onCoins) {
     return res;
   }
 
-  function doRoll(v) { rollValue = v; diceAnim = 0.6; phase = 'dice'; }
+  function doRoll(v) { rollValue = v; diceAnim = 0.6; phase = 'dice'; if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} } }
 
   function finalizeRoll() {
     const mvs = validMoves(turn, rollValue);
@@ -142,12 +142,14 @@ function ludoKing(canvas, ctx, onScore, onGameOver, onCoins) {
   function finishMove() {
     const m = moveAnim.m, tk = moveAnim.tk;
     moveAnim = null;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
     tk.x = m.result.done ? doneSpot(turn, players[turn].homeCount).x : (m.result.state === 'track' ? TRACK[m.result.cell].x : (turn === 'red' ? RED_HOME[m.result.cell].x : BLUE_HOME[m.result.cell].x));
     tk.y = m.result.done ? doneSpot(turn, players[turn].homeCount).y : (m.result.state === 'track' ? TRACK[m.result.cell].y : (turn === 'red' ? RED_HOME[m.result.cell].y : BLUE_HOME[m.result.cell].y));
     if (m.result.done) {
       tk.done = true; tk.state = 'home'; tk.cell = HOME_LEN;
       players[turn].homeCount++;
       if (turn === 'red') { updateScore(); flashMsg('TOKEN HOME!', '#FFE600'); }
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       if (players[turn].homeCount === 4) { endGame(); return; }
     } else {
       tk.state = m.result.state; tk.cell = m.result.cell;
@@ -166,6 +168,8 @@ function ludoKing(canvas, ctx, onScore, onGameOver, onCoins) {
         if (captured > 0) {
           players[turn].captures += captured;
           if (turn === 'red') { coins += 10 * captured; onCoins(10 * captured); updateScore(); flashMsg('CAPTURE! +' + captured * 100, '#FFE600'); }
+          if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
+          if (navigator.vibrate) { try { navigator.vibrate(60); } catch (e) {} }
         }
       }
     }

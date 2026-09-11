@@ -120,6 +120,7 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
       onScore(score);
       message = '✓ Correct! +' + pts;
       msgTimer = 1;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
 
       // Check win
       if (cellsFilled === 81) {
@@ -128,6 +129,7 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
         score += timeBonus;
         coins += 10;
         onScore(score);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
         onGameOver(score, coins);
       }
     } else {
@@ -136,6 +138,7 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
       onScore(score);
       message = '✗ Wrong! (mistakes: ' + mistakes + ')';
       msgTimer = 1;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     }
   }
 
@@ -161,6 +164,7 @@ function sudoku(canvas, ctx, onScore, onGameOver, onCoins) {
     selectedCell = cell[0] * 9 + cell[1];
     if (cellsFilled === 81) {
       over = true;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       onGameOver(score, coins);
     }
   }
