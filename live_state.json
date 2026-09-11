@@ -1,28 +1,28 @@
 {
-  "rot": 12,
-  "updated": "2026-09-11T15:48:43.474Z",
+  "rot": 13,
+  "updated": "2026-09-11T20:24:02.628Z",
   "featured": [
-    "light-cycle",
     "tank-battle",
     "bubble-shooter",
     "neon-dash",
     "sling-birds",
-    "cricket-sixer"
+    "cricket-sixer",
+    "neon-racer"
   ],
   "deal": {
-    "item": "skin-dragon",
-    "name": "DRAGON SKIN",
-    "pct": 20
+    "item": "skin-cyber",
+    "name": "NEON PHANTOM",
+    "pct": 25
   },
-  "challenge": "pinball",
+  "challenge": "crossy-neon",
   "botBoost": [
-    1.44,
-    1.67,
-    1.8,
-    1.03,
-    1.26,
-    1.49,
-    1.62,
-    1.85
+    1.61,
+    1.84,
+    1.07,
+    1.2,
+    1.43,
+    1.66,
+    1.89,
+    1.02
   ]
 }
