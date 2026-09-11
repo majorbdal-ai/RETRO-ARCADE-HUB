@@ -19,6 +19,7 @@ function game2048(canvas, ctx, onScore, onGameOver, onCoins) {
   let grid = [];
   let prevGrid = null;
   let prevScore = 0;
+  let milestone2048 = false;
 
   // tile color map by value
   const TILE_COLORS = {
@@ -109,6 +110,7 @@ function game2048(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function reset() {
     score = 0; coins = 0; over = false;
+    milestone2048 = false;
     grid = emptyGrid();
     prevGrid = null;
     prevScore = 0;
@@ -188,11 +190,24 @@ function game2048(canvas, ctx, onScore, onGameOver, onCoins) {
     }
 
     if (moved) {
+      if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       score += totalScore;
       onScore(score);
       if (totalScore > 0) {
+        if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
         coins += Math.floor(totalScore / 100);
         onCoins(Math.floor(totalScore / 100));
+      }
+      // check for 2048 milestone (once)
+      if (!milestone2048) {
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            if (grid[r][c] >= 2048) {
+              milestone2048 = true;
+              if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+            }
+          }
+        }
       }
       addRandomTile();
       if (!hasMoves()) {
@@ -437,6 +452,7 @@ function game2048(canvas, ctx, onScore, onGameOver, onCoins) {
   function gameOver() {
     over = true;
     running = false;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
     onGameOver(Math.floor(score), coins);

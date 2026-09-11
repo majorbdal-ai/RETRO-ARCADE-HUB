@@ -44,6 +44,7 @@ function trashSorter(canvas, ctx, onScore, onGameOver, onCoins) {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
     callScore();
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
 
@@ -52,6 +53,7 @@ function trashSorter(canvas, ctx, onScore, onGameOver, onCoins) {
     const correct = item.bin === i;
     const bx = bins[i].x;
     const dx = Math.abs(item.x - bx);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
     // bin within reach
     if (dx > 170) {
       life--; combo = 0; shake = 0.2;
@@ -65,6 +67,10 @@ function trashSorter(canvas, ctx, onScore, onGameOver, onCoins) {
       bins[i].fill += 1;
       coins++; callCoins();
       if (typeof onCoins === 'function') onCoins(coins);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
+      if (combo >= 3) {
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+      }
       // spring score pop at the bin (canvas → screen coords)
       try {
         const c = document.getElementById('gameCanvas');
@@ -77,6 +83,7 @@ function trashSorter(canvas, ctx, onScore, onGameOver, onCoins) {
       nextIn = 0.25;
     } else {
       life--; combo = 0; shake = 0.3;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       if (life <= 0) { die(); return; }
     }
   }

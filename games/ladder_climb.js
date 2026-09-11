@@ -30,6 +30,7 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
   function die() {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     callScore();
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
@@ -68,9 +69,11 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
           target.grabbed = true;
           hand = (hand + 1) % 2;
           combo++;
+          if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
           const pts = 5 + (combo >= 4 ? 3 : 0);
           score += pts; callScore();
           coins++; callCoins();
+          if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
           // spring score pop at the hold (canvas → screen coords)
           try {
             const c = document.getElementById('gameCanvas');
@@ -81,6 +84,7 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
         } else {
           // too far — miss
           combo = 0;
+          if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
           lifeLoss();
         }
       }
@@ -120,6 +124,7 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     }
     if (nextHold && nextHold.y > climber.y) {
       // missed the hold — fall / game over
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       die();
       return;
     }

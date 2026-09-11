@@ -265,6 +265,7 @@ function pixelDungeon(canvas, ctx, onScore, onGameOver, onCoins) {
       P.attackTimer = 0.2;
       P.attackCooldown = 0.35;
       P.attackDir = P.facing;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
       // calculate sword hitbox
       updateSwordHit();
       // check enemies hit by sword
@@ -277,6 +278,8 @@ function pixelDungeon(canvas, ctx, onScore, onGameOver, onCoins) {
           if (e.hp <= 0) {
             score += 50;
             onScore(score);
+            if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
+            if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e){} }
             spawnParticles(e.x + e.w / 2, e.y + e.h / 2, e.color, 10);
             enemies.splice(enemies.indexOf(e), 1);
           }
@@ -322,6 +325,7 @@ function pixelDungeon(canvas, ctx, onScore, onGameOver, onCoins) {
       if (P.invincible <= 0 && boxOverlap(P, { x: e.x, y: e.y, w: e.w, h: e.h })) {
         P.hp -= 1;
         P.invincible = 0.8;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
         spawnParticles(P.x + P.w / 2, P.y + P.h / 2, '#FF4444', 6);
         if (P.hp <= 0) {
           gameOver();
@@ -338,6 +342,7 @@ function pixelDungeon(canvas, ctx, onScore, onGameOver, onCoins) {
         hasKey = true;
         score += 100;
         onScore(score);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
         spawnParticles(keyPos.x, keyPos.y, '#39FF88', 15);
       }
     }
@@ -353,6 +358,8 @@ function pixelDungeon(canvas, ctx, onScore, onGameOver, onCoins) {
         onScore(score);
         coins += 50;
         onCoins(50);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+        if (navigator.vibrate) { try { navigator.vibrate(200); } catch(e){} }
         spawnParticles(chestPos.x, chestPos.y, '#FFE600', 20);
       }
     }
@@ -615,6 +622,7 @@ function pixelDungeon(canvas, ctx, onScore, onGameOver, onCoins) {
     over = true;
     running = false;
     if (raf) cancelAnimationFrame(raf);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }

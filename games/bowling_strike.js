@@ -65,6 +65,7 @@ function bowlingStrike(canvas, ctx, onScore, onGameOver, onCoins) {
     phase = 'roll';
     settleTimer = 0;
     throwTime = 0;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
   }
 
   function resolveCollisions() {
@@ -75,6 +76,7 @@ function bowlingStrike(canvas, ctx, onScore, onGameOver, onCoins) {
       if (dist < p.r + ball.r) {
         p.standing = false;
         p.settled = false;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
         const ang = Math.atan2(dy, dx);
         const force = 160 + Math.random() * 120;
         p.vx = Math.cos(ang) * force;
@@ -170,6 +172,7 @@ function bowlingStrike(canvas, ctx, onScore, onGameOver, onCoins) {
           ball = null;
           if (frame > 10) {
             over = true;
+            if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
             onGameOver(score, coins);
           } else {
             phase = 'aim';
@@ -182,12 +185,15 @@ function bowlingStrike(canvas, ctx, onScore, onGameOver, onCoins) {
   function endRoll() {
     const knocked = 10 - countPins();
     frameScore += knocked;
+    if (knocked === 0 && typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
 
     if (roll === 1 && frameScore === 10) {
       message = 'STRIKE!';
       messageTimer = 1.5;
       totalScore += 30;
       coins += 10;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate([60, 30, 60]); } catch (e) {} }
       frame++;
       roll = 1;
       phase = 'sweep';
@@ -202,6 +208,7 @@ function bowlingStrike(canvas, ctx, onScore, onGameOver, onCoins) {
         messageTimer = 1.5;
         totalScore += 20;
         coins += 5;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       } else {
         message = 'Frame: ' + frameScore;
         messageTimer = 1.5;
@@ -219,6 +226,7 @@ function bowlingStrike(canvas, ctx, onScore, onGameOver, onCoins) {
 
     if (frame > 10) {
       over = true;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
       onGameOver(score, coins);
     }
   }

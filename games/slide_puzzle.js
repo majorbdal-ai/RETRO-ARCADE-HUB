@@ -89,6 +89,7 @@ function slidePuzzle(canvas, ctx, onScore, onGameOver, onCoins) {
     // Update score as moves count down (efficiency reward)
     score = Math.max(0, 500 - moves);
     onScore(score);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
 
     // Swap in grid
     grid[emptyR][emptyC] = grid[r][c];
@@ -213,9 +214,14 @@ function slidePuzzle(canvas, ctx, onScore, onGameOver, onCoins) {
           coins += Math.max(10, 100 - moves);
           score += 200;
           onScore(score);
+          if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+          if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            try { navigator.vibrate(100); } catch (e) {}
+          }
           if (!gameOverSent) {
             gameOverSent = true;
             over = true;
+            if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
             onGameOver(score, coins);
           }
         }

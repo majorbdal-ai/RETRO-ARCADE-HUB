@@ -58,6 +58,7 @@ function slingBirds(canvas, ctx, onScore, onGameOver, onCoins) {
     if (birdsLeft <= 0 || state !== 'aim') return;
     birdsLeft--;
     state = 'flying';
+    if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
     activeBird = {
       x: dragStart.x,
       y: dragStart.y,
@@ -93,6 +94,7 @@ function slingBirds(canvas, ctx, onScore, onGameOver, onCoins) {
           s.hp--;
           b.vx *= 0.3;
           b.vy *= 0.3;
+          if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
           for (let p = 0; p < 5; p++) {
             particles.push({
               x: s.x + s.w / 2,
@@ -106,6 +108,7 @@ function slingBirds(canvas, ctx, onScore, onGameOver, onCoins) {
           if (s.hp <= 0) {
             score += s.type === 'pig' ? 500 : 100;
             onScore(score);
+            if (typeof window.playSfx === 'function') { try { window.playSfx(s.type === 'pig' ? 'pop' : 'shoot'); } catch (e) {} }
             structures.splice(j, 1);
           }
         }
@@ -130,8 +133,10 @@ function slingBirds(canvas, ctx, onScore, onGameOver, onCoins) {
         if (pigs.length === 0) {
           coins += Math.floor(score / 200);
           onCoins(coins);
+          if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
         }
         over = true;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
         onGameOver(score, coins);
       }
     }

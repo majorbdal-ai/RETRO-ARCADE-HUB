@@ -58,6 +58,8 @@ function fruitMerge(canvas, ctx, onScore, onGameOver, onCoins) {
             score += nt.value * 10;
             coins += nt.value;
             onScore(score);
+            if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
+            if (nt.value >= 5 && navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
             merged = true;
             break;
           }
@@ -149,6 +151,7 @@ function fruitMerge(canvas, ctx, onScore, onGameOver, onCoins) {
         nextFruit.x = aimX;
         aiming = false;
         lineTimer = 0;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
       }
     } else if ((touches.action || keys.Space || keys.KeyW) && nextFruit) {
       aiming = true;
@@ -186,6 +189,7 @@ function fruitMerge(canvas, ctx, onScore, onGameOver, onCoins) {
       else gameOverTimer = 0;
       if (gameOverTimer > 1.2) {
         over = true;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
         onGameOver(score, coins);
       }
     } else {

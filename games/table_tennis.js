@@ -38,11 +38,13 @@ function tableTennis(canvas, ctx, onScore, onGameOver, onCoins) {
       if (onScore) onScore(pScore);
       var nc = Math.floor(pScore / 2);
       if (nc > coins) { coins = nc; if (onCoins) onCoins(coins); }
+      if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
     } else {
       bScore++;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     }
-    if (pScore >= 11) { over = true; if (onGameOver) onGameOver(pScore, coins); return; }
-    if (bScore >= 11) { over = true; if (onGameOver) onGameOver(pScore, coins); return; }
+    if (pScore >= 11) { over = true; if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} } if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} } if (onGameOver) onGameOver(pScore, coins); return; }
+    if (bScore >= 11) { over = true; if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} } if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} } if (onGameOver) onGameOver(pScore, coins); return; }
     server = (server + 1) % 2;
     state = 'serve';
     serveT = 0.7;

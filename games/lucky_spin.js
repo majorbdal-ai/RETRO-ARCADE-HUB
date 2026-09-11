@@ -56,17 +56,21 @@ function luckySpin(canvas, ctx, onScore, onGameOver, onCoins){
     vel=2.6+charge*9.2;
     state='spin';
     charge=0;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
   }
   function settle(){
+    if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
     var norm=((angle%TWO)+TWO)%TWO;
     var idx=Math.floor(norm/(TWO/N))%N;
     var s=SEG[idx],amt;
     if(s.free){
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       spins++;
       msg='FREE SPIN! STOCK +1';
       msgC=s.c;
       pop(CX,CY-R-44,'FREE SPIN!','#7bffb0');
     }else if(s.bonus){
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       mult=Math.min(8,mult*s.bonus);
       msg='BONUS x'+mult+' ACTIVE';
       msgC=s.c;
@@ -77,6 +81,10 @@ function luckySpin(canvas, ctx, onScore, onGameOver, onCoins){
       addCoins(amt);
       score+=amt;
       syncScore();
+      if (typeof window.playSfx === 'function') { try { window.playSfx(s.jackpot || amt >= 100 ? 'win2' : 'coin'); } catch (e) {} }
+      if (s.jackpot || amt >= 100) {
+        if (navigator.vibrate) { try { navigator.vibrate(80); } catch(e){} }
+      }
       msg=(s.jackpot?'JACKPOT!':'WIN')+' +'+amt+' COINS';
       msgC=s.c;
       burst(CX,CY,s.c,16);
@@ -129,6 +137,7 @@ function luckySpin(canvas, ctx, onScore, onGameOver, onCoins){
     if(reported)return;
     reported=true;over=true;running=false;
     cancelAnimationFrame(raf);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     if(onGameOver)onGameOver(score,coins);
   }
   function neonText(t,x,y,c,size,align,glow){

@@ -9,6 +9,8 @@ function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
   let raf = null, last = 0, running = false;
   let score = 0, coins = 0;
   let over = false;
+  let comboCount = 0;
+  function sfx(key) { if (typeof window.playSfx === 'function') { try { window.playSfx(key); } catch (e) {} } }
 
   const ROWS = 8, COLS = 8;
   const GRID_LEFT = 100;
@@ -173,6 +175,9 @@ function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
     const matches = findMatches();
     if (matches.length === 0) return false;
 
+    comboCount++;
+    if (comboCount <= 3) sfx('pop');
+    let hasBigCombo = false;
     let matchScore = 0;
     const processed = new Set();
 
@@ -187,6 +192,7 @@ function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
       // score: 3=30, 4=line bomb, 5=color bomb
       if (m.len >= 5) {
         matchScore += 50;
+        hasBigCombo = true;
         // create color bomb effect: remove all of same type
         const targetType = cell.type;
         for (let r = 0; r < ROWS; r++) {
@@ -234,6 +240,11 @@ function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
     if (matchScore > 0) {
       score += matchScore;
       onScore(score);
+      // big combo (5+): win sound + vibrate
+      if (hasBigCombo) {
+        sfx('win2');
+        if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} }
+      }
       // floating score
       scoreAnimals.push({
         text: '+' + matchScore,
@@ -323,12 +334,15 @@ function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
     // check if this creates a match
     const matches = findMatches();
     if (matches.length > 0) {
+      comboCount = 0;
+      sfx('click');
       movesLeft--;
       // process cascade
       cascadeResolve();
     } else {
       // swap back
       swapCells(r1, c1, r2, c2);
+      sfx('error');
       processing = false;
     }
   }
@@ -608,6 +622,7 @@ function candyCrush(canvas, ctx, onScore, onGameOver, onCoins) {
     over = true;
     running = false;
     if (raf) cancelAnimationFrame(raf);
+    sfx('over');
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }

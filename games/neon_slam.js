@@ -62,6 +62,7 @@ function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
   function die() {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     callScore();
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
@@ -93,6 +94,8 @@ function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
     score += 10 * b.maxHp + combo;
     combo++;
     callScore();
+    if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
+    if (navigator.vibrate) { try { navigator.vibrate(15); } catch(e){} }
     burst(b.x + b.w/2, b.y + b.h/2, b.color, 10);
     if (b.power === 'extra') {
       powerups.push({
@@ -106,6 +109,8 @@ function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
     level++;
     score += 100;
     callScore();
+    if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+    if (navigator.vibrate) { try { navigator.vibrate(200); } catch(e){} }
     coins += 5;
     callCoins();
     // reset for next level
@@ -155,9 +160,9 @@ function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
       ball.y += ball.vy * ball.speed * dt * 60;
 
       // Walls
-      if (ball.x - ball.r < 0) { ball.x = ball.r; ball.vx = Math.abs(ball.vx); }
-      if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx); }
-      if (ball.y - ball.r < 0) { ball.y = ball.r; ball.vy = Math.abs(ball.vy); }
+      if (ball.x - ball.r < 0) { ball.x = ball.r; ball.vx = Math.abs(ball.vx); if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} } }
+      if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx); if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} } }
+      if (ball.y - ball.r < 0) { ball.y = ball.r; ball.vy = Math.abs(ball.vy); if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} } }
 
       // Bottom: lose life
       if (ball.y - ball.r > H) {
@@ -182,6 +187,7 @@ function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
         ball.speed = Math.min(2.5, ball.speed + 0.03);
         combo = Math.max(0, combo - 1);
         burst(ball.x, paddle.y - 10, '#00FFFF', 4);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       }
 
       // Bricks
@@ -220,6 +226,7 @@ function neonSlam(canvas, ctx, onScore, onGameOver, onCoins) {
       if (p.y > H + 20 || p.life <= 0) { powerups.splice(i, 1); continue; }
       // catch with paddle
       if (Math.abs(p.y - paddle.y) < 30 && Math.abs(p.x - paddle.x) < paddle.w/2 + 15) {
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
         if (p.type === 'wide') {
           paddle.w = Math.min(240, paddle.w + 40);
           burst(p.x, p.y, '#FFE600', 8);

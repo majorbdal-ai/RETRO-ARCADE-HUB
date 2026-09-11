@@ -27,6 +27,7 @@ function mastermind(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function submitGuess() {
     if (over) return;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
     const guess = currentGuess.slice();
     guesses.push({ guess: guess, result: evaluate(guess) });
     score += guess[0] === secret[0] ? 20 : 0;
@@ -40,12 +41,14 @@ function mastermind(canvas, ctx, onScore, onGameOver, onCoins) {
       win = true;
       coins += Math.max(3, 10 - guesses.length);
       onCoins(coins);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       over = true;
       onGameOver(score, coins);
       return;
     }
 
     if (guesses.length >= maxTries) {
+      if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
       over = true;
       onGameOver(score, coins);
       return;
@@ -90,10 +93,12 @@ function mastermind(canvas, ctx, onScore, onGameOver, onCoins) {
     }
     if (keys.ArrowUp || touches.up || keys.KeyW) {
       currentGuess[selected] = (currentGuess[selected] + 1) % colors.length;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       clearKeys();
     }
     if (keys.ArrowDown || touches.down) {
       currentGuess[selected] = (currentGuess[selected] - 1 + colors.length) % colors.length;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       clearKeys();
     }
     if (keys.Space || touches.action || touches.gas) {

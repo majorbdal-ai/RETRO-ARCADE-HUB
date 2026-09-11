@@ -28,6 +28,7 @@ function athleticsSprint(canvas, ctx, onScore, onGameOver, onCoins) {
   function finishGame(sc, c) {
     if (overSent) return;
     overSent = true; over = true;
+    if (sc === 0 && typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     score = sc;
     callScore();
     callCoins();
@@ -59,12 +60,14 @@ function athleticsSprint(canvas, ctx, onScore, onGameOver, onCoins) {
     } else if (phase === 'set') {
       if (pressEdge) {
         phase = 'finish';
+        if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
         finishGame(0, 0);
       }
       gunDelay = gunDelay - dt;
       if (gunDelay <= 0) {
         phase = 'run';
         goFlash = 0.55;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
       }
     } else if (phase === 'run') {
       tRun = tRun + dt;
@@ -75,6 +78,7 @@ function athleticsSprint(canvas, ctx, onScore, onGameOver, onCoins) {
         legPhase = legPhase + 0.9;
         if (!perfectChecked && tRun < 0.22) perfect = true;
         perfectChecked = true;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       }
       const fatigue = stamina <= 0 ? 1.8 : 1;
       power = Math.max(0, power - 40 * fatigue * dt);
@@ -100,6 +104,8 @@ function athleticsSprint(canvas, ctx, onScore, onGameOver, onCoins) {
         else if (medal === 'SILVER') coins = 6;
         else if (medal === 'BRONZE') coins = 4;
         if (perfect) coins = coins + 2;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+        if (navigator.vibrate) { try { navigator.vibrate([60, 40, 60]); } catch (e) {} }
         callScore();
         callCoins();
         phase = 'finish';

@@ -193,6 +193,8 @@ function hoopDunk(canvas, ctx, onScore, onGameOver, onCoins) {
       streak++;
       score += points;
       onScore(score);
+      if (typeof window.playSfx === 'function') { try { window.playSfx(swish ? 'win2' : 'pop'); } catch (e) {} }
+      if (swish && navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
       return true;
     }
     return false;
@@ -255,6 +257,7 @@ function hoopDunk(canvas, ctx, onScore, onGameOver, onCoins) {
       if (!gameOverSent) {
         gameOverSent = true;
         over = true;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
         onGameOver(score, coins);
       }
     } else {
@@ -272,6 +275,7 @@ function hoopDunk(canvas, ctx, onScore, onGameOver, onCoins) {
     ballInFlight = true;
     ballVX = Math.cos(angle) * power * 8;
     ballVY = Math.sin(angle) * power * 8;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
   }
 
   function loop(ts) {

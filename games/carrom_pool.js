@@ -120,6 +120,7 @@ function carromPool(canvas, ctx, onScore, onGameOver, onCoins) {
       striker.vx = (aimVec.dx / aimVec.len) * 720 * power;
       striker.vy = (aimVec.dy / aimVec.len) * 720 * power;
       striker.inHand = false;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
     }
     aimStart = null; aimVec = null;
   }
@@ -194,6 +195,7 @@ function carromPool(canvas, ctx, onScore, onGameOver, onCoins) {
             if (rel > 0) {
               a.vx -= rel * 0.9 * nx; a.vy -= rel * 0.9 * ny;
               b.vx += rel * 0.9 * nx; b.vy += rel * 0.9 * ny;
+              if (rel > 120 && typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
             }
           }
         }
@@ -215,10 +217,12 @@ function carromPool(canvas, ctx, onScore, onGameOver, onCoins) {
             score += p.pocketed ? 25 : 0;
             onCoins(25);
             queenCovered = true;
+            if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
           } else {
             const bonus = p.color === '#FFE600' ? 15 : 10;
             score += bonus;
             onCoins(10);
+            if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
           }
         }
       }
@@ -228,6 +232,7 @@ function carromPool(canvas, ctx, onScore, onGameOver, onCoins) {
         striker.vx = 0; striker.vy = 0;
         striker.x = CX; striker.y = B.y + B.h - 40;
         player = player === 1 ? 2 : 1;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       }
       // check game over: all pieces pocketed
       if (PIECES.every(p => !p.alive)) {
@@ -357,6 +362,7 @@ function carromPool(canvas, ctx, onScore, onGameOver, onCoins) {
     running = false;
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

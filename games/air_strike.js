@@ -44,12 +44,16 @@ function airStrike(canvas, ctx, onScore, onGameOver, onCoins) {
     if (targets.length > 0) return;
     if (wave >= 5) {
       over = true;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate(150); } catch (e) {} }
       if (onGameOver) onGameOver(score, coins);
       return;
     }
     wave++;
     bombs = Math.min(bombs + 10, 40);
     spawnWave();
+    if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+    if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} }
   }
 
   function explode(x, y) {
@@ -75,7 +79,12 @@ function airStrike(canvas, ctx, onScore, onGameOver, onCoins) {
         targets.splice(j, 1);
       }
     }
-    if (hit) { notify(); checkWave(); }
+    if (hit) {
+      if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+      notify();
+      checkWave();
+    }
   }
 
   function reset() {
@@ -104,10 +113,17 @@ function airStrike(canvas, ctx, onScore, onGameOver, onCoins) {
       var tt = Math.sqrt(2 * (GROUND - plane.y) / G);
       reticleX = plane.x + plane.vx * tt;
     }
-    if (prevHeld && !held && bombs > 0) {
-      bombs--;
-      bombsA.push({ x: plane.x, y: plane.y, vx: plane.vx, vy: 0 });
-      sparks.push({ x: plane.x, y: plane.y + 18, vx: 0, vy: 60, life: 0.25, c: '#ffd23b' });
+    if (prevHeld && !held) {
+      if (bombs > 0) {
+        bombs--;
+        bombsA.push({ x: plane.x, y: plane.y, vx: plane.vx, vy: 0 });
+        sparks.push({ x: plane.x, y: plane.y + 18, vx: 0, vy: 60, life: 0.25, c: '#ffd23b' });
+        if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
+        if (navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
+      } else {
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
+        if (navigator.vibrate) { try { navigator.vibrate(60); } catch (e) {} }
+      }
     }
     for (var i = bombsA.length - 1; i >= 0; i--) {
       var b = bombsA[i];
@@ -145,6 +161,8 @@ function airStrike(canvas, ctx, onScore, onGameOver, onCoins) {
     }
     if (!over && bombs <= 0 && targets.length > 0 && bombsA.length === 0) {
       over = true;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
       if (onGameOver) onGameOver(score, coins);
     }
   }

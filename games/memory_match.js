@@ -16,11 +16,20 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
   let matchTimer = 0;
   let matchedTimer = 0;
   let solvedPairs = 0;
+  // difficulty ramp (levels)
+  let level = 1, levelShown = -1, levelTimer = 0, flipDelayBase = 0.8;
+  let bestStreak = 0, streak = 0;
+  let sparkles = []; // mini canvas particles
 
   const EMOJIS = ['🐟', '🚀', '⚡', '🐙', '🍕', '🛸', '💎', '🎯',
     '🐢', '🍒', '🌵', '🔥', '🍩', '👾', '🏆', '🍉',
     '⚽', '🐉', '🎲', '🍄', '🦄', '⭐', '🚗', '🍭'];
   const COLOR_POOL = ['#ff3366', '#33ccff', '#ffcc00', '#66ff66', '#cc66ff', '#ff9933'];
+
+  function sfx(name) { if (typeof window.playSfx === 'function') { try { window.playSfx(name); } catch (e) {} } }
+  function vibe(pattern) { if (typeof window.hapticVibe === 'function') { try { window.hapticVibe(pattern); } catch (e) {} } }
+  function fxBurst(x, y, color, count) { if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} } }
+  function fxShake(intensity) { if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(intensity); } catch (e) {} } }
 
   function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -58,12 +67,25 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
     score = 0;
     coins = 0;
     over = false;
+    level = 1; levelShown = -1; levelTimer = 0; flipDelayBase = 0.8;
+    streak = 0; bestStreak = 0;
+    sparkles = [];
     onScore(score);
   }
 
   function update(dt) {
     if (matchTimer > 0) matchTimer -= dt;
     if (matchedTimer > 0) matchedTimer -= dt;
+    if (levelTimer > 0) levelTimer -= dt;
+
+    // sparkles
+    for (let i = sparkles.length - 1; i >= 0; i--) {
+      const s = sparkles[i];
+      s.life -= dt;
+      if (s.life <= 0) { sparkles.splice(i, 1); continue; }
+      s.x += s.vx * dt; s.y += s.vy * dt;
+      s.vy += 240 * dt;
+    }
 
     for (const card of cards) {
       if (card.faceUp && card.flipAnim < 1) card.flipAnim = Math.min(1, card.flipAnim + dt * 8);
@@ -87,10 +109,17 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function handleTap(x, y) {
     if (lock || over) return;
+    const n = cards.length;
+    const rows = n <= 12 ? 3 : 4;
+    const cols = n / rows;
+    const cellW = W / cols;
+    const cellH = (H - 80) / rows;
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i];
-      if (Math.abs(x - c.x) < CELL_W / 2 && Math.abs(y - c.y) < CELL_H / 2) {
+      if (Math.abs(x - c.x) < cellW / 2 && Math.abs(y - c.y) < cellH / 2) {
         if (c.faceUp || c.matched) continue;
+        sfx('click');
+        vibe('tap');
         executeFlip(i);
         break;
       }
@@ -113,26 +142,52 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
         second.matched = true;
         matched += 2;
         solvedPairs++;
+        streak++;
+        bestStreak = Math.max(bestStreak, streak);
         score += 10;
+        if (streak >= 2) score += 5; // streak bonus
         if (solvedPairs % 3 === 0) coins++;
         if (moves % 8 === 0) coins++;
         onScore(score);
+        fxBurst(first.x, first.y, first.color, 2);
+        fxBurst(second.x, second.y, second.color, 2);
+        sparkles.push({ x: first.x, y: first.y, vx: -60, vy: -120, life: 0.6, max: 0.6 });
+        sparkles.push({ x: second.x, y: second.y, vx: 60, vy: -120, life: 0.6, max: 0.6 });
+        sfx('pop');
+        vibe('tap');
         wrappedFlip(first);
         wrappedFlip(second);
         flippedIndex = -1;
         lock = false;
-        if (matched >= TOTAL) gameOver();
+        if (matched >= cards.length) {
+          if (level >= 3) {
+            gameOver();
+          } else {
+            // Level clear → bigger grid (difficulty ramp)
+            level++;
+            coinWon();
+            levelShown = level;
+            levelTimer = 1.6;
+            sfx('win2');
+            vibe('win');
+            makeGrid();
+          }
+        }
       } else {
-        // No match, flip both back after brief delay
+        // No match — streak broken, flip both back after brief delay (ramps with level)
+        streak = 0;
         lock = true;
-        matchTimer = 0.8;
+        const delay = Math.max(0.45, flipDelayBase - (level - 1) * 0.05);
+        matchTimer = delay;
+        sfx('error');
+        vibe('err');
         wrappedFlip(first);
         setTimeout(() => {
           first.faceUp = false;
           second.faceUp = false;
           flippedIndex = -1;
           lock = false;
-        }, 800);
+        }, delay * 1000);
       }
     }
   }
@@ -141,11 +196,52 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
     card.faceUp = true;
   }
 
+  function coinWon() {
+    coins++;
+    callCoins();
+    fxBurst(W / 2, TOP + 20, '#ffcc00', 6);
+  }
+
+  function callCoins() {
+    if (typeof onCoins === 'function') onCoins(coins);
+  }
+
+  // Difficulty ramp — new grid each level with MORE cards
+  function makeGrid() {
+    const nPairs = Math.min(6 + level * 2, 14); // 8 → 10 → 12 → 14
+    const nCards = nPairs * 2;
+    const rows = nCards <= 12 ? 3 : 4;
+    const cols = nCards / rows;
+    const cellW = W / cols;
+    const cellH = (H - 80) / rows;
+    const pairs = shuffle([...EMOJIS]).slice(0, nPairs);
+    const deck = shuffle([...pairs, ...pairs]);
+    cards = [];
+    for (let i = 0; i < nCards; i++) {
+      const r = Math.floor(i / cols);
+      const c = i % cols;
+      cards.push({
+        emoji: deck[i],
+        color: COLOR_POOL[i % COLOR_POOL.length],
+        row: r, col: c,
+        x: c * cellW + cellW / 2,
+        y: TOP + r * cellH + cellH / 2,
+        faceUp: false,
+        matched: false,
+        flipAnim: 0
+      });
+    }
+    flippedIndex = -1; lock = false; matchTimer = 0; matched = 0; solvedPairs = 0;
+  }
+
   function gameOver() {
     if (over) return;
     over = true;
     running = false;
     cancelAnimationFrame(raf);
+    onScore(score);
+    sfx('win2');
+    vibe('win');
     onGameOver(score, coins);
   }
 
@@ -153,9 +249,36 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.fillStyle = '#0a0a1a';
     ctx.fillRect(0, 0, W, H);
 
+    // grid lines per current layout
+    if (cards.length) {
+      const n = cards.length;
+      const rows = n <= 12 ? 3 : 4;
+      const cols = n / rows;
+      const cellW = W / cols;
+      const cellH = (H - 80) / rows;
+      ctx.strokeStyle = 'rgba(90,90,170,0.25)';
+      ctx.lineWidth = 1;
+      for (let r = 0; r <= rows; r++) {
+        ctx.beginPath(); ctx.moveTo(0, 60 + r * cellH); ctx.lineTo(W, 60 + r * cellH); ctx.stroke();
+      }
+      for (let c = 0; c <= cols; c++) {
+        ctx.beginPath(); ctx.moveTo(c * cellW, 60); ctx.lineTo(c * cellW, 60 + rows * cellH); ctx.stroke();
+      }
+    }
+
     for (const card of cards) {
       drawCard(ctx, card);
     }
+
+    // sparkle particles
+    for (const s of sparkles) {
+      ctx.globalAlpha = Math.max(0, s.life / s.max);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 6;
+      ctx.fillRect(s.x - 2, s.y - 2, 4, 4);
+      ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = 1;
 
     ctx.save();
     ctx.font = 'bold 18px Orbitron, monospace';
@@ -167,8 +290,29 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.font = '12px monospace';
     ctx.fillStyle = '#8888aa';
     ctx.fillText('Tap cards to flip / Space+Tap', 12, 48);
-    ctx.fillText(`Moves: ${moves}  Score: ${score}  Coins: ${coins}`, W - 240, 48);
-    if (matched >= TOTAL) {
+    ctx.fillText(`Moves: ${moves}  Score: ${score}  Coins: ${coins}`, W - 300, 48);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#66ff66';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('LEVEL ' + level, W - 12, 28);
+    ctx.fillStyle = '#8888aa';
+    ctx.font = '12px monospace';
+    ctx.fillText('BEST STREAK ' + bestStreak, W - 12, 46);
+    ctx.textAlign = 'left';
+
+    if (levelTimer > 0 && levelShown >= 0 && !over) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 30px Orbitron, monospace';
+      ctx.fillStyle = '#00ffcc';
+      ctx.shadowColor = '#00ffcc';
+      ctx.shadowBlur = 18;
+      ctx.globalAlpha = Math.min(1, levelTimer / 0.6);
+      ctx.fillText('LEVEL ' + levelShown, W / 2, H / 2 - 120);
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+    }
+
+    if (over) {
       ctx.font = 'bold 36px Orbitron, monospace';
       ctx.fillStyle = '#00ffcc';
       ctx.shadowColor = '#00ffcc';
@@ -182,8 +326,13 @@ function memoryMatch(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function drawCard(ctx, card) {
     const { x, y } = card;
-    const w = CELL_W - 16;
-    const h = CELL_H - 16;
+    const n = cards.length;
+    const rows = n <= 12 ? 3 : 4;
+    const cols = n / rows;
+    const cellW = W / cols;
+    const cellH = (H - 80) / rows;
+    const w = cellW - 16;
+    const h = cellH - 16;
     const flip = card.flipAnim;
     const scaleX = Math.cos(flip * Math.PI);
     const isFront = scaleX > 0;

@@ -101,6 +101,8 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
           score += 10 * level;
           if (passedCount % 4 === 0) coins++;
           onScore(score);
+          if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
+          if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
           if (passedCount >= rings.length) { levelClear(); return; }
         }
         continue;
@@ -118,6 +120,7 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
         const seg = Math.floor(norm / segAngle);
         const isGap = ring.gaps.indexOf(seg) !== -1;
         if (!isGap) {
+          if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
           gameOver();
           return;
         }
@@ -154,6 +157,7 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
     if (over) return;
     over = true;
     running = false;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     cancelAnimationFrame(raf);
     onGameOver(score, coins);
   }

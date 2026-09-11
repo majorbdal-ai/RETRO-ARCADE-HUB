@@ -47,9 +47,14 @@ function mathDash(canvas, ctx, onScore, onGameOver, onCoins) {
     if (over) return;
     if (v === answer) {
       combo++;
-      const pts = 10 + (combo >= 3 ? 5 : 0);
+      const reachedBonus = combo >= 3;
+      const pts = 10 + (reachedBonus ? 5 : 0);
       score += pts; callScore();
       coins++; callCoins();
+      if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
+      if (reachedBonus) {
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+      }
       timeLeft = Math.min(timeLeft + 1, 30);
       flash = 'correct';
       // spring score pop (canvas → screen coords)
@@ -64,6 +69,7 @@ function mathDash(canvas, ctx, onScore, onGameOver, onCoins) {
       combo = 0;
       timeLeft -= 2;
       flash = 'wrong';
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       if (timeLeft <= 0) { die(); }
     }
   }
@@ -72,6 +78,7 @@ function mathDash(canvas, ctx, onScore, onGameOver, onCoins) {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
     callScore();
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
 

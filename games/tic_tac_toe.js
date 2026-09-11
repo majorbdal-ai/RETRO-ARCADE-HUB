@@ -79,6 +79,17 @@ function ticTacToe(canvas, ctx, onScore, onGameOver, onCoins) {
       if (onScore) onScore(score);
       if (onCoins) onCoins(coins);
     }
+    if (typeof window.playSfx === 'function') {
+      try {
+        if (res === 'win') window.playSfx('win2');
+        else if (res === 'draw') window.playSfx('move');
+        else window.playSfx('error');
+      } catch (e) {}
+    }
+    if (res === 'win' && typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(60); } catch (e) {}
+    }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     over = true;
     if (onGameOver) onGameOver(score, coins);
   }
@@ -100,6 +111,7 @@ function ticTacToe(canvas, ctx, onScore, onGameOver, onCoins) {
     board[cursor] = 'X';
     turn = 'O';
     botTimer = 0;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
     checkEnd();
   }
 

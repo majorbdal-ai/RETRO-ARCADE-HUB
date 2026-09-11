@@ -45,6 +45,7 @@ function archeryMaster(canvas, ctx, onScore, onGameOver, onCoins) {
     bow.pullPower = 0;
     arrowsLeft--;
     phase = 'flying';
+    if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
   }
 
   function update(dt) {
@@ -90,6 +91,11 @@ function archeryMaster(canvas, ctx, onScore, onGameOver, onCoins) {
         onScore(score);
         scoreText = (ringIdx === 0 ? '★ BULLSEYE! ★ ' : '') + '+' + pts;
         scoreTextTimer = 1.5;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
+        if (ringIdx === 0) {
+          if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+          if (typeof navigator !== 'undefined' && navigator.vibrate) { try { navigator.vibrate(60); } catch (e) {} }
+        }
         phase = 'result';
         setTimeout(function() {
           if (!over && arrowsLeft > 0) {
@@ -100,6 +106,7 @@ function archeryMaster(canvas, ctx, onScore, onGameOver, onCoins) {
           } else if (arrowsLeft <= 0) {
             over = true;
             onGameOver(score, coins);
+            if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
           }
         }, 1000);
         arrow = null;
@@ -109,6 +116,7 @@ function archeryMaster(canvas, ctx, onScore, onGameOver, onCoins) {
       if (arrow && (arrow.x > W + 50 || arrow.x < -50 || arrow.y > H + 50 || arrow.y < -50)) {
         scoreText = 'MISS!';
         scoreTextTimer = 1;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
         phase = 'result';
         setTimeout(function() {
           if (!over && arrowsLeft > 0) {
@@ -119,6 +127,7 @@ function archeryMaster(canvas, ctx, onScore, onGameOver, onCoins) {
           } else if (arrowsLeft <= 0) {
             over = true;
             onGameOver(score, coins);
+            if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
           }
         }, 800);
         arrow = null;
