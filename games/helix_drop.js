@@ -20,8 +20,14 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
   let shake = 0;
   let passedCount = 0;
   let pulse = 0;
+  let hintAlpha = 1;      // control hint fades after first input
+  let hintFade = 0;
 
   const COLORS = ['#ff3366', '#33ccff', '#ffcc00', '#66ff66', '#cc66ff', '#ff9933', '#00ffcc', '#ff33aa'];
+
+  function vibrate(pattern) {
+    if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch (e) {} }
+  }
 
   function reset() {
     rings = [];
@@ -60,6 +66,8 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
     shake = 0;
     passedCount = 0;
     pulse = 0;
+    hintAlpha = 1;
+    hintFade = 0;
     over = false;
     onScore(score);
   }
@@ -67,9 +75,11 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
   function update(dt) {
     if (shake > 0) shake -= dt;
     pulse += dt;
+    if (hintFade > 0) { hintFade -= dt; if (hintFade <= 0) hintAlpha = 0; }
 
     const turn = (keys.ArrowLeft || keys.KeyA || touches.left ? -1 : 0) +
                  (keys.ArrowRight || keys.KeyD || touches.right ? 1 : 0);
+    if (turn !== 0 && hintAlpha > 0) hintFade = 0.5;
     rotationSpeed += turn * 6 * dt;
     rotationSpeed *= 0.94;
     const rot = rotationSpeed * dt;
@@ -77,7 +87,11 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
       ring.rotation += rot + ring.spin * dt;
     }
 
-    if (keys.Space || keys.ArrowDown || keys.KeyS || touches.gas) targetFallSpeed = 8;
+    // Fast-fall: gas key (old), down-arrow/S (keyboard), OR vertical swipe down / down-dpad (touch)
+    if (keys.Space || keys.ArrowDown || keys.KeyS || touches.gas || touches.down) {
+      if (touches.down && hintAlpha > 0) hintFade = 0.5;
+      targetFallSpeed = 8;
+    }
     else targetFallSpeed = 1;
     fallSpeed += (targetFallSpeed - fallSpeed) * 10 * dt;
 
@@ -101,6 +115,7 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
           score += 10 * level;
           if (passedCount % 4 === 0) coins++;
           onScore(score);
+          vibrate(50);
           if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
           if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
           if (passedCount >= rings.length) { if (typeof gameFX !== 'undefined') { try { var __r2 = canvas.getBoundingClientRect(); gameFX.burst(__r2.left + (W/2) * __r2.width / canvas.width, __r2.top + (H/2) * __r2.height / canvas.height, '#ffd700', 22); } catch(e){} gameFX.shake(2); }
@@ -121,6 +136,7 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
         const seg = Math.floor(norm / segAngle);
         const isGap = ring.gaps.indexOf(seg) !== -1;
         if (!isGap) {
+          vibrate([90, 50, 110]);
           if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
           gameOver();
           return;
@@ -135,6 +151,7 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
     coins += 2;
     onScore(score);
     shake = 0.35;
+    vibrate([30, 40, 30]);
     for (const ring of rings) {
       ring.passed = false;
       ring.gaps = [];
@@ -199,6 +216,20 @@ function helixDrop(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.fillStyle = '#8888aa';
     ctx.fillText('◀/▶ Rotate  ▼/Space Fast fall', 12, 48);
     ctx.fillText(`Score: ${score}  Coins: ${coins}  Level: ${level}`, W - 220, 28);
+
+    // Touch control hint — fades out after the first successful input (mobile players)
+    if (hintAlpha > 0) {
+      ctx.globalAlpha = hintAlpha * 0.85;
+      ctx.font = 'bold 13px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#00ffcc';
+      ctx.shadowColor = '#00ffcc';
+      ctx.shadowBlur = 8;
+      ctx.fillText('◀ SWIPE ▶ ROTATE · SWIPE ▼ FAST FALL', W / 2, H - 16);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+    }
     ctx.restore();
   }
 

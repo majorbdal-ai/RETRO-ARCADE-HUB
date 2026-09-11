@@ -71,6 +71,7 @@ function dinoRun(canvas, ctx, onScore, onGameOver, onCoins) {
       touches.action = false;
       keys.Space = false;
       if (typeof window.playSfx === 'function') { try { window.playSfx('flap'); } catch (e) {} } // v7.15 jump
+      if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
     }
 
     // Slide (hold down)
@@ -145,6 +146,7 @@ function dinoRun(canvas, ctx, onScore, onGameOver, onCoins) {
     if (score > highScore) highScore = score;
     if (window.gameFX) { try { window.gameFX.shake(5); } catch (e) {} }
     if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+    if (navigator.vibrate) { try { navigator.vibrate([80, 50, 110]); } catch (e) {} }
     onGameOver(score, coins);
   }
 
@@ -179,7 +181,7 @@ function dinoRun(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.fillText('DINO RUN', 10, 25);
     ctx.fillStyle = '#888';
     ctx.font = '12px monospace';
-    ctx.fillText('Jump: ↑/Space/Tap  Slide: ↓/Hold', 10, 42);
+    ctx.fillText('↑ Jump · ↓ Slide  (D-pad / arrows)', 10, 42);
     ctx.restore();
 
     // HUD
