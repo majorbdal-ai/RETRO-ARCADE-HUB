@@ -1,28 +1,28 @@
 {
-  "rot": 9,
-  "updated": "2026-09-10T20:23:12.319Z",
+  "rot": 10,
+  "updated": "2026-09-11T02:51:27.365Z",
   "featured": [
-    "neon-racer",
     "cyber-shooter",
     "pixel-dungeon",
     "light-cycle",
     "tank-battle",
-    "bubble-shooter"
+    "bubble-shooter",
+    "neon-dash"
   ],
   "deal": {
-    "item": "boost-2x",
-    "name": "2X SCORE",
-    "pct": 30
+    "item": "boost-shield",
+    "name": "SHIELD",
+    "pct": 10
   },
-  "challenge": "fruit-slash",
+  "challenge": "water-sort",
   "botBoost": [
-    1.83,
-    1.06,
-    1.29,
-    1.42,
-    1.65,
-    1.88,
-    1.01,
-    1.24
+    1,
+    1.23,
+    1.46,
+    1.69,
+    1.82,
+    1.05,
+    1.28,
+    1.41
   ]
 }
