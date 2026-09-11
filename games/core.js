@@ -1394,6 +1394,8 @@ function togglePause() {
   if (gameState.paused) {
     gameState.paused = false;
     document.getElementById('pauseOverlay').classList.remove('show');
+    const tc = document.getElementById('touchControls');
+    if (tc && gameState._tcShown) { tc.classList.add('show'); }
     if (currentGame) { try { currentGame.resume(); } catch (e) {} }
   } else {
     gameState.paused = true;
@@ -1401,6 +1403,9 @@ function togglePause() {
     gameState.touches = { up: false, down: false, left: false, right: false, action: false, boost: false, drift: false, gas: false, brake: false, power: false };
     gameState.keys = {};
     document.getElementById('pauseOverlay').classList.add('show');
+    const tc = document.getElementById('touchControls');
+    gameState._tcShown = !!(tc && tc.classList.contains('show'));
+    if (tc) { tc.classList.remove('show'); }
     if (currentGame) { try { currentGame.pause(); } catch (e) {} }
   }
 }

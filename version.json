@@ -1,5 +1,5 @@
 {
-  "version": "7.15.1",
+  "version": "7.16.0",
   "games": 70,
   "build": "2026-09-11",
   "features": [
@@ -77,6 +77,7 @@
     "sfx-engine-webaudio",
     "sound-7-iconic-games",
     "simon-hold-pads",
-    "sfx-15-keys-unified"
+    "sfx-15-keys-unified",
+    "pause-inside-ui"
   ]
 }
