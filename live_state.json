@@ -1,28 +1,28 @@
 {
-  "rot": 11,
-  "updated": "2026-09-11T10:33:05.909Z",
+  "rot": 12,
+  "updated": "2026-09-11T15:48:43.474Z",
   "featured": [
-    "pixel-dungeon",
     "light-cycle",
     "tank-battle",
     "bubble-shooter",
     "neon-dash",
-    "sling-birds"
+    "sling-birds",
+    "cricket-sixer"
   ],
   "deal": {
-    "item": "boost-slow",
-    "name": "SLOW MOTION",
-    "pct": 15
+    "item": "skin-dragon",
+    "name": "DRAGON SKIN",
+    "pct": 20
   },
-  "challenge": "2048",
+  "challenge": "pinball",
   "botBoost": [
-    1.27,
-    1.4,
-    1.63,
-    1.86,
-    1.09,
-    1.22,
-    1.45,
-    1.68
+    1.44,
+    1.67,
+    1.8,
+    1.03,
+    1.26,
+    1.49,
+    1.62,
+    1.85
   ]
 }
