@@ -61,6 +61,7 @@ function tankBattle(canvas, ctx, onScore, onGameOver, onCoins) {
     callCoins();
     overSent = true; over = true; state = 'over';
     callScore();
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
 
@@ -70,6 +71,8 @@ function tankBattle(canvas, ctx, onScore, onGameOver, onCoins) {
     tank.inv = 1.6;
     shake = 0.4;
     addParticle(tank.x, tank.y, '#ff4d5e', 18);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
+    if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} }
     if (tank.lives <= 0) { tank.lives = 0; gameOver(); }
   }
 
@@ -147,6 +150,7 @@ function tankBattle(canvas, ctx, onScore, onGameOver, onCoins) {
       tank.fireCd = 0.24;
       bullets.push({ x: tank.x + Math.cos(tank.turret) * 22, y: tank.y + Math.sin(tank.turret) * 22,
                      vx: Math.cos(tank.turret) * 430, vy: Math.sin(tank.turret) * 430, life: 2.2 });
+      if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
     }
 
     // player bullets
@@ -160,11 +164,14 @@ function tankBattle(canvas, ctx, onScore, onGameOver, onCoins) {
           if (Math.hypot(e.x - b.x, e.y - b.y) < e.r + BULLET_R) {
             e.hp = e.hp - 1;
             addParticle(b.x, b.y, '#ffd93b', 6);
+            if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
             if (e.hp <= 0) {
               addParticle(e.x, e.y, e.type === 1 ? '#3bc9ff' : (e.type === 2 ? '#ff7a3b' : '#ff4d5e'), 16);
               const pts = (e.type === 2 ? 30 : (e.type === 1 ? 20 : 10)) + Math.round(wave * 1.5);
               score = score + pts; callScore();
               coins = coins + 2; callCoins();
+              if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
+              if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
               enemies.splice(j, 1);
             }
             dead = true;

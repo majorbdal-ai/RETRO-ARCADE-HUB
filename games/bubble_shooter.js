@@ -109,6 +109,7 @@ function bubbleShooter(canvas, ctx, onScore, onGameOver, onCoins) {
     currentBubble.flying = true;
     currentBubble.vx = Math.cos(shooter.angle) * 500;
     currentBubble.vy = Math.sin(shooter.angle) * 500;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
   }
 
   function update(dt) {
@@ -211,6 +212,9 @@ function bubbleShooter(canvas, ctx, onScore, onGameOver, onCoins) {
       const gained = popped * 10 * (1 + combo * 0.5);
       score += Math.floor(gained);
       coins += Math.floor(popped / 5);
+      // pop jingle: pop per chain, win2 on big combo
+      if (typeof window.playSfx === 'function') { try { window.playSfx(popped >= 6 ? 'win2' : 'pop'); } catch (e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate(Math.min(20 + popped * 5, 60)); } catch (e) {} }
       onScore(score);
       shake = 0.2;
     } else {
@@ -228,6 +232,7 @@ function bubbleShooter(canvas, ctx, onScore, onGameOver, onCoins) {
     over = true;
     running = false;
     cancelAnimationFrame(raf);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(score, coins);
   }
 

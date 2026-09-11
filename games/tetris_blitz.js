@@ -155,6 +155,9 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
       if (cleared === 4) pts = 800;
       score += pts;
       onScore(score);
+      // chiptune sound: pop per line, win2 jingle for tetris
+      if (typeof window.playSfx === 'function') { try { window.playSfx(cleared >= 4 ? 'win2' : 'pop'); } catch (e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate(cleared >= 4 ? 60 : 30); } catch (e) {} }
       // coin bonus for tetrises
       if (cleared >= 4) { coins += 50; onCoins(50); }
       else if (cleared >= 2) { coins += 10; onCoins(10); }
@@ -177,6 +180,7 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
     if (!current || over) return;
     if (isValidPosition(current.row, current.col - 1, current.rotation, current.type)) {
       current.col--;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
     }
   }
 
@@ -184,11 +188,13 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
     if (!current || over) return;
     if (isValidPosition(current.row, current.col + 1, current.rotation, current.type)) {
       current.col++;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
     }
   }
 
   function rotatePiece() {
     if (!current || over) return;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
     const newRot = (current.rotation + 1) % 4;
     if (isValidPosition(current.row, current.col, newRot, current.type)) {
       current.rotation = newRot;
@@ -206,6 +212,7 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
 
   function hardDrop() {
     if (!current || over) return;
+    if (navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
     let dropDist = 0;
     while (isValidPosition(current.row + 1, current.col, current.rotation, current.type)) {
       current.row++;
@@ -477,6 +484,7 @@ function tetrisBlitz(canvas, ctx, onScore, onGameOver, onCoins) {
     running = false;
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

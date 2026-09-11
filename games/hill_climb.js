@@ -316,6 +316,7 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
         ci.collected = true;
         coins += 5;
         onCoins(5);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
       }
       if (ci.x < cameraX - 200) { coinItems.splice(i, 1); continue; }
     }
@@ -323,15 +324,18 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     // game over conditions
     if (fuel <= 0) {
       fuel = 0;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       gameOver();
       return;
     }
     if (normalizedAngle > Math.PI * 0.45 && car.onGround) {
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       gameOver();
       return;
     }
     // fell off bottom
     if (car.y > H + 200) {
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       gameOver();
       return;
     }
@@ -571,6 +575,7 @@ function hillClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     running = false;
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

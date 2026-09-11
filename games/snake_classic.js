@@ -42,6 +42,11 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
       if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
     } catch (e) {}
   }
+  // unified SFX — prefer core.js chiptune map, fall back to raw beep
+  function sfx(key, freq, dur) {
+    if (typeof window.playSfx === 'function') { try { window.playSfx(key); return; } catch (e) {} }
+    beep(freq, dur);
+  }
 
   // ---- helpers ----
   function cellRect(x, y, color, glow) {
@@ -78,9 +83,10 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
   // ---- input ----
   function turn(dx, dy) {
     if (over || !running) return;
-    // prevent reversing
+    // 180° no
     if (dx === -dir.x && dy === -dir.y) return;
     nextDir = { x: dx, y: dy };
+    if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
   }
   function onKey(code) {
     if (code === 'ArrowUp' || code === 'KeyW') turn(0, -1);
@@ -99,13 +105,13 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
     const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
     // wall = game over (Nokia classic — no wrap)
     if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-      beep(120, 0.4);
+      sfx('error', 120, 0.4);
       gameOver();
       return;
     }
     // self collision
     if (snake.some(s => s.x === head.x && s.y === head.y)) {
-      beep(120, 0.4);
+      sfx('error', 120, 0.4);
       gameOver();
       return;
     }
@@ -116,7 +122,7 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
       onScore(score);
       coins += 5;
       onCoins(5);
-      beep(880, 0.08);
+      sfx('coin', 880, 0.08);
       growTimer += 1;
       stepInterval = Math.max(0.07, stepInterval - 0.003);
       spawnFood();
@@ -230,6 +236,7 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
   function gameOver() {
     over = true; running = false;
     if (raf) cancelAnimationFrame(raf);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

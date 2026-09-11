@@ -1,5 +1,5 @@
 {
-  "version": "7.16.2",
+  "version": "7.16.3",
   "games": 70,
   "build": "2026-09-11",
   "features": [
@@ -82,6 +82,7 @@
     "nokia-trio-sfx",
     "friends-board-deterministic",
     "delete-account-complete",
-    "strict-mode-frame-fix"
+    "strict-mode-frame-fix",
+    "sfx-batch-10-popular-games"
   ]
 }

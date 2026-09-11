@@ -93,11 +93,13 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
         if (player.onGround && !player.sliding) {
           player.vy = JUMP_V;
           player.onGround = false;
+          if (typeof window.playSfx === 'function') { try { window.playSfx('flap'); } catch (e) {} }
         }
       } else if (vy > 30) {
         // swipe down = slide
         player.sliding = true;
         player.slideT = 0.6;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('slide'); } catch (e) {} }
       }
     }
   }
@@ -174,6 +176,7 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
         c.taken = true;
         coins += 10;
         onCoins(10);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
       }
     }
 
@@ -197,6 +200,7 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
         if (o.type === 'bar' && player.sliding) continue;
         // jump over spike/block is safe (player above)
         if (player.y + player.vy * 0.1 < ob.y && player.vy < 0) continue;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
         gameOver();
         return;
       }
@@ -348,6 +352,7 @@ function templeRun(canvas, ctx, onScore, onGameOver, onCoins) {
     over = true; running = false;
     if (raf) cancelAnimationFrame(raf);
     if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

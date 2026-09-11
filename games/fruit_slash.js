@@ -157,6 +157,7 @@ function fruitSlash(canvas, ctx, onScore, onGameOver, onCoins) {
       if (navigator.vibrate) {
         try { navigator.vibrate(300); } catch (e) {}
       }
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       if (lives <= 0) {
         gameOver();
         return;
@@ -165,6 +166,7 @@ function fruitSlash(canvas, ctx, onScore, onGameOver, onCoins) {
       // fruit: score points
       comboCount++;
       comboTimer = 2.0;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
 
       let pts = 10;
       let label = '+10';
@@ -175,6 +177,7 @@ function fruitSlash(canvas, ctx, onScore, onGameOver, onCoins) {
         pts = 20;
         label = 'EXCELLENT! x2';
         textColor = '#FF10F0';
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       } else if (comboCount === 2) {
         comboMultiplier = 1;
         pts = 10;
@@ -299,6 +302,7 @@ function fruitSlash(canvas, ctx, onScore, onGameOver, onCoins) {
         comboCount = 0;
         comboTimer = 0;
         fruits.splice(i, 1);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
       }
     }
 
@@ -669,6 +673,7 @@ function fruitSlash(canvas, ctx, onScore, onGameOver, onCoins) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       try { navigator.vibrate(200); } catch (e) {}
     }
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
     onGameOver(Math.floor(score), coins);
   }
 

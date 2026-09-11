@@ -259,10 +259,12 @@ function trafficRacer(canvas, ctx, onScore, onGameOver, onCoins) {
     if ((keys['ArrowLeft'] || touches.left) && targetLane > 0) {
       targetLane--;
       keys['ArrowLeft'] = false; touches.left = false;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
     }
     if ((keys['ArrowRight'] || touches.right) && targetLane < LANES - 1) {
       targetLane++;
       keys['ArrowRight'] = false; touches.right = false;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
     }
 
     // Fuel drain (scales with speed)
@@ -274,6 +276,7 @@ function trafficRacer(canvas, ctx, onScore, onGameOver, onCoins) {
         over = true;
         vibrate(200);
         spawnExplosion(playerX, playerY, '#ff0044', 30);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
         onGameOver(score, coins);
       }
       return;
@@ -346,6 +349,7 @@ function trafficRacer(canvas, ctx, onScore, onGameOver, onCoins) {
           vibrate([50, 30, 100]);
           spawnExplosion(playerX, playerY, o.color, 35);
           spawnExplosion(o.x, o.y, '#ffaa00', 20);
+          if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
           onGameOver(score, coins);
         }
         return;

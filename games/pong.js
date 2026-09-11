@@ -91,6 +91,9 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
     hitFlash = 0.08;
     rallyCount++;
     if (rallyCount > maxRally) maxRally = rallyCount;
+    // Nokia paddle *bop* — higher pitch with each rally (retro escalation)
+    if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
+    if (navigator.vibrate) { try { navigator.vibrate(Math.min(10 + rallyCount, 25)); } catch (e) {} }
 
     // Hit particles
     let color = side < 0 ? '#3bc9ff' : '#ff4d5e';
@@ -110,6 +113,7 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
     }
     // Vibrate pattern
     vibrate(stateWin ? [50, 30, 80, 30, 120] : [100, 50, 100]);
+    if (typeof window.playSfx === 'function') { try { window.playSfx(stateWin ? 'win2' : 'over'); } catch (e) {} }
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
 
@@ -120,6 +124,7 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
       serveDir = -1;
       message = 'YOU SCORE!'; msgT = 1.1;
       vibrate([40, 20, 60]);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
       spawnParticles(W - 30, ball.y, '#3bc9ff', 15, 180, 0.8);
       if (score >= WIN) { stateWin = true; final(); return; }
     } else {
@@ -127,6 +132,7 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
       serveDir = 1;
       message = 'AI SCORES'; msgT = 1.1;
       vibrate(60);
+      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       spawnParticles(30, ball.y, '#ff4d5e', 15, 180, 0.8);
       if (aiScore >= WIN) { stateWin = false; final(); return; }
     }
@@ -195,10 +201,12 @@ function pong(canvas, ctx, onScore, onGameOver, onCoins) {
       if (ball.y - BALL_R < 0) {
         ball.y = BALL_R; ball.vy = Math.abs(ball.vy);
         spawnParticles(ball.x, BALL_R, 'rgba(200,200,255,0.5)', 3, 50, 0.3);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
       }
       if (ball.y + BALL_R > H) {
         ball.y = H - BALL_R; ball.vy = -Math.abs(ball.vy);
         spawnParticles(ball.x, H - BALL_R, 'rgba(200,200,255,0.5)', 3, 50, 0.3);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('move'); } catch (e) {} }
       }
       paddleHit(prevX, prevY, p, -1);
       paddleHit(prevX, prevY, ai, 1);

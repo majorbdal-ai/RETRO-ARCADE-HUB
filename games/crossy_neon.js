@@ -58,6 +58,8 @@ function crossyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
     callScore();
+    if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
+    if (navigator.vibrate) { try { navigator.vibrate(150); } catch (e) {} }
     if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
 
@@ -67,6 +69,7 @@ function crossyNeon(canvas, ctx, onScore, onGameOver, onCoins) {
     player.y += dy;
     player.jumpT = 0.15;
     player.jumpFrom = scrollY;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('jump'); } catch (e) {} }
     if (player.y < 0) player.y = 0;
     if (player.y >= rows.length) player.y = rows.length - 1;
     if (player.x < 0) { player.x = 0; }
