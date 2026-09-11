@@ -1,28 +1,28 @@
 {
-  "rot": 10,
-  "updated": "2026-09-11T02:51:27.365Z",
+  "rot": 11,
+  "updated": "2026-09-11T10:33:05.909Z",
   "featured": [
-    "cyber-shooter",
     "pixel-dungeon",
     "light-cycle",
     "tank-battle",
     "bubble-shooter",
-    "neon-dash"
+    "neon-dash",
+    "sling-birds"
   ],
   "deal": {
-    "item": "boost-shield",
-    "name": "SHIELD",
-    "pct": 10
+    "item": "boost-slow",
+    "name": "SLOW MOTION",
+    "pct": 15
   },
-  "challenge": "water-sort",
+  "challenge": "2048",
   "botBoost": [
-    1,
-    1.23,
-    1.46,
-    1.69,
-    1.82,
-    1.05,
-    1.28,
-    1.41
+    1.27,
+    1.4,
+    1.63,
+    1.86,
+    1.09,
+    1.22,
+    1.45,
+    1.68
   ]
 }
