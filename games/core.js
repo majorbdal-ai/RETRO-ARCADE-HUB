@@ -349,13 +349,14 @@ const SFX = {
   launch() { sfxTone(440, 0.1, 'square', 0.045, 880); },
   win()    { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => sfxTone(f, 0.12, 'square', 0.045), i * 90)); }
 };
-window.playSfx = (n) => { try { SFX[n] && SFX[n](); } catch (e) {} };
+window.playSfx = (n) => { if (muted) return; try { SFX[n] && SFX[n](); } catch (e) {} };
 
 // ---- touch buttons (with ripple visual feedback) ----
 let lastRippleAt = 0;
 // Haptic patterns: tap=20ms, action=30ms, boom=80ms double, win=3 pulses
 function haptic(pattern) {
   if (!navigator || !navigator.vibrate) return;
+  if (muted) return; // v7.15: sound OFF also silences vibration
   try {
     if (pattern === 'tap') navigator.vibrate(20);
     else if (pattern === 'action') navigator.vibrate(30);
@@ -1064,6 +1065,13 @@ function endGame(score, coinsEarned) {
   // stats
   state.stats.gamesPlayed++;
   state.stats.totalScore += score;
+  // v7.15: lifetime run/revive counters (badge + leaderboard fuel)
+  if (typeof state.stats.runs !== 'number') state.stats.runs = 0;
+  state.stats.runs++;
+  if (reviveUsed) {
+    if (typeof state.stats.revivesUsed !== 'number') state.stats.revivesUsed = 0;
+    state.stats.revivesUsed++;
+  }
 
   // coins = score * 10% (spec)
   const scoreCoins = Math.floor(score * 0.1);
@@ -1096,7 +1104,18 @@ function endGame(score, coinsEarned) {
     { id: 'score10k',ico: '👑', name: 'High Roller',        test: () => score >= 10000 },
     { id: 'combo8',  ico: '🌀', name: 'Combo Starter',      test: () => (state.stats.bestCombo || 0) >= 8 },
     { id: 'master',  ico: '🎯', name: 'Game Master',        test: () => Object.keys(state.best).length >= 10 },
-    { id: 'coins500',ico: '💰', name: 'Rich Kid',           test: () => state.coins >= 500 }
+    { id: 'coins500',ico: '💰', name: 'Rich Kid',           test: () => state.coins >= 500 },
+    // ==== ACHIEVEMENTS v8 (v7.15): repeatable badge goals — hardcore completion now has goals ====
+    { id: 'win100',  ico: '⭐', name: 'Century Club',       test: () => state.stats.gamesPlayed >= 100 },
+    { id: 'win500',  ico: '👟', name: 'Sneaker Legend',     test: () => state.stats.gamesPlayed >= 500 },
+    { id: 'win1000', ico: '📿', name: 'Marathon Man',       test: () => state.stats.gamesPlayed >= 1000 },
+    { id: 'score100k',ico: '🌋', name: 'Lifetime 100K',     test: () => (state.stats.totalScore || 0) >= 100000 },
+    { id: 'score1m', ico: '🪐', name: 'Lifetime 1M',        test: () => (state.stats.totalScore || 0) >= 1000000 },
+    { id: 'thirty',  ico: '🧩', name: 'Catalog Pro',        test: () => Object.keys(state.best).length >= 30 },
+    { id: 'all70',   ico: '🎖️', name: 'Full Catalog',       test: () => Object.keys(state.best).length >= 70 },
+    { id: 'rich5k',  ico: '💸', name: 'Tycoon',             test: () => state.coins >= 5000 },
+    { id: 'rich50k', ico: '🏦', name: 'Coin Vault',         test: () => state.coins >= 50000 },
+    { id: 'revive25',ico: '🐍', name: 'No Retreat',         test: () => (state.stats.revivesUsed || 0) >= 25 }
   ];
   const newlyUnlocked = ACH.filter(a => !state.achievements.includes(a.id) && a.test());
   newlyUnlocked.forEach(a => {
@@ -1364,14 +1383,109 @@ function togglePause() {
 }
 
 // ---- pause menu extras ----
-let soundOn = true;
-function toggleSound() {
-  soundOn = !soundOn;
-  const btn = document.getElementById('pauseSoundBtn');
-  if (btn) btn.innerHTML = soundOn ? '<i class="fa-solid fa-volume-high"></i> SOUND' : '<i class="fa-solid fa-volume-xmark"></i> MUTED';
-  if (typeof window.setMuted === 'function') { try { window.setMuted(!soundOn); } catch (e) {} }
-}
+// (sound toggle moved into unified SOUND manager — see toggleSound() there)
 // engines call this to show/update lives HUD chip
+
+// ================= SOUNDTRACK v7.15 (hub music) =================
+// Procedural 8-bit loop via WebAudio — no audio files, no network.
+// 4 tracks, per-page tempo, native mediaSession (lock-screen) controls.
+// Start/stop are driven by page switches; state lives in window.AppMusic.
+(function () {
+  const MS = { C4:262, D4:294, E4:330, F4:349, G4:392, A4:440, B4:494, C5:523, D5:587, E5:659, G5:784, A5:880, R:null };
+  const SEQ = {
+    home:    [MS.C5,MS.E5,MS.G5,MS.E5, MS.A5,MS.G5,MS.E5,MS.D5, MS.E5,MS.D5,MS.C5,MS.D5, MS.E5,MS.G5,MS.E5,MS.R,
+              MS.C5,MS.E5,MS.G5,MS.E5, MS.A5,MS.G5,MS.E5,MS.D5, MS.E5,MS.G5,MS.A5,MS.G5, MS.E5,MS.C5,MS.D5,MS.R],
+    arcade:  [MS.G4,MS.A4,MS.C5,MS.A4, MS.G4,MS.E4,MS.D4,MS.R, MS.E4,MS.G4,MS.A4,MS.G4, MS.E4,MS.D4,MS.E4,MS.R,
+              MS.G4,MS.A4,MS.C5,MS.A4, MS.G4,MS.E4,MS.D4,MS.R, MS.E4,MS.G4,MS.C5,MS.A4, MS.G4,MS.E4,MS.D4,MS.R],
+    shop:    [MS.C5,MS.D5,MS.E5,MS.G5, MS.E5,MS.D5,MS.C5,MS.R, MS.A4,MS.C5,MS.D5,MS.E5, MS.D5,MS.C5,MS.A4,MS.R,
+              MS.D5,MS.E5,MS.G5,MS.A5, MS.G5,MS.E5,MS.D5,MS.R, MS.C5,MS.D5,MS.E5,MS.G5, MS.A5,MS.G5,MS.E5,MS.R],
+    board:   [MS.G4,MS.B4,MS.D5,MS.B4, MS.G4,MS.E4,MS.G4,MS.R, MS.A4,MS.C5,MS.E5,MS.C5, MS.A4,MS.G4,MS.A4,MS.R,
+              MS.D5,MS.B4,MS.G4,MS.B4, MS.D5,MS.E5,MS.G5,MS.R, MS.E5,MS.D5,MS.B4,MS.G4, MS.A4,MS.G4,MS.E4,MS.R],
+    profile: [MS.E4,MS.G4,MS.A4,MS.G4, MS.E4,MS.D4,MS.C4,MS.R, MS.D4,MS.E4,MS.G4,MS.A4, MS.G4,MS.E4,MS.D4,MS.R,
+              MS.C4,MS.E4,MS.G4,MS.A4, MS.G4,MS.E4,MS.D4,MS.R, MS.E4,MS.D4,MS.C4,MS.D4, MS.E4,MS.G4,MS.A4,MS.R]
+  };
+  const TEMPO = { home: 132, arcade: 148, shop: 124, board: 138, profile: 118 };
+  const BASS = 0.09, LEAD = 0.045; // gains (avoid ear-splitting square waves)
+  function note(ctx, dest, f, t, dur, type, g) {
+    if (!f || !isFinite(f)) return;
+    const o = ctx.createOscillator(), gn = ctx.createGain();
+    o.type = type; o.frequency.value = f;
+    gn.gain.setValueAtTime(0.0001, t);
+    gn.gain.exponentialRampToValueAtTime(g, t + 0.01);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn); gn.connect(dest);
+    o.start(t); o.stop(t + dur + 0.03);
+  }
+  let state = { on: false, page: null, step: 0, timer: null, nextT: 0, ctx: null, seq: null, tempo: 124 };
+  function ensureCtx() {
+    if (state.ctx) return state.ctx;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      state.ctx = new AC();
+      // gentle master gain + soft-clip (avoid harsh square clipping)
+      const master = state.ctx.createGain();
+      master.gain.value = 0.6;
+      const comp = state.ctx.createDynamicsCompressor();
+      master.connect(comp); comp.connect(state.ctx.destination);
+      state.master = master; state.comp = comp;
+    } catch (e) { state.ctx = null; }
+    return state.ctx;
+  }
+  function stop() {
+    state.on = false;
+    if (state.timer) { clearTimeout(state.timer); state.timer = null; }
+    state.page = null;
+  }
+  const step = () => {
+    if (!state.on) return;
+    const ctx = state.ctx;
+    if (!ctx) return;
+    const spb = 60 / state.tempo / 2; // eighth-note grid
+    // schedule a small lookahead window of notes per tick
+    while (state.nextT < ctx.currentTime + 0.12) {
+      const i = state.step % state.seq.length;
+      const f = state.seq[i];
+      if (f) {
+        note(ctx, state.master, f, state.nextT, spb * 1.8, 'square', LEAD);
+        note(ctx, state.master, f / 2, state.nextT, spb * 1.8, 'triangle', BASS);
+      }
+      state.step++; state.nextT += spb;
+    }
+    state.timer = setTimeout(step, 80);
+  };
+  function start() {
+    const ctx = ensureCtx();
+    if (ctx && ctx.state === 'suspended') { try { ctx.resume(); } catch (e) {} }
+    state.on = true;
+    state.step = 0; state.nextT = ctx ? ctx.currentTime + 0.05 : 0;
+    if (ctx) step();
+    // native lock-screen / notification controls
+    try {
+      if (navigator.mediaSession) {
+        navigator.mediaSession.metadata = new MediaMetadata({ title: 'RETRO ARCADE', artist: 'CHIPTUNE RADIO', album: 'HUB SOUNDTRACK' });
+        navigator.mediaSession.setActionHandler('play', () => { try { ctx && ctx.resume(); } catch (e) {} });
+        navigator.mediaSession.setActionHandler('pause', start);
+      }
+    } catch (e) {}
+  }
+  function applyPage(p) {
+    const seq = SEQ[p] || SEQ.home, tempo = TEMPO[p] || TEMPO.home;
+    const ctx = ensureCtx();
+    if (!seq || !ctx) return;
+    state.seq = seq; state.tempo = tempo;
+    if (state.on) { state.step = 0; state.nextT = ctx.currentTime + 0.05; }
+  }
+  // public api (also exposed as window.AppMusic for page-switch calls)
+  const api = {
+    start: start, stop: stop, applyPage: applyPage, isPlaying: () => state.on,
+    setMuted(m) { if (m) stop(); else if (!state.on) start(); }
+  };
+  window.AppMusic = api;
+  window.startMusic = start;
+  window.stopMusic = stop;
+  window.setMusicMuted = (m) => api.setMuted(m);
+})();
 window.setHUDLives = (n) => {
   const el = document.getElementById('hudLives');
   if (!el) return;
@@ -1634,23 +1748,52 @@ function toggleHelp() {
   h.classList.add('show');
 }
 
-// ---- MUTE toggle (mobile) ----
-let muted = false;
-function toggleMute() {
-  muted = !muted;
-  const ic = document.getElementById('muteIcon');
-  if (ic) ic.innerText = muted ? '🔇' : '🔊';
+// ---- SOUND v7.15: unified persisted audio manager ----
+// One flag gates EVERYTHING (SFX synth, music, haptics). Persisted so a
+// game restart / page reload no longer silently re-enables sound.
+let muted = localStorage.getItem('rah_muted') === '1';
+function isMuted() { return muted; }
+function setMuted(m) {
+  m = !!m;
+  muted = m;
+  try { localStorage.setItem('rah_muted', m ? '1' : '0'); } catch (e) {}
   // suspend/resume synth audio context
   try {
-    if (sfxCtx) { if (muted) sfxCtx.suspend(); else sfxCtx.resume(); }
+    if (sfxCtx) { if (m) sfxCtx.suspend(); else sfxCtx.resume(); }
   } catch (e) {}
   // stop any game audio objects
   try {
-    document.querySelectorAll('audio, video').forEach(a => { if (muted) a.pause(); });
+    document.querySelectorAll('audio, video').forEach(a => { if (m) a.pause(); });
   } catch (e) {}
-  toast(muted ? 'Sound OFF' : 'Sound ON');
+  // mute/unmute the hub soundtrack too
+  if (typeof window.setMusicMuted === 'function') { try { window.setMusicMuted(m); } catch (e) {} }
+  // keep every sound button in sync
+  const ic = document.getElementById('muteIcon');
+  if (ic) ic.innerText = m ? '🔇' : '🔊';
+  const btn = document.getElementById('pauseSoundBtn');
+  if (btn) btn.innerHTML = m ? '<i class="fa-solid fa-volume-xmark"></i> MUTED' : '<i class="fa-solid fa-volume-high"></i> SOUND';
+  const profSfx = document.getElementById('profSfxBtn');
+  if (profSfx) profSfx.innerText = m ? 'SOUND FX: OFF' : 'SOUND FX: ON';
 }
-function isMuted() { return muted; }
+function toggleMute() { setMuted(!muted); toast(muted ? 'Sound OFF' : 'Sound ON'); }
+// pause-menu toggle — now shares the SAME flag + persistence as the HUD button
+function toggleSound() { setMuted(!muted); }
+
+// ---- MUSIC toggle (independent of SFX; own flag, survives SFX mute) ----
+let musicOn = false;
+function toggleMusic() {
+  musicOn = !musicOn;
+  if (musicOn) {
+    try { window.AppMusic.applyPage('home'); window.AppMusic.start(); } catch (e) {}
+  } else {
+    try { window.AppMusic.stop(); } catch (e) {}
+  }
+  const btn = document.getElementById('pauseMusicBtn');
+  if (btn) btn.innerHTML = musicOn ? '<i class="fa-solid fa-music"></i> MUSIC' : '<i class="fa-solid fa-volume-xmark"></i> MUSIC OFF';
+  const profMusic = document.getElementById('profMusicBtn');
+  if (profMusic) profMusic.innerText = musicOn ? 'MUSIC: ON' : 'MUSIC: OFF';
+  toast(musicOn ? 'Music ON' : 'Music OFF');
+}
 
 // ---- CRT effect toggle ----
 function toggleCRT() {

@@ -934,6 +934,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
         </div>
         <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center">
           <button class="btn btn-ghost" onclick="toggleSound()" style="padding:9px 14px;font-size:12px" id="pauseSoundBtn"><i class="fa-solid fa-volume-high"></i> SOUND</button>
+          <button class="btn btn-ghost" onclick="toggleMusic()" style="padding:9px 14px;font-size:12px" id="pauseMusicBtn"><i class="fa-solid fa-music"></i> MUSIC</button>
           <button class="btn btn-ghost" onclick="toggleFullscreen()" style="padding:9px 14px;font-size:12px"><i class="fa-solid fa-expand"></i> FULLSCREEN</button>
           <button class="btn btn-ghost" onclick="togglePause(); restartGame()" style="padding:9px 14px;font-size:12px"><i class="fa-solid fa-rotate-right"></i> RESTART</button>
         </div>
@@ -1059,7 +1060,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <label style="font-size:11px;color:var(--sub);font-weight:700;display:block;margin-bottom:4px">PLAYER NAME</label>
         <input type="text" id="usernameInput" maxlength="16" placeholder="Enter name..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;color:#fff;font-size:13px;font-family:'Orbitron',sans-serif;outline:none" onchange="setUsername(this.value)">
       </div>
-      <div class="widget" style="display:flex">
+      <div class="widget" style="display:flex;flex-wrap:wrap">
         <div class="stat-box"><h3 id="statWins">0</h3><p>WINS</p></div>
         <div class="stat-box"><h3 style="color:var(--yellow)" id="statCoins">0</h3><p>COINS</p></div>
         <div class="stat-box"><h3 style="color:var(--pink)" id="statSkins">0/24</h3><p>SKINS</p></div>
@@ -1067,12 +1068,14 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div class="stat-box"><h3 style="color:#FF9D00" id="statStreak">0d</h3><p>STREAK</p></div>
         <div class="stat-box"><h3 style="color:var(--gold,#FFD700)" id="statCombo">0</h3><p>COMBO</p></div>
         <div class="stat-box"><h3 style="color:var(--gold,#FFD700)" id="statComboCur">x0</h3><p>MAX</p></div>
+        <div class="stat-box"><h3 style="color:var(--cyan)" id="statRuns">0</h3><p>RUNS</p></div>
+        <div class="stat-box"><h3 style="color:var(--green,#39FF88)" id="statRevives">0</h3><p>REVIVES</p></div>
       </div>
       <div class="widget" id="streakWidget"></div>
       <div class="widget">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <b style="font-size:13px;color:#fff">ACHIEVEMENTS</b>
-          <span style="font-size:11px;color:var(--sub)" id="achCount">0/8</span>
+          <span style="font-size:11px;color:var(--sub)" id="achCount">0/18</span>
         </div>
         <div class="progress"><div id="achBar" style="width:0%"></div></div>
         <div id="achList" style="margin-top:12px"></div>
@@ -1094,6 +1097,15 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div style="display:flex;flex-direction:column;gap:8px">
           <button class="btn" style="padding:12px;font-size:13px;background:rgba(255,255,255,.06)" onclick="setAccMode(!document.body.classList.contains('acc-mode'))"><i class="fa-solid fa-text-height"></i> BIG BUTTONS MODE</button>
           <button class="btn" style="padding:12px;font-size:13px;background:rgba(255,255,255,.06)" onclick="toggleCbSafe()"><i class="fa-solid fa-eye"></i> COLOR-BLIND MODE</button>
+        </div>
+      </div>
+      <div class="widget">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <b style="font-size:13px;color:#fff">SOUND</b>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn" style="padding:12px;font-size:13px;background:rgba(255,255,255,.06)" onclick="toggleMute()"><i class="fa-solid fa-volume-high"></i> <span id="profSfxBtn">SOUND FX: ON</span></button>
+          <button class="btn" style="padding:12px;font-size:13px;background:rgba(255,255,255,.06)" onclick="toggleMusic()"><i class="fa-solid fa-music"></i> <span id="profMusicBtn">MUSIC: ON</span></button>
         </div>
       </div>
       <button class="btn" style="width:100%;padding:12px;background:rgba(255,59,107,.1);border:1px solid var(--red);color:var(--red);font-size:13px;margin-top:10px" onclick="openDeleteModal()"><i class="fa-solid fa-trash"></i> DELETE ACCOUNT</button>

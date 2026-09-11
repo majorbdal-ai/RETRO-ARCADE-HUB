@@ -1,7 +1,7 @@
 {
-  "version": "7.14.1",
+  "version": "7.15.0",
   "games": 70,
-  "build": "2026-09-10",
+  "build": "2026-09-11",
   "features": [
     "themes",
     "animation",
@@ -69,6 +69,10 @@
     "b9-test-suite-security-input-cleanup-ci",
     "coin-continue-revive",
     "targets-70-games",
-    "missions-22-games"
+    "missions-22-games",
+    "soundtrack-music",
+    "sound-persist-mute",
+    "achievements-v8",
+    "revive-stat"
   ]
 }

@@ -253,6 +253,12 @@ function go(page) {
   if (['home','arcade','shop','board','profile'].includes(page)) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
   }
+  // v7.15: hub soundtrack switches page/tempo (stop inside a game)
+  if (page !== 'game') {
+    if (window.AppMusic) { try { window.AppMusic.applyPage(page); window.AppMusic.start(); } catch (e) {} }
+  } else if (window.AppMusic) {
+    try { window.AppMusic.stop(); } catch (e) {}
+  }
   if (page === 'home') renderHome();
   else if (page === 'arcade') renderArcadeGrid('');
   else if (page === 'shop') renderShop();
@@ -1058,9 +1064,19 @@ function renderProfile() {
       comboCurEl.innerHTML = '<span style="color:var(--sub)">Play games back-to-back!</span>';
     }
   }
+  // v7.15: lifetime run + revive stats on the profile
+  const runEl = document.getElementById('statRuns');
+  if (runEl) runEl.innerText = (state.stats.runs || 0).toLocaleString();
+  const revEl = document.getElementById('statRevives');
+  if (revEl) revEl.innerText = (state.stats.revivesUsed || 0);
+  // v7.15: keep profile SOUND panel labels in sync
+  const profSfx = document.getElementById('profSfxBtn');
+  if (profSfx) profSfx.innerText = (typeof window.isMuted === 'function' && window.isMuted()) ? 'SOUND FX: OFF' : 'SOUND FX: ON';
+  const profMusic = document.getElementById('profMusicBtn');
+  if (profMusic && window.AppMusic) profMusic.innerText = window.AppMusic.isPlaying() ? 'MUSIC: ON' : 'MUSIC: OFF';
   renderStreak();
 
-  // ACHIEVEMENTS (visual grid, v7.5 redesign)
+  // ACHIEVEMENTS (visual grid, v7.5 redesign) — v7.15: dynamic count
   const ACH_META = [
     { id: 'first',   ico: '🏆', name: 'FIRST BLOOD' },
     { id: 'win10',   ico: '⚡', name: 'ARCADE ADDICT' },
@@ -1069,7 +1085,17 @@ function renderProfile() {
     { id: 'score10k',ico: '👑', name: 'HIGH ROLLER' },
     { id: 'combo8',  ico: '🌀', name: 'COMBO STARTER' },
     { id: 'master',  ico: '🎯', name: 'GAME MASTER' },
-    { id: 'coins500',ico: '💰', name: 'RICH KID' }
+    { id: 'coins500',ico: '💰', name: 'RICH KID' },
+    { id: 'win100',  ico: '⭐', name: 'CENTURY CLUB' },
+    { id: 'win500',  ico: '👟', name: 'SNEAKER LEGEND' },
+    { id: 'win1000', ico: '📿', name: 'MARATHON MAN' },
+    { id: 'score100k',ico:'🌋', name: 'LIFETIME 100K' },
+    { id: 'score1m', ico: '🪐', name: 'LIFETIME 1M' },
+    { id: 'thirty',  ico: '🧩', name: 'CATALOG PRO' },
+    { id: 'all70',   ico: '🎖️', name: 'FULL CATALOG' },
+    { id: 'rich5k',  ico: '💸', name: 'TYCOON' },
+    { id: 'rich50k', ico: '🏦', name: 'COIN VAULT' },
+    { id: 'revive25',ico: '🐍', name: 'NO RETREAT' }
   ];
   const achUnlocked = ACH_META.filter(a => (state.achievements || []).includes(a.id)).length;
   document.getElementById('achCount').innerText = achUnlocked + '/' + ACH_META.length;
@@ -1612,6 +1638,13 @@ function init() {
   openAuth();
   navInit();
   initCRT();
+  // v7.15: apply persisted mute state at boot (icons sync once DOM is ready)
+  if (typeof window.setMuted === 'function') {
+    try {
+      const wasMuted = localStorage.getItem('rah_muted') === '1';
+      window.setMuted(wasMuted);
+    } catch (e) {}
+  }
   // theme system — apply saved theme + start dynamic particle bg
   globalTheme = state.equipped.theme || 'neon';
   if (typeof applyTheme === 'function') applyTheme(state.equipped.theme || 'neon', true);
@@ -1634,6 +1667,19 @@ function init() {
     });
   }
   // hide boot, show UI
+  // v7.15: unlock audio on the first user gesture (browsers block autoplay)
+  const unlockOnce = () => {
+    if (typeof window.setMusicMuted === 'function') {
+      try { window.setMusicMuted(false); } catch (e) {}
+      if (typeof window.startMusic === 'function') { try { window.startMusic(); } catch (e) {} }
+    }
+    window.removeEventListener('pointerdown', unlockOnce);
+    window.removeEventListener('touchend', unlockOnce);
+    window.removeEventListener('keydown', unlockOnce);
+  };
+  window.addEventListener('pointerdown', unlockOnce);
+  window.addEventListener('touchend', unlockOnce);
+  window.addEventListener('keydown', unlockOnce);
   document.getElementById('bootLoader').style.display = 'none';
   document.getElementById('topBar').style.display = 'flex';
   document.getElementById('bottomNav').style.display = 'flex';
