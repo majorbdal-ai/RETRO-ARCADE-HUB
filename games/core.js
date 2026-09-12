@@ -1123,6 +1123,7 @@ function endGame(score, coinsEarned) {
   }
   const comboMult = getComboMultiplier(state.combo.count || 0);
   if (comboMult > 1) {
+    const scoreCoins = Math.floor(score * 0.1);
     const comboBonus = Math.floor((scoreCoins + coinsEarned) * (comboMult - 1));
     if (comboBonus > 0) state.coins += comboBonus;
   }
