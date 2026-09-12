@@ -2,7 +2,7 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
   let raf = null, last = 0, running = false, over = false, overSent = false;
   let score = 0, coins = 0, keys = {}, touches = {};
-  let time = 0, state = 'play', shake = 0;
+  let time = 0, state = 'play', shake = 0, hintTimer = 3;
 
   let player = { x: 120, y: H/2, vy: 0, r: 18, rot: 0 };
   let gravity = 1200;   // px/s²
@@ -22,6 +22,10 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
   function key(n) { return !!keys[n]; }
   function t(n) { return !!touches[n]; }
 
+  function haptic(pattern) {
+    if (typeof window.hapticVibe === 'function') { try { window.hapticVibe(pattern); } catch (e) {} }
+  }
+
   function initStars() {
     stars = [];
     for (let i = 0; i < 120; i++) {
@@ -38,7 +42,7 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
     over = false; overSent = false;
     score = 0; coins = 0; time = 0; shake = 0;
     state = 'play'; gravity = 1200; flipGravity = false; speed = 300;
-    distance = 0; lives = 3; portalFlash = 0; invuln = 0;
+    distance = 0; lives = 3; portalFlash = 0; invuln = 0; hintTimer = 3;
     player = { x: 120, y: H/2, vy: 0, r: 18, rot: 0 };
     obstacles = []; portals = [];
     initStars();
@@ -50,6 +54,7 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
   function die() {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
+    haptic('over');
     callScore();
     if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
       onGameOver(score, coins);
@@ -103,6 +108,7 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
           portalFlash = 0.4;
           score += 20;
           callScore();
+          haptic('tap');
           if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
         } else {
           // warp: teleport slightly forward
@@ -110,6 +116,7 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
           portalFlash = 0.3;
           score += 30;
           callScore();
+          haptic('tap');
         }
         portals.splice(i, 1);
       }
@@ -126,6 +133,7 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
   function update(dt) {
     time += dt;
     if (shake > 0) shake -= dt;
+    if (hintTimer > 0) hintTimer -= dt;
     if (portalFlash > 0) portalFlash -= dt;
     if (invuln > 0) invuln -= dt;
 
@@ -194,6 +202,7 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
   function hitObstacle() {
     lives--;
     shake = 0.4;
+    haptic('boom');
     invuln = 1.2;
     score = Math.max(0, score - 50);
     callScore();
@@ -347,6 +356,24 @@ function cosmicDash(canvas, ctx, onScore, onGameOver, onCoins) {
     drawObstacles();
     drawPlayer();
     drawUI();
+
+    // Control hint (fades out)
+    if (hintTimer > 0) {
+      const ha = Math.min(1, hintTimer / 0.5);
+      ctx.save();
+      ctx.globalAlpha = ha;
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 16px monospace';
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = '#0ff';
+      ctx.shadowBlur = 12;
+      ctx.fillText('TAP / SPACE TO THRUST', W / 2, H / 2 - 12);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#aaa';
+      ctx.font = '12px monospace';
+      ctx.fillText('DODGE BLOCKS · PORTALS FLIP GRAVITY', W / 2, H / 2 + 14);
+      ctx.restore();
+    }
 
     if (portalFlash > 0) {
       ctx.fillStyle = `rgba(123,97,255,${portalFlash * 0.6})`;

@@ -2,7 +2,7 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
   let raf = null, last = 0, running = false, over = false, overSent = false;
   let score = 0, coins = 0, keys = {}, touches = {};
-  let time = 0, state = 'play', shake = 0;
+  let time = 0, state = 'play', shake = 0, hintTimer = 3;
 
   // Tower physics
   let blocks = [];
@@ -18,10 +18,14 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
   function key(n) { return !!keys[n]; }
   function t(n) { return !!touches[n]; }
 
+  function haptic(pattern) {
+    if (typeof window.hapticVibe === 'function') { try { window.hapticVibe(pattern); } catch (e) {} }
+  }
+
   function reset() {
     over = false; overSent = false;
     score = 0; coins = 0; time = 0; shake = 0;
-    state = 'play'; blockWidth = 200; blockSpeed = 3 * diffMul; maxBlocks = 0; lives = 3;
+    state = 'play'; blockWidth = 200; blockSpeed = 3 * diffMul; maxBlocks = 0; lives = 3; hintTimer = 3;
     blocks = [];
     // base block
     blocks.push({ x: W/2, y: H - 60, w: blockWidth, h: 30, color: COLORS[0] });
@@ -35,6 +39,7 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
   function die() {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
+    haptic('over');
     callScore();
     if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
       onGameOver(score, coins);
@@ -54,6 +59,7 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
       // Missed entirely — lose life, block falls
       lives--;
       shake = 0.4;
+      haptic('boom');
       if (lives <= 0 || blocks.length <= 1) { die(); return; }
       // Current block falls off
       currentBlock = null;
@@ -84,6 +90,7 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
     if (blocks.length % 5 === 0) {
       coins += 5;
       callCoins();
+      haptic('tap');
       if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
     }
 
@@ -115,6 +122,7 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
   function update(dt) {
     time += dt;
     if (shake > 0) shake -= dt;
+    if (hintTimer > 0) hintTimer -= dt;
 
     input();
 
@@ -230,6 +238,24 @@ function neonTower(canvas, ctx, onScore, onGameOver, onCoins) {
 
     drawCurrent();
     blocks.forEach(b => drawBlock(b, b === blocks[0] ? 0.4 : 1));
+
+    // Control hint (fades out)
+    if (hintTimer > 0) {
+      const ha = Math.min(1, hintTimer / 0.5);
+      ctx.save();
+      ctx.globalAlpha = ha;
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 16px monospace';
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = '#0ff';
+      ctx.shadowBlur = 12;
+      ctx.fillText('TAP / SPACE TO DROP BLOCK', W / 2, H / 2 - 12);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#aaa';
+      ctx.font = '12px monospace';
+      ctx.fillText('STACK NEATLY · MISSES SHRINK THE BLOCK', W / 2, H / 2 + 14);
+      ctx.restore();
+    }
 
     drawUI();
 
