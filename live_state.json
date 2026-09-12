@@ -1,28 +1,28 @@
 {
-  "rot": 13,
-  "updated": "2026-09-11T20:24:02.628Z",
+  "rot": 14,
+  "updated": "2026-09-12T02:58:48.303Z",
   "featured": [
-    "tank-battle",
     "bubble-shooter",
     "neon-dash",
     "sling-birds",
     "cricket-sixer",
-    "neon-racer"
+    "neon-racer",
+    "cyber-shooter"
   ],
   "deal": {
-    "item": "skin-cyber",
-    "name": "NEON PHANTOM",
-    "pct": 25
+    "item": "skin-gold",
+    "name": "GOLD LEGEND",
+    "pct": 30
   },
-  "challenge": "crossy-neon",
+  "challenge": "math-dash",
   "botBoost": [
-    1.61,
-    1.84,
-    1.07,
-    1.2,
-    1.43,
-    1.66,
-    1.89,
-    1.02
+    1.88,
+    1.01,
+    1.24,
+    1.47,
+    1.6,
+    1.83,
+    1.06,
+    1.29
   ]
 }
