@@ -1,28 +1,28 @@
 {
-  "rot": 14,
-  "updated": "2026-09-12T02:58:48.303Z",
+  "rot": 15,
+  "updated": "2026-09-12T10:01:42.934Z",
   "featured": [
-    "bubble-shooter",
     "neon-dash",
     "sling-birds",
     "cricket-sixer",
     "neon-racer",
-    "cyber-shooter"
+    "cyber-shooter",
+    "pixel-dungeon"
   ],
   "deal": {
-    "item": "skin-gold",
-    "name": "GOLD LEGEND",
-    "pct": 30
+    "item": "veh-falcon",
+    "name": "FALCON X",
+    "pct": 10
   },
-  "challenge": "math-dash",
+  "challenge": "ladder-climb",
   "botBoost": [
-    1.88,
-    1.01,
-    1.24,
-    1.47,
-    1.6,
-    1.83,
-    1.06,
-    1.29
+    1.05,
+    1.28,
+    1.41,
+    1.64,
+    1.87,
+    1,
+    1.23,
+    1.46
   ]
 }
