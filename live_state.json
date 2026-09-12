@@ -1,28 +1,28 @@
 {
-  "rot": 15,
-  "updated": "2026-09-12T10:01:42.934Z",
+  "rot": 16,
+  "updated": "2026-09-12T14:56:18.562Z",
   "featured": [
-    "neon-dash",
     "sling-birds",
     "cricket-sixer",
     "neon-racer",
     "cyber-shooter",
-    "pixel-dungeon"
+    "pixel-dungeon",
+    "light-cycle"
   ],
   "deal": {
-    "item": "veh-falcon",
-    "name": "FALCON X",
-    "pct": 10
+    "item": "veh-viper",
+    "name": "VIPER GT",
+    "pct": 15
   },
-  "challenge": "ladder-climb",
+  "challenge": "trash-sorter",
   "botBoost": [
-    1.05,
-    1.28,
-    1.41,
-    1.64,
-    1.87,
-    1,
-    1.23,
-    1.46
+    1.22,
+    1.45,
+    1.68,
+    1.81,
+    1.04,
+    1.27,
+    1.4,
+    1.63
   ]
 }
