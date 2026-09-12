@@ -71,14 +71,14 @@ t('GAME_TARGETS covers all 70 games', core.includes('const GAME_TARGETS') && cor
 // and hangs the phone on game start.
 t('no synthetic resize dispatch in core.js', !/dispatchEvent\(\s*new Event\(['"]resize['"]\)/.test(core));
 t('no resize listener in core.js that re-dispatches resize', !/addEventListener\(\s*['"]resize['"][\s\S]{0,200}dispatchEvent/.test(core));
-// 14. AUTO-LANDSCAPE (v7.30.0): lock helper exists, is called AFTER gameState.id
-// is assigned (locking before the id is set silently no-ops), and retries on
-// fullscreenchange (Chrome rejects a bare lock before the transition settles).
-t('tryLockLandscape defined', /function tryLockLandscape\s*\(/.test(core));
-t('tryLockLandscape calls orientation.lock(landscape)', /tryLockLandscape[\s\S]{0,300}lock\(\s*['"]landscape['"]\s*\)/.test(core));
-t('tryLockLandscape called AFTER gameState.id assignment', /gameState = \{ id,[\s\S]{0,400}tryLockLandscape\(\)/.test(core));
-t('fullscreenchange retries landscape lock', /addEventListener\(\s*['"]fullscreenchange['"][\s\S]{0,200}tryLockLandscape\(\)/.test(core));
-t('exitToHub unlocks orientation', /exitToHub[\s\S]{0,600}orientation\.unlock/.test(core));
+// 14. ROTATE-LOCK REMOVED (v7.31.0): user said "rotate বন্ধ করো" — no
+// orientation.lock, no tryLockLandscape, no fullscreenchange retry, no unlock.
+// The canvas must work in portrait; CSS media queries handle refit automatically.
+t('no tryLockLandscape anywhere', !core.includes('tryLockLandscape'));
+t('no orientation.lock anywhere', !/\.orientation\s*\.\s*lock/.test(core) && !core.includes('orientation.lock'));
+t('no fullscreenchange listener', !/['"]fullscreenchange['"]/.test(core));
+t('no orientation.unlock in exit path', !/orientation\s*\.\s*unlock/.test(core) && !core.includes('orientation.unlock'));
+t('no rotate-hint code in core', !core.includes('updateGameOrientation') && !core.includes('rotateHintTimer') && !core.includes('rotateHint'));
 // 15. AUTO-FULLSCREEN (v7.29.0): games request fullscreen on start, exit on hub
 t('bootGame requests fullscreen', /function bootGame[\s\S]{0,1500}requestFullscreen/.test(core));
 t('exitToHub exits fullscreen', /exitToHub[\s\S]{0,600}exitFullscreen/.test(core));
@@ -86,6 +86,16 @@ t('exitToHub exits fullscreen', /exitToHub[\s\S]{0,600}exitFullscreen/.test(core
 t('playAreaLabel removed from html', !html.includes('playAreaLabel'));
 t('updateGameOrientation removed', !core.includes('updateGameOrientation'));
 t('rotateHintTimer removed', !core.includes('rotateHintTimer'));
+// 17. SWIPE+ACTION type (v7.31): directional swipe games with an ACTION button —
+// must be in gestureTypes so canvas gestures stay bound, and rendered in drawControls
+t('swipe+action in gestureTypes', /gestureTypes = \[[^\]]*swipe\+action/.test(core));
+t('swipe+action rendered in drawControls', /type === 'swipe\+action'[\s\S]{0,260}btn_action/.test(core));
+t('swipe+action games use touches.action', core.includes("pressed('action'"));
+// 18. BUTTON-GAMES DO NOT BIND CANVAS TOUCH (v7.31): bindGameTouch early-returns
+// for non-gesture layout types, so button games get NO swipe/tap on canvas
+t('bindGameTouch skips non-gesture layouts', /gestureTypes\.indexOf\(cType\) === -1\)\s*\{[\s\S]{0,200}return;/.test(core));
+t('tutorial toast element exists', html.includes('tutorialToast'));
+t('tutorial toast shown at bootGame', /bootGame[\s\S]{0,2000}showTutorialToast\(/.test(core));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);

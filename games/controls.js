@@ -26,7 +26,7 @@ const CONTROL_LAYOUT = {
   'fruit-slash':     { type: 'swipe',      hint: 'SWIPE TO SLASH FRUITS' },
   'fruit-merge':     { type: 'canvas',     hint: 'DRAG TO AIM · RELEASE TO DROP' },
   'bubble-shooter':  { type: 'canvas',     hint: 'DRAG TO AIM · RELEASE TO SHOOT' },
-  'piano-tiles':     { type: 'tap',        hint: 'TAP THE BLACK TILES FAST' },
+  'piano-tiles':     { type: 'swipe',       hint: 'TAP THE BLACK TILES FAST — SWIPE LEFT/RIGHT/UP/DOWN FOR LANES' },
 
   // ============ GROUP 3: BANGLADESH VIRAL (8) ============
   'ludo-king':       { type: 'tap',        hint: 'TAP TO ROLL · TAP PIECE TO MOVE' },
@@ -39,12 +39,12 @@ const CONTROL_LAYOUT = {
   'duck-hunt':       { type: 'canvas',     hint: 'TAP THE DUCKS BEFORE THEY FLY' },
 
   // ============ GROUP 4: ARCADE SKILL (8) ============
-  'neon-dash':       { type: 'tap',        hint: 'HOLD TO KEEP JUMPING' },
+  'neon-dash':       { type: 'swipe+action', hint: 'SWIPE ↑ JUMP · ACTION ALSO JUMPS' },
   'color-switch':    { type: 'tap',        hint: 'TAP TO SWITCH COLOR' },
   'neon-jumper':     { type: 'touch',      hint: 'HOLD LEFT/RIGHT TO BOUNCE' },
   'stack-drop':      { type: 'tap',        hint: 'TAP TO DROP BLOCK' },
   'helix-drop':      { type: 'swipe',      hint: 'SWIPE ◀▶ ROTATE · SWIPE ▼ FAST FALL' },
-  'traffic-racer':   { type: 'tap',        hint: 'TAP LEFT/RIGHT LANE' },
+  'traffic-racer':   { type: 'swipe',      hint: 'SWIPE LEFT/RIGHT TO CHANGE LANE' },
   'dino-run':        { type: 'dpad',       hint: 'UP JUMP · DOWN SLIDE' },
   'sling-birds':     { type: 'canvas',     hint: 'DRAG BACK · RELEASE TO SLING' },
   'space-miner':     { type: 'move-mine',  hint: 'ARROWS/WASD MOVE · HOLD SPACE/E TO MINE' },
@@ -70,12 +70,12 @@ const CONTROL_LAYOUT = {
   'memory-match':    { type: 'tap',        hint: 'TAP CARDS TO FIND PAIRS' },
   'mine-sweeper':    { type: 'tap',        hint: 'TAP REVEAL · HOLD TO FLAG' },
   'sudoku':          { type: 'tap',        hint: 'TAP CELL · TAP NUMBER' },
-  'mastermind':      { type: 'tap',        hint: 'TAP 4 COLORS · AUTO CHECK' },
+  'mastermind':      { type: 'swipe+action', hint: 'SWIPE ↑↓←→ SELECT · ACTION CONFIRM' },
   'simon-says':      { type: 'simon',      hint: 'WATCH · HOLD + RELEASE THE PADS' },
   'tic-tac-toe':     { type: 'radial',     hint: 'RADIAL A/B/X/Y · TAP TO PLACE X' },
-  'connect-four':    { type: 'tap',        hint: 'TAP COLUMN TO DROP DISC' },
+  'connect-four':    { type: 'swipe+action', hint: 'SWIPE ←→ MOVE · ACTION DROP DISC' },
   'checkers':        { type: 'tap',        hint: 'TAP PIECE · TAP DESTINATION' },
-  'slide-puzzle':    { type: 'tap',        hint: 'TAP TILE NEXT TO EMPTY TO SLIDE' },
+  'slide-puzzle':    { type: 'swipe',      hint: 'SWIPE TO SLIDE TILE NEXT TO EMPTY' },
   'nonogram':        { type: 'tap',        hint: 'TAP FILL · HOLD MARK ✕' },
   'lucky-spin':      { type: 'tap',        hint: 'TAP TO SPIN THE WHEEL' },
 
@@ -84,9 +84,9 @@ const CONTROL_LAYOUT = {
   'crossy-neon':     { type: 'swipe-zone', hint: 'SWIPE UP/DOWN/LEFT/RIGHT TO CROSS' },
 
   // ============ GROUP 8: NEW UNIQUE GAMES (3) ============
-  'trash-sorter':    { type: 'tap',        hint: 'TAP 1/2/3 (OR ←↑→) TO SORT INTO BIN' },
+  'trash-sorter':    { type: 'swipe+action', hint: 'SWIPE ←↑→ SORT · ACTION NEAREST BIN' },
   'ladder-climb':    { type: 'tap',        hint: 'TAP / SPACE TO GRAB NEXT HOLD' },
-  'math-dash':       { type: 'tap',        hint: 'TAP 1/2/3/4 (OR SWIPE) TO PICK ANSWER' },
+  'math-dash':       { type: 'swipe',      hint: 'SWIPE ↑↓←→ TO PICK THE ANSWER' },
   'bounce':          { type: 'dpad',       hint: 'D-PAD = MOVE PADDLE · TAP TO LAUNCH' },
   'space-impact':    { type: 'dpad',       hint: 'D-PAD MOVE · TAP SHOOT · SPACE BOSS' },
   'bantumi':         { type: 'tap',        hint: 'TAP YOUR PIT TO SOW STONES' },

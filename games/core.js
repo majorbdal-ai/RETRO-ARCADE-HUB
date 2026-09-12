@@ -149,6 +149,18 @@ function bindGameTouch(engine) {
   unbindGameTouch();
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return;
+  // v7.31: BUTTON-CONTROLLED games do NOT bind canvas touch/swipe at all —
+  // the user controls them purely with the on-screen buttons (dpad/joystick/
+  // TAP/etc). Only screen-gesture games (canvas/swipe/swipe-zone/drag types)
+  // and the two dual-mode games (neon-racer tilt, tetris swipe) get canvas
+  // touch binding here. Layout type lives in CONTROL_LAYOUT.
+  const layout = (typeof CONTROL_LAYOUT !== 'undefined' && CONTROL_LAYOUT[gameState.id]) || null;
+  const cType = layout ? layout.type : null;
+  const gestureTypes = ['canvas', 'swipe', 'swipe-zone', 'drag', 'tilt', 'swipe+drag', 'swipe+action'];
+  if (cType && gestureTypes.indexOf(cType) === -1) {
+    // button-controlled game → no canvas gestures; keep only the virtual buttons
+    return;
+  }
   // track active pointers per pointerId (multi-touch safe)
   const pointers = new Map();
   // pointer-drag style (carrom)
@@ -638,6 +650,12 @@ function drawControls(gameId) {
   else if (type === 'swipe-zone') {
     html += `<div class="ctrl-swipe-zone" id="swipeZone"><i class="fa-solid fa-arrows-up-down-left-right"></i><span>SWIPE</span></div>`;
   }
+  // Swipe + ACTION button (mastermind/connect-four/neon-dash/trash-sorter:
+  // directional swipe + confirm/drop/jump action button)
+  else if (type === 'swipe+action') {
+    html += `<div class="ctrl-swipe-zone" id="swipeZone"><i class="fa-solid fa-arrows-up-down-left-right"></i><span>SWIPE</span></div>`;
+    html += `<div class="ctrl-group"><button class="ctrl-btn" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-hand-pointer"></i>ACTION</button></div>`;
+  }
   // Tap + Hold (tap = action, hold = alt power)
   else if (type === 'tap-hold') {
     html += `<div class="ctrl-taphold">
@@ -974,10 +992,10 @@ function bootGame(id, engine) {
       if (p && p.catch) p.catch(() => {});
     } catch (e) {}
   }
-  // AUTO-LANDSCAPE (v7.29.1): rotate to landscape so the 16:9 canvas FILLS the
-  // screen. We lock AFTER gameState.id is set (right below), and also retry on
-  // fullscreenchange — Chrome can reject a lock before the fullscreen transition
-  // settles. iOS silently no-ops (no orientation.lock API).
+  // v7.31: NO AUTO-LANDSCAPE — screen rotation lock REMOVED (user: "rotate বন্ধ").
+  // Games stay in whatever orientation the device is in; canvas CSS handles fit.
+  // v7.31: tutorial toast — show the control hint briefly at game start
+  showTutorialToast(g, id);
   document.getElementById('hudGameTitle').innerText = g.name;
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('hudCoins').innerText = '0';
@@ -993,9 +1011,6 @@ function bootGame(id, engine) {
 
   // reset game state
   gameState = { id, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
-  // (v7.29.1) now that gameState.id is set, lock landscape (fullscreen may still
-  // be settling; fullscreenchange listener retries)
-  tryLockLandscape();
 
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
@@ -1463,8 +1478,6 @@ function exitToHub() {
   if (document.fullscreenElement) {
     try { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
   }
-  // AUTO-LANDSCAPE (v7.29.1): release the landscape lock when returning to the hub
-  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
   // restore the user's global theme when leaving a game (skin-by-game off)
   if (typeof window.applyTheme === 'function' && typeof window.globalTheme === 'string') {
     try { window.applyTheme(window.globalTheme, true); } catch (e) {}
@@ -1483,29 +1496,10 @@ function exitToHub() {
 }
 
 // ---- orientation ----
-// v7.29.1: ROTATE hint removed (games auto-landscape now).
-// No resize/orientationchange listeners needed: CSS media queries (portrait/
-// landscape) refit the canvas on rotation automatically, and no engine listens
-// for resize events. (Do NOT dispatch synthetic resize events here — an engine
-// that did listen would recurse forever.)
-
-// AUTO-LANDSCAPE helper: lock landscape while a game is active. Chrome can
-// reject a bare orientation.lock before the fullscreen transition settles, so
-// we retry once per fullscreenchange; iOS has no lock API (silent no-op).
-function tryLockLandscape() {
-  if (!gameState.id) return; // only while a game is running
-  try {
-    if (screen.orientation && screen.orientation.lock) {
-      const op = screen.orientation.lock('landscape');
-      if (op && op.catch) op.catch(() => {});
-    }
-  } catch (e) {}
-}
-if (document.fullscreenEnabled) {
-  document.addEventListener('fullscreenchange', () => {
-    if (document.fullscreenElement && gameState.id) tryLockLandscape();
-  });
-}
+// v7.31: screen rotation lock REMOVED (user: "rotate বন্ধ") — no device
+// orientation locking, no fullscreenchange retry, no unlock-on-exit.
+// CSS media queries (portrait/landscape) refit the canvas automatically;
+// no engine listens for resize.
 
 // ---- pause / resume ----
 // B1 FIX [008-009]: clear all input state on pause, restore on resume
@@ -1876,6 +1870,31 @@ function toggleHelp() {
     if (currentGame) { try { currentGame.pause(); } catch (e) {} }
   }
   h.classList.add('show');
+}
+
+// ---- TUTORIAL TOAST (v7.31): auto-show hint at game start ----
+// Brief overlay showing "HOW TO PLAY" + per-game hint, auto-hides after ~3s.
+// Dismissible by tap or by any touch on the game canvas.
+function showTutorialToast(g, id) {
+  const el = document.getElementById('tutorialToast');
+  if (!el || !g) return;
+  const layout = (typeof CONTROL_LAYOUT !== 'undefined' && CONTROL_LAYOUT[id]) || {};
+  const hint = layout.hint || 'Tap to play';
+  const type  = layout.type || '';
+  // Icon/category label
+  const cat = type.includes('swipe') || type.includes('drag') || type === 'canvas'
+    ? '👆 SWIPE / DRAG' : type.includes('action') || type === 'tap' || type === 'hold' || type === 'dpad' || type === 'joystick' || type === 'simon' || type === 'radial' || type === 'wheel'
+    ? '🔘 USE ON-SCREEN CONTROLS' : '🎮 PLAY';
+  el.innerHTML = `<div style="font-size:10px;color:var(--cyan,#0FF);letter-spacing:1px;margin-bottom:4px">HOW TO PLAY — ${g.name}</div>` +
+    `<div style="font-size:11px;color:var(--cyan,#0FF);margin-bottom:5px">${cat}</div>` +
+    `<div>${hint}</div>`;
+  el.classList.remove('show');
+  // force reflow for re-trigger animation
+  void el.offsetWidth;
+  el.classList.add('show');
+  const hide = () => { el.classList.remove('show'); el.removeEventListener('touchstart', hide); };
+  el.addEventListener('touchstart', hide, { once: true, passive: true });
+  setTimeout(hide, 3000);
 }
 
 // ---- SOUND v7.15: unified persisted audio manager ----
