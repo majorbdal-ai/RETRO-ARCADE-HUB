@@ -9,8 +9,19 @@ function escHTML(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-/* ==================== API LAYER (InfinityFree PHP backend) ==================== */
-const API_BASE = 'api/index.php'; // সাইটের api/ ফোল্ডারে — পাবলিক
+/* ==================== API LAYER (optional PHP backend) ==================== */
+// Code-side readiness for a future backend (audit #5):
+// - Default: GitHub Pages (no PHP) → auto local mode.
+// - Override via ?api=https://your-host/ in URL to point at a real backend.
+// - Never breaks the game when the backend is absent — graceful guest fallback.
+const API_BASE = (() => {
+  try {
+    const q = new URLSearchParams(location.search).get('api');
+    if (q) return q.replace(/\/+$/, '') + '/index.php';
+  } catch (e) {}
+  return 'api/index.php'; // relative — resolves only when a backend actually exists
+})();
+const BACKEND_AVAILABLE = null; // set true when first api() call succeeds
 
 /* ==================== STORAGE ==================== */
 const K = {
@@ -104,7 +115,10 @@ async function api(action, data = {}) {
     const res = await fetch(API_BASE + '?action=' + action, {
       method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body
     });
-    return await res.json();
+    if (!res.ok) return { ok: false, error: 'net' };
+    const j = await res.json();
+    if (j && j.ok) window.BACKEND_AVAILABLE = true;
+    return j;
   } catch (e) { return { ok: false, error: 'net' }; }
 }
 function setAuthUser(u) { auth.user = u; store.set('rah_auth_user', u); }
@@ -136,6 +150,8 @@ async function authSubmit() {
   } else if (r.error === 'taken') { msg.style.color = 'var(--red)'; msg.innerText = '❌ Username already taken — try another'; }
   else if (r.error === 'wrong') { msg.style.color = 'var(--red)'; msg.innerText = '❌ Wrong username or password'; }
   else { msg.style.color = 'var(--red)'; msg.innerText = '⚠ Server offline — playing locally (guest mode)'; closeAuthModal(); }
+  // guest mode: keep the chosen username locally so progress feels personal
+  if (!auth.user) { state.profile.username = u; saveState(); }
 }
 async function refreshLeaderboard() {
   const r = await api('leaderboard');
