@@ -28,6 +28,7 @@ t('onCoinCb does not double-add coins', !/state\.coins \+=/.test(coinCb));
 const endGame = core.slice(core.indexOf('function endGame'), core.indexOf('function shuffle'));
 const coinAdds = (endGame.match(/state\.coins \+=/g) || []).length;
 t('endGame awards coins in <12 locations (no triple-add bug)', coinAdds >= 2 && coinAdds < 12);
+t('window.endGame exposed for legacy engines (bounce/bantumi self-report)', /window\.endGame\s*=\s*endGame/.test(core));
 // 4b. combo payoff TDZ guard: scoreCoins must be declared before comboBonus uses it (v7.27 fix)
 const comboPay = core.slice(core.indexOf('const comboMult = getComboMultiplier'), core.indexOf('state.stats.gamesPlayed'));
 t('combo payoff: scoreCoins declared before comboBonus (no TDZ crash)', comboPay.indexOf('const scoreCoins') !== -1 && comboPay.indexOf('const scoreCoins') < comboPay.indexOf('comboBonus'));
