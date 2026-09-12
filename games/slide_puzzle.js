@@ -7,12 +7,14 @@ let diffMul = 1;  // v7.20 difficulty ramp
   const SIZE = 4, CELL = 90, PAD_X = (W - SIZE * CELL) / 2, PAD_Y = (H - SIZE * CELL) / 2 + 15;
   let grid = [], emptyR = 3, emptyC = 3;
   let moves = 0, startTime = 0, solved = false;
+  let level = 1, nextTimer = 0, chainFlash = 0;
   let animating = false, animR = 0, animC = 0, animDR = 0, animDC = 0, animT = 0, animDur = 0.15;
   let mouseX = -1, mouseY = -1, mouseDown = false;
 
   function reset() {
     over = false; gameOverSent = false; score = 0; coins = 0;
     moves = 0; startTime = 0; solved = false;
+    level = 1; nextTimer = 0; chainFlash = 0;
     animating = false;
 
     // Initialize solved state
@@ -192,9 +194,23 @@ let diffMul = 1;  // v7.20 difficulty ramp
       ctx.font = '16px "Courier New"';
       ctx.fillStyle = '#ffff00';
       ctx.fillText(moves + ' moves in ' + formatTime(Math.floor((performance.now() - startTime) / 1000)), W / 2, PAD_Y + 5);
+      if (nextTimer > 0) {
+        const pulse = 0.6 + 0.4 * Math.sin(performance.now() * 0.01);
+        ctx.globalAlpha = pulse;
+        ctx.font = 'bold 20px "Courier New"';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText('⭐ PUZZLE ' + level + ' NEXT...', W / 2, PAD_Y + 32);
+        ctx.globalAlpha = 1;
+      }
       ctx.textAlign = 'left';
       ctx.shadowBlur = 0;
     }
+    // HUD: puzzle level badge (top-left)
+    ctx.shadowColor = '#ffd700';
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 14px "Courier New"';
+    ctx.fillText('PUZZLE ' + level, 14, 24);
+    ctx.shadowBlur = 0;
   }
 
   function formatTime(s) {
@@ -204,6 +220,19 @@ let diffMul = 1;  // v7.20 difficulty ramp
   }
 
   function update(dt) {
+    // chain countdown: after solving, briefly show banner then auto-next
+    if (nextTimer > 0) {
+      nextTimer -= dt;
+      chainFlash = Math.max(0, chainFlash - dt);
+      if (nextTimer <= 0) {
+        nextTimer = 0;
+        solved = false;
+        moves = 0;
+        startTime = performance.now();
+        shufflePuzzle(500);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('launch'); } catch (e) {} }
+      }
+    }
     if (animating) {
       animT += dt;
       if (animT >= animDur) {
@@ -213,18 +242,28 @@ let diffMul = 1;  // v7.20 difficulty ramp
         if (isSolved()) {
           solved = true;
           coins += Math.max(10, 100 - moves);
-          score += 200;
+          const solveBonus = 200 + level * 50;
+          score += solveBonus;
           onScore(score);
           if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
           if (typeof navigator !== 'undefined' && navigator.vibrate) {
             try { navigator.vibrate(100); } catch (e) {}
           }
+          // ---- PUZZLE CHAIN: level up, then auto-next only after delay ----
+          nextTimer = nextTimer || 0;
+          if (!nextTimer) {
+            nextTimer = 1.6; // delay before next puzzle
+            level++;
+            if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
+          }
+        } else {
+          // game-over path (shouldn't normally happen; keep safe)
           if (!gameOverSent) {
             gameOverSent = true;
             over = true;
             if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
             if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
-      onGameOver(score, coins);
+            onGameOver(score, coins);
           }
         }
       }

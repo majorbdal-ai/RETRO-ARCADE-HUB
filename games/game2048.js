@@ -21,6 +21,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   let prevGrid = null;
   let prevScore = 0;
   let milestone2048 = false;
+  // tile-tier level system: highest tile reached = level (log2)
+  let level = 1, highestTile = 2, tierFlash = 0;
 
   // tile color map by value
   const TILE_COLORS = {
@@ -112,6 +114,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
   function reset() {
     score = 0; coins = 0; over = false;
     milestone2048 = false;
+    level = 1; highestTile = 2; tierFlash = 0;
     grid = emptyGrid();
     prevGrid = null;
     prevScore = 0;
@@ -199,13 +202,31 @@ let diffMul = 1;  // v7.20 difficulty ramp
         coins += Math.floor(totalScore / 100);
         onCoins(Math.floor(totalScore / 100));
       }
-      // check for 2048 milestone (once)
+      // check for 2048 milestone (once) + tile-tier level-up
       if (!milestone2048) {
         for (let r = 0; r < SIZE; r++) {
           for (let c = 0; c < SIZE; c++) {
             if (grid[r][c] >= 2048) {
               milestone2048 = true;
               if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+            }
+          }
+        }
+      }
+      // tile-tier: every new highest tile = level up
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          if (grid[r][c] > highestTile) {
+            highestTile = grid[r][c];
+            const newLv = Math.round(Math.log2(highestTile));
+            if (newLv > level) {
+              level = newLv;
+              tierFlash = 1.4;
+              const bonus = 20 * level;
+              score += bonus; onScore(score);
+              coins += Math.max(1, Math.floor(bonus / 50)); onCoins(Math.max(1, Math.floor(bonus / 50)));
+              if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
+              if (navigator.vibrate) { try { navigator.vibrate(50); } catch(e){} }
             }
           }
         }
@@ -240,6 +261,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   // ---- update ----
   function update(dt) {
     if (over || !running) return;
+
+    if (tierFlash > 0) tierFlash -= dt;
 
     // update animations
     for (let i = animations.length - 1; i >= 0; i--) {
@@ -321,6 +344,27 @@ let diffMul = 1;  // v7.20 difficulty ramp
     ctx.font = 'bold 14px monospace';
     ctx.fillText('SCORE: ' + score, W - 180, 36);
     ctx.shadowBlur = 0;
+
+    // tile-tier level badge
+    ctx.shadowColor = '#FF10F0';
+    ctx.fillStyle = '#FF10F0';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText('TILE LV ' + level + '  (' + highestTile + ')', W - 180, 54);
+    ctx.shadowBlur = 0;
+
+    // tier-up banner
+    if (tierFlash > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.012);
+      ctx.globalAlpha = Math.min(1, tierFlash) * (0.7 + 0.3 * pulse);
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#FF10F0';
+      ctx.fillStyle = '#FF10F0';
+      ctx.font = 'bold 24px monospace';
+      ctx.fillText('⭐ TILE ' + highestTile + ' — LV ' + level + '!', W / 2, H - 90);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+    }
 
     // grid background
     ctx.shadowBlur = 16;
@@ -436,6 +480,10 @@ let diffMul = 1;  // v7.20 difficulty ramp
       ctx.font = '18px monospace';
       ctx.fillText('SCORE: ' + score, W / 2, H / 2 + 10);
       ctx.fillText('COINS: ' + coins, W / 2, H / 2 + 38);
+      ctx.shadowColor = '#FF10F0';
+      ctx.fillStyle = '#FF10F0';
+      ctx.font = '16px monospace';
+      ctx.fillText('BEST TILE: ' + highestTile + ' (LV ' + level + ')', W / 2, H / 2 + 62);
       ctx.textAlign = 'left';
       ctx.shadowBlur = 0;
     }

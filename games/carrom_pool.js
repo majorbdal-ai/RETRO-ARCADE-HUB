@@ -33,6 +33,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
 
   // aiming
   let aiming = false, aimStart = null, aimVec = null;
+  // carrom round: every cleared board → next round, tougher striker base
+  let round = 1, roundFlash = 0;
 
   // turn state
   let player = 1; // 1 or 2
@@ -86,6 +88,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
   // ---- reset ----
   function reset() {
     score = 0; coins = 0; over = false;
+    round = 1; roundFlash = 0;
     setupPieces();
     aiming = false; aimStart = null; aimVec = null;
   }
@@ -141,6 +144,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
   // ---- update ----
   function update(dt) {
     if (over || !running) return;
+    if (roundFlash > 0) roundFlash -= dt;
     const sub = 3; // sub-steps for collision quality
     const sdt = dt / sub;
     for (let s = 0; s < sub; s++) {
@@ -237,11 +241,20 @@ let diffMul = 1;  // v7.20 difficulty ramp
       }
       // check game over: all pieces pocketed
       if (PIECES.every(p => !p.alive)) {
-        // end turn
-        if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
-      onGameOver(Math.floor(score), coins);
-        over = true;
-        return;
+        // ---- carrom round: board cleared! next round ----
+        round++;
+        roundFlash = 1.5;
+        const lvBonus = 40 * round;
+        score += lvBonus;
+        if (typeof onScore === 'function') onScore(Math.floor(score));
+        coins += 10 + round;
+        if (typeof onCoins === 'function') onCoins(coins);
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+        setupPieces();
+        striker.x = CX; striker.y = B.y + B.h - 40;
+        striker.vx = 0; striker.vy = 0; striker.inHand = true;
+        aiming = false; aimStart = null; aimVec = null;
+        player = 1;
       }
     }
   }
@@ -320,6 +333,26 @@ let diffMul = 1;  // v7.20 difficulty ramp
     ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'left';
     ctx.fillText('PLAYER ' + player, 16, 30);
+    // round level badge
+    ctx.fillStyle = '#ffd700';
+    ctx.shadowColor = '#ffd700';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText('ROUND ' + round, 16, 52);
+    ctx.shadowBlur = 0;
+    // round-clear banner
+    if (roundFlash > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.012);
+      ctx.globalAlpha = Math.min(1, roundFlash) * (0.7 + 0.3 * pulse);
+      ctx.fillStyle = '#ffd700';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 16;
+      ctx.font = 'bold 26px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('⭐ BOARD ' + (round - 1) + ' CLEARED! ROUND ' + round, W / 2, H / 2 - 60);
+      ctx.textAlign = 'left';
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+    }
     ctx.fillStyle = '#FFE600';
     ctx.shadowColor = '#FFE600';
     ctx.fillText('SCORE: ' + score, W - 160, 30);

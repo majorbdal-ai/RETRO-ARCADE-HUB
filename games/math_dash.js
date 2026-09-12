@@ -6,6 +6,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   let time = 0, state = 'play';
   let a = 0, b = 0, op = '+', answer = 0, options = [];
   let timeLeft = 30, combo = 0, shake = 0, flash = null;
+  // math level system: level up every 3 correct answers → harder sums
+  let level = 1, levelProg = 0, levelUpFlash = 0;
 
   function key(n) { return !!keys[n]; }
   function t(n) { return !!touches[n]; }
@@ -14,6 +16,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
     over = false; overSent = false;
     score = 0; coins = 0; time = 0; combo = 0; shake = 0;
     timeLeft = 30; state = 'play'; flash = null; diffMul = 1;
+    level = 1; levelProg = 0; levelUpFlash = 0;
     newQuestion();
   }
 
@@ -22,9 +25,12 @@ let diffMul = 1;  // v7.20 difficulty ramp
 
   function newQuestion() {
     op = ['+', '-', 'x'][Math.floor(Math.random() * 3)];
-    if (op === '+') { a = rand(2, 12); b = rand(2, 12); answer = a + b; }
-    else if (op === '-') { a = rand(8, 20); b = rand(2, a - 1); answer = a - b; }
-    else { a = rand(2, 9); b = rand(2, 9); answer = a * b; }
+    // level-scaled number ranges — harder sums as you level up
+    const addMax = Math.min(9 + level * 3, 30);
+    const mulMax = Math.min(4 + level * 2, 12);
+    if (op === '+') { a = rand(2, addMax); b = rand(2, addMax); answer = a + b; }
+    else if (op === '-') { a = rand(8, addMax + 8); b = rand(2, a - 1); answer = a - b; }
+    else { a = rand(2, mulMax); b = rand(2, mulMax); answer = a * b; }
 
     // build 4 options with 1 correct
     const opts = [answer];
@@ -58,6 +64,17 @@ let diffMul = 1;  // v7.20 difficulty ramp
       }
       timeLeft = Math.min(timeLeft + 1, 30);
       flash = 'correct';
+      // ---- level progression: +1 per correct, up every 3 ----
+      levelProg++;
+      if (levelProg >= 3) {
+        level++;
+        levelProg = 0;
+        levelUpFlash = 1.2;
+        const bonus = 10 * level;
+        score += bonus; callScore();
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
+        if (navigator.vibrate) { try { navigator.vibrate(60); } catch(e){} }
+      }
       // spring score pop (canvas → screen coords)
       try {
         const c = document.getElementById('gameCanvas');
@@ -87,6 +104,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
   function update(dt) {
     time += dt;
     timeLeft -= dt;
+    if (levelUpFlash > 0) levelUpFlash -= dt;
     if (timeLeft <= 0) { timeLeft = 0; die(); return; }
     if (shake > 0) shake -= dt;
     if (flash) { flash = null; }
@@ -180,9 +198,28 @@ let diffMul = 1;  // v7.20 difficulty ramp
     // HUD
     ctx.textAlign = 'left';
     neonText('MATH DASH', 14, 20, 15, '#7df9ff');
+    // level badge + progress (3 correct = next level)
+    neonText('LV ' + level, 14, 40, 14, '#b388ff');
+    const progW = 60, progFill = (levelProg / 3) * progW;
+    ctx.fillStyle = 'rgba(179,136,255,0.25)';
+    ctx.fillRect(64, 30, progW, 6);
+    ctx.fillStyle = '#b388ff';
+    ctx.fillRect(64, 30, progFill, 6);
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.strokeRect(64, 30, progW, 6);
     ctx.textAlign = 'right';
     neonText('SCORE ' + score, W - 14, 64, 16, '#ffd93b');
     ctx.textAlign = 'left';
+
+    // level-up banner
+    if (levelUpFlash > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.012);
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = Math.min(1, levelUpFlash) * (0.7 + 0.3 * pulse);
+      neonText('⭐ LEVEL ' + level + '!  +' + (10 * level), W / 2, 130, 26, '#ffd700');
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+    }
 
     if (combo >= 3) {
       ctx.textAlign = 'center';
@@ -206,7 +243,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
       ctx.textAlign = 'center';
       neonText('TIME UP!', W / 2, 170, 44, '#ff4d5e');
       neonText('SCORE ' + score, W / 2, 224, 24, '#ffd93b');
-      neonText('COINS +' + coins, W / 2, 258, 16, '#3bff8f');
+      neonText('REACHED MATH LEVEL ' + level, W / 2, 256, 16, '#b388ff');
+      neonText('COINS +' + coins, W / 2, 288, 16, '#3bff8f');
       ctx.textAlign = 'left';
     }
   }

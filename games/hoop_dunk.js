@@ -15,6 +15,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   let mouseX = 0, mouseY = 0, mouseDown = false;
   let pointerId = null;
   let swishCount = 0, hitCount = 0;
+  // hoop level: +1 per 3 made shots → hoop moves, rim shrinks, farther
+  let level = 1, madeCount = 0, levelFlash = 0, hoopDir = 1;
 
   function reset() {
     over = false; gameOverSent = false; score = 0; coins = 0;
@@ -23,6 +25,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
     ballInFlight = false; streak = 0; swishAnim = 0;
     mouseX = 0; mouseY = 0; mouseDown = false;
     swishCount = 0; hitCount = 0;
+    level = 1; madeCount = 0; levelFlash = 0; hoopDir = 1;
   }
 
   function drawNeonText(text, x, y, color, size) {
@@ -161,6 +164,25 @@ let diffMul = 1;  // v7.20 difficulty ramp
     drawNeonText('Balls: ' + ballsLeft + '/' + TOTAL_BALLS, 10, 65, '#00ff88', 14);
     drawNeonText('Score: ' + score, 10, 85, '#00ff88', 16);
     drawNeonText('Streak: ' + streak, W - 150, 20, '#ffff00', 14);
+    // hoop level badge + progress
+    drawNeonText('HOOP LV ' + level, W - 150, 40, '#ffd700', 14);
+    const hProgW = 56, hProgFill = ((madeCount % 3) / 3) * hProgW;
+    ctx.fillStyle = 'rgba(255,215,0,0.25)';
+    ctx.fillRect(W - 146, 44, hProgW, 5);
+    ctx.fillStyle = '#ffd700';
+    ctx.fillRect(W - 146, 44, hProgFill, 5);
+    // level-up banner
+    if (levelFlash > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.012);
+      ctx.globalAlpha = Math.min(1, levelFlash) * (0.7 + 0.3 * pulse);
+      ctx.shadowColor = '#ffd700';
+      ctx.fillStyle = '#ffd700';
+      ctx.font = 'bold 26px Orbitron, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('⭐ HOOP LV ' + level + '!  Hoop moves!', W / 2, 60);
+      ctx.textAlign = 'left';
+      ctx.globalAlpha = 1;
+    }
 
     // Miss message
     if (ballsLeft === 0 && !ballInFlight && !over) {
@@ -194,6 +216,19 @@ let diffMul = 1;  // v7.20 difficulty ramp
       streak++;
       score += points;
       onScore(score);
+      // ---- hoop level: +1 per made shot, level up every 3 ----
+      madeCount++;
+      if (madeCount % 3 === 0) {
+        level++;
+        levelFlash = 1.2;
+        const lvBonus = 30 * level;
+        score += lvBonus;
+        onScore(score);
+        coins += Math.max(3, Math.floor(lvBonus / 30));
+        if (typeof onCoins === 'function') onCoins(Math.max(3, Math.floor(lvBonus / 30)));
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
+        if (navigator.vibrate) { try { navigator.vibrate(60); } catch(e){} }
+      }
       if (typeof window.playSfx === 'function') { try { window.playSfx(swish ? 'win2' : 'pop'); } catch (e) {} }
       if (swish && navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
       return true;
@@ -204,6 +239,20 @@ let diffMul = 1;  // v7.20 difficulty ramp
   function update(dt) {
     // Swish animation timer
     if (swishAnim > 0) swishAnim -= dt;
+    if (levelFlash > 0) levelFlash -= dt;
+
+    // leveled hoop: moves side-to-side & shrinks as you level up
+    if (level >= 2) {
+      const speed = 30 + (level - 1) * 14;
+      const minX = 380, maxX = W - 130;
+      hoopX += hoopDir * speed * dt;
+      if (hoopX < minX) { hoopX = minX; hoopDir = 1; }
+      if (hoopX > maxX) { hoopX = maxX; hoopDir = -1; }
+      hoopW = Math.max(30, 50 - (level - 1) * 2);
+      rimLeft = hoopX - 10;
+      rimRight = hoopX + hoopW + 10;
+      backboardX = rimRight + 5;
+    }
 
     // Ball in flight physics
     if (ballInFlight) {

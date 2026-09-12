@@ -19,6 +19,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   var keys={},touches={};
   var state='idle',angle=0,vel=0,charge=0,charging=false;
   var spins=3,mult=1;
+  // spin level: every 3 spins → jackpot grows
+  var spinLevel=1,spinTotal=0,spinFlash=0;
   var resultT=0,msg='',msgC='#fff',awarded=false;
   var score=0,shownScore=-1,coins=0;
   var parts=[],pops=[];
@@ -41,6 +43,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
   function reset(){
     angle=0;vel=0;charge=0;charging=false;
     spins=3;mult=1;
+    spinLevel=1;spinTotal=0;spinFlash=0;
     state='idle';resultT=0;msg='';msgC='#fff';awarded=false;
     parts=[];pops=[];
     score=0;coins=0;shownScore=-1;syncScore();
@@ -57,6 +60,13 @@ let diffMul = 1;  // v7.20 difficulty ramp
     vel=2.6+charge*9.2;
     state='spin';
     charge=0;
+    // spin level: every 3 spins → jackpot grows
+    spinTotal++;
+    if (spinTotal % 3 === 0) {
+      spinLevel++;
+      spinFlash = 1.2;
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
+    }
     if (typeof window.playSfx === 'function') { try { window.playSfx('shoot'); } catch (e) {} }
   }
   function settle(){
@@ -78,7 +88,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
       pop(CX,CY+R+44,'BONUS x'+mult,'#ff5cf0');
     }else{
       amt=s.v*mult;
-      if(s.jackpot)amt=500*mult;
+      if(s.jackpot)amt=(500 + (spinLevel - 1) * 100) * mult;
       addCoins(amt);
       score+=amt;
       syncScore();
@@ -95,6 +105,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
   }
   function update(dt){
     var i,q;
+    if(spinFlash>0)spinFlash-=dt;
     for(i=pops.length-1;i>=0;i--){q=pops[i];q.life-=dt;q.y-=30*dt;if(q.life<=0)pops.splice(i,1);}
     for(i=parts.length-1;i>=0;i--){
       q=parts[i];
@@ -217,6 +228,30 @@ let diffMul = 1;  // v7.20 difficulty ramp
       neonText('BONUS x'+mult+' ACTIVE',CX,CY+R+16,'#ff5cf0',14,'center',12);
     }
     ctx.save();
+    // spin level badge
+    ctx.globalAlpha=1;
+    ctx.shadowColor='#ffd700';
+    ctx.fillStyle='#ffd700';
+    ctx.font='bold 11px "Courier New",monospace';
+    ctx.textAlign='left';
+    ctx.fillText('SPIN LV '+spinLevel,120,44);
+    ctx.textAlign='right';
+    ctx.fillText('JACKPOT '+(500+(spinLevel-1)*100),220,44);
+    ctx.textAlign='left';
+    ctx.shadowBlur=0;
+    if(spinFlash>0){
+      var pu2=0.5+0.5*Math.sin(performance.now()*0.012);
+      ctx.globalAlpha=Math.min(1,spinFlash)*(0.7+0.3*pu2);
+      ctx.fillStyle='#ffd700';
+      ctx.shadowColor='#ffd700';
+      ctx.shadowBlur=16;
+      ctx.font='bold 24px "Courier New",monospace';
+      ctx.textAlign='center';
+      ctx.fillText('⭐ SPIN LV '+spinLevel+'! JACKPOT GROWS!',400,120);
+      ctx.textAlign='left';
+      ctx.shadowBlur=0;
+      ctx.globalAlpha=1;
+    }
     for(var si=0;si<3;si++){
       var sx2=120+si*30;
       ctx.globalAlpha=si<spins?1:0.2;
@@ -250,6 +285,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
     if(pendingEnd){
       neonText('GAME OVER!',W/2,110,'#ff3b5c',34,'center',20);
       neonText('FINAL SCORE '+score+'  •  '+coins+' COINS',W/2,150,'#fff',14,'center',8);
+      neonText('SPIN LV REACHED: '+spinLevel,W/2,178,'#ffd93b',12,'center',6);
     }
   }
   function loop(ts){

@@ -14,6 +14,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   let maxPull = 120;
   let activeBird = null;
   let state = 'aim';
+  // sling level: clear all pigs → next level, tougher structures
+  let level = 1, levelFlash = 0, nextTimer = 0;
 
   function reset() {
     birds = [];
@@ -22,6 +24,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
     aimPos = null;
     dragging = false;
     birdsLeft = 5;
+    level = 1; levelFlash = 0; nextTimer = 0;
     state = 'aim';
     score = 0;
     coins = 0;
@@ -33,26 +36,31 @@ let diffMul = 1;  // v7.20 difficulty ramp
   function buildLevel() {
     structures = [];
     const baseX = 500;
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 3 - row; col++) {
+    const pigHP = 2 + Math.floor((level - 1) / 2);
+    const rows = Math.min(3 + Math.floor((level - 1) / 2), 5);
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < rows - row; col++) {
         structures.push({
           x: baseX + col * 35 + row * 18,
           y: 320 - row * 30,
           w: 25,
           h: 28,
-          hp: 2,
-          type: row === 2 ? 'pig' : 'block'
+          hp: Math.max(1, pigHP - (rows - row - 1)),
+          type: row === rows - 1 ? 'pig' : 'block'
         });
       }
     }
-    structures.push({
-      x: baseX + 50,
-      y: 280,
-      w: 25,
-      h: 28,
-      hp: 2,
-      type: 'pig'
-    });
+    const extraPigs = Math.min(Math.floor(level / 4), 2);
+    for (let i = 0; i < extraPigs; i++) {
+      structures.push({
+        x: baseX + 10 + i * 60,
+        y: level >= 6 ? 250 : 280,
+        w: 25,
+        h: 28,
+        hp: pigHP,
+        type: 'pig'
+      });
+    }
   }
 
   function launchBird(vx, vy) {
@@ -73,7 +81,11 @@ let diffMul = 1;  // v7.20 difficulty ramp
   }
 
   function update(dt) {
-    if (over || state === 'aim') return;
+    if (over) return;
+    if (levelFlash > 0) levelFlash -= dt;
+    // transition pause between levels
+    if (nextTimer > 0) { nextTimer -= dt; return; }
+    if (state === 'aim') return;
 
     for (let i = birds.length - 1; i >= 0; i--) {
       const b = birds[i];
@@ -135,11 +147,24 @@ let diffMul = 1;  // v7.20 difficulty ramp
           coins += Math.floor(score / 200);
           onCoins(coins);
           if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+          // ---- sling level: cleared! next level, tougher ----
+          level++;
+          levelFlash = 1.6;
+          nextTimer = 1.8;
+          const lvBonus = 100 * level;
+          score += lvBonus;
+          onScore(score);
+          coins += 5 + level;
+          onCoins(coins);
+          birdsLeft = 4 + Math.floor(level / 3);
+          maxPull = Math.max(90, 120 - Math.floor(level / 3) * 4);
+          buildLevel();
+        } else {
+          over = true;
+          if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+          if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
+          onGameOver(score, coins);
         }
-        over = true;
-        if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
-        if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
-      onGameOver(score, coins);
       }
     }
   }
@@ -218,6 +243,31 @@ let diffMul = 1;  // v7.20 difficulty ramp
     ctx.font = '14px monospace';
     ctx.fillText('SLING BIRDS', 10, 20);
     ctx.fillText('DRAG TO AIM & RELEASE | BIRDS: ' + birdsLeft, 10, 40);
+    // sling level badge
+    ctx.fillStyle = '#ffd700';
+    ctx.shadowColor = '#ffd700';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText('LV ' + level, W - 70, 34);
+    const prog = 10 - birdsLeft;
+    const barW = 44;
+    ctx.fillStyle = 'rgba(255,215,0,0.25)';
+    ctx.fillRect(W - 66, 38, barW, 5);
+    ctx.fillStyle = '#ffd700';
+    ctx.fillRect(W - 66, 38, barW * (prog / 10), 5);
+    // level-up banner
+    if (levelFlash > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.012);
+      ctx.globalAlpha = Math.min(1, levelFlash) * (0.7 + 0.3 * pulse);
+      ctx.fillStyle = '#ffd700';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 14;
+      ctx.font = 'bold 24px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('⭐ LEVEL ' + level + ' CLEARED!', W / 2, 60);
+      ctx.textAlign = 'left';
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+    }
     ctx.shadowBlur = 0;
   }
 

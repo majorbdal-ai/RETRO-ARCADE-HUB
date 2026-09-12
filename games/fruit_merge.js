@@ -4,6 +4,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   let raf = null, last = 0, running = false, over = false, score = 0, coins = 0;
   let keys = {}, touches = {};
   let fruits = [], nextFruit = null, aimX = W / 2, aiming = false, lineTimer = 0, gameOverTimer = 0;
+  // meld level: +1 per merge; every 4 merges → level up, unlock bigger fruit pool
+  let level = 1, mergeCount = 0, levelFlash = 0;
   const fruitTypes = [
     { r: 14, color: '#ff6b6b', glow: '#ff0000', value: 1 },
     { r: 20, color: '#ffa500', glow: '#ff8800', value: 2 },
@@ -20,7 +22,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
   const FLOOR_Y = H - 40, CEILING_Y = 90, LEFT_WALL = 40, RIGHT_WALL = W - 40;
 
   function randomFruit() {
-    const idx = Math.min(Math.floor(Math.random() * 4), 3);
+    const idx = Math.min(Math.floor(Math.random() * (3 + level * 0.6)), Math.min(3 + Math.floor(level * 1.2), 9));
     return { ...fruitTypes[idx], x: aimX, y: 50, vx: 0, vy: 0, settled: false, merging: false, popTimer: 0 };
   }
 
@@ -34,6 +36,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
     score = 0;
     coins = 0;
     over = false;
+    level = 1; mergeCount = 0; levelFlash = 0;
     onScore(0);
   }
 
@@ -59,6 +62,19 @@ let diffMul = 1;  // v7.20 difficulty ramp
             score += nt.value * 10;
             coins += nt.value;
             onScore(score);
+            // ---- meld level: every 4 merges → level up (bigger fruit pool) ----
+            mergeCount++;
+            if (mergeCount % 4 === 0) {
+              level = Math.min(level + 1, 10);
+              levelFlash = 1.2;
+              const lvBonus = 20 * level;
+              score += lvBonus;
+              onScore(score);
+              coins += Math.max(2, Math.floor(lvBonus / 30));
+              onCoins(Math.max(2, Math.floor(lvBonus / 30)));
+              if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
+              if (navigator.vibrate) { try { navigator.vibrate(60); } catch(e){} }
+            }
             if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
             if (nt.value >= 5 && navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
             merged = true;
@@ -188,6 +204,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
       }
       if (offending) gameOverTimer += dt;
       else gameOverTimer = 0;
+      if (levelFlash > 0) levelFlash -= dt;
       if (gameOverTimer > 1.2) {
         over = true;
         if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
@@ -283,9 +300,26 @@ let diffMul = 1;  // v7.20 difficulty ramp
     ctx.shadowBlur = 8;
     ctx.shadowColor = '#00ffff';
     ctx.fillText('FRUIT MERGE', 16, 28);
+    // meld level badge
+    ctx.fillStyle = '#ffd700';
+    ctx.shadowColor = '#ffd700';
+    ctx.font = 'bold 12px Orbitron, monospace';
+    ctx.fillText('MELD LV ' + level, 16, 46);
+    // level-up banner
+    if (levelFlash > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.012);
+      ctx.globalAlpha = Math.min(1, levelFlash) * (0.7 + 0.3 * pulse);
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 24px Orbitron, monospace';
+      ctx.fillStyle = '#ffd700';
+      ctx.shadowColor = '#ffd700';
+      ctx.fillText('⭐ MELD LV ' + level + '!', W / 2, CEILING_Y - 10);
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+    }
     ctx.font = '12px Orbitron, monospace';
     ctx.fillStyle = '#88ffff';
-    ctx.fillText('←/→ Aim  |  SPACE/TAP Drop  |  Merge same fruits', 16, 46);
+    ctx.fillText('←/→ Aim  |  SPACE/TAP Drop  |  Merge same fruits', 16, 62);
     ctx.shadowBlur = 0;
 
     ctx.font = 'bold 20px Orbitron, monospace';

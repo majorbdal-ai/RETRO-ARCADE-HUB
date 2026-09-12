@@ -6,6 +6,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   var keys = {}, touches = {};
   var score = 0, coins = 0;
   var pScore = 0, bScore = 0, rally = 0, server = 0;
+  // set level: every 11-point win → next set, bot gets sharper
+  var setLevel = 1, setFlash = 0;
   var pY = H / 2, bY = H / 2, pV = 0;
   var padH = 78;
   var ball = { x: 0, y: 0, vx: 0, vy: 0, speed: 0 };
@@ -25,7 +27,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
     var fromP = server === 0;
     ball.x = fromP ? PX - 16 : BX + 16;
     ball.y = fromP ? pY : bY;
-    var sp = 330 + rnd(0, 60);
+    var sp = 330 + rnd(0, 60) + (setLevel - 1) * 28;
     ball.vx = fromP ? -sp : sp;
     ball.vy = rnd(-90, 90);
     ball.speed = sp * diffMul;
@@ -44,8 +46,20 @@ let diffMul = 1;  // v7.20 difficulty ramp
       bScore++;
       if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
     }
-    if (pScore >= 11) { over = true; if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} } if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} } if (onGameOver) if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
-      onGameOver(pScore, coins); return; }
+    if (pScore >= 11) {
+      setLevel++;
+      setFlash = 1.4;
+      const lvBonus = 50 * setLevel;
+      score += lvBonus;
+      if (typeof onScore === 'function') onScore(score);
+      coins += Math.max(3, Math.floor(lvBonus / 50));
+      if (typeof onCoins === 'function') onCoins(Math.max(3, Math.floor(lvBonus / 50)));
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} }
+      pScore = 0; bScore = 0; rally = 0; server = 0;
+      state = 'serve'; serveT = 1.0;
+      return;
+    }
     if (bScore >= 11) { over = true; if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} } if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} } if (onGameOver) onGameOver(pScore, coins); return; }
     server = (server + 1) % 2;
     state = 'serve';
@@ -54,6 +68,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
 
   function reset() {
     pScore = 0; bScore = 0; rally = 0; server = 0;
+    setLevel = 1; setFlash = 0;
     pY = H / 2; bY = H / 2; pV = 0;
     ball = { x: 0, y: 0, vx: 0, vy: 0, speed: 0 };
     state = 'serve'; serveT = 0.8;
@@ -62,6 +77,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
 
   function update(dt) {
     time += dt;
+    if (setFlash > 0) setFlash -= dt;
     pV = (down('down', ['ArrowDown', 'KeyS']) ? 1 : 0) - (down('up', ['ArrowUp', 'KeyW']) ? 1 : 0);
     pY += pV * 540 * dt;
     pY = clamp(pY, 16 + padH / 2, H - 16 - padH / 2);
@@ -94,7 +110,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
       if (Math.abs(ball.y - bY) < botH() / 2 + 10) {
         var offB = clamp((ball.y - bY) / (botH() / 2), -1, 1);
         var miss = 0;
-        if (ball.speed > 620) miss = Math.min(0.8, (ball.speed - 600) / 420);
+        if (ball.speed > 620) miss = Math.min(0.8, (ball.speed - 600 - (setLevel - 1) * 90) / 420);
         if (Math.random() < miss) {
           ball.vx = Math.abs(ball.vx) * 0.6;
           ball.vy = rnd(-260, 260);
@@ -193,6 +209,11 @@ let diffMul = 1;  // v7.20 difficulty ramp
     ctx.shadowColor = '#2bff88'; ctx.shadowBlur = 10;
     ctx.font = 'bold 26px monospace';
     ctx.fillText(pScore + '  ·  ' + bScore, W / 2, 120);
+    // set level HUD
+    ctx.fillStyle = '#ffd700';
+    ctx.shadowColor = '#ffd700';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('SET ' + setLevel, W / 2, 96);
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#7f92b8';
     ctx.font = '13px monospace';
@@ -236,6 +257,20 @@ let diffMul = 1;  // v7.20 difficulty ramp
       ctx.font = '13px monospace';
       ctx.fillText('FINAL ' + pScore + ' – ' + bScore, W / 2, H / 2 + 30);
       ctx.restore();
+    }
+    // set-win banner
+    if (setFlash > 0 && !over) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.012);
+      ctx.globalAlpha = Math.min(1, setFlash) * (0.7 + 0.3 * pulse);
+      ctx.fillStyle = '#ffd700';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 16;
+      ctx.font = 'bold 28px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('⭐ SET ' + (setLevel - 1) + ' WON!  NEXT SET!', W / 2, H / 2 - 40);
+      ctx.textAlign = 'left';
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
     }
   }
 

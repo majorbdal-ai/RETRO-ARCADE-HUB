@@ -26,6 +26,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   const SHELF_ITEM_SIZE = 50;
   const SHELF_Y = H - 100;
   let shelf = []; // array of item type indices, max 7
+  // sort level: +1 per triple match, level up every 3 matches → faster conveyor
+  let level = 1, matchCount = 0, levelFlash = 0;
 
   // conveyor
   let conveyor = []; // items waiting, array of { type: index, x, y, speed }
@@ -160,6 +162,19 @@ let diffMul = 1;  // v7.20 difficulty ramp
         score += 50;
         onScore(score);
         matched = true;
+        // ---- sort level: +1 per match, level up every 3 ----
+        matchCount++;
+        if (matchCount % 3 === 0) {
+          level++;
+          levelFlash = 1.2;
+          const lvBonus = 25 * level;
+          score += lvBonus;
+          onScore(score);
+          coins += Math.max(2, Math.floor(lvBonus / 40));
+          if (typeof onCoins === 'function') onCoins(Math.max(2, Math.floor(lvBonus / 40)));
+          if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
+          if (navigator.vibrate) { try { navigator.vibrate(60); } catch(e){} }
+        }
         if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
         // Don't increment i since items shifted
         continue;
@@ -183,6 +198,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
     conveyorSpeed = 60;
     spawnTimer = 0;
     spawnInterval = 2.5;
+    level = 1; matchCount = 0; levelFlash = 0;
   }
 
   // ---- update ----
@@ -191,12 +207,13 @@ let diffMul = 1;  // v7.20 difficulty ramp
 
     // spawn conveyor items
     spawnTimer -= dt;
+    if (levelFlash > 0) levelFlash -= dt;
     if (spawnTimer <= 0) {
       spawnItem();
       spawnTimer = spawnInterval;
-      // increase speed over time
-      conveyorSpeed = (60 + score * 0.08) * diffMul;
-      spawnInterval = Math.max(0.8, 2.5 - score * 0.001);
+      // speed scales with sort level (matches made), not raw score
+      conveyorSpeed = (60 + (level - 1) * 14) * diffMul;
+      spawnInterval = Math.max(0.8, 2.5 - (level - 1) * 0.18);
     }
 
     // move conveyor items
@@ -240,6 +257,35 @@ let diffMul = 1;  // v7.20 difficulty ramp
     ctx.textAlign = 'center';
     ctx.fillText('TRIPLE SORT', W / 2, 30);
     ctx.shadowBlur = 0;
+
+    // sort level badge + progress (top-left)
+    ctx.textAlign = 'left';
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = '#ffd700';
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('SORT LV ' + level, 14, 26);
+    const progW = 56, progFill = ((matchCount % 3) / 3) * progW;
+    ctx.fillStyle = 'rgba(255,215,0,0.25)';
+    ctx.fillRect(20, 32, progW, 5);
+    ctx.fillStyle = '#ffd700';
+    ctx.fillRect(20, 32, progFill, 5);
+    ctx.shadowBlur = 0;
+
+    // level-up banner
+    if (levelFlash > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.012);
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = Math.min(1, levelFlash) * (0.7 + 0.3 * pulse);
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = '#ffd700';
+      ctx.fillStyle = '#ffd700';
+      ctx.font = 'bold 24px monospace';
+      ctx.fillText('⭐ SORT LV ' + level + '!  +' + (25 * level), W / 2, 70);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+    }
 
     // score
     ctx.shadowBlur = 6;
@@ -374,7 +420,11 @@ let diffMul = 1;  // v7.20 difficulty ramp
       ctx.font = '18px monospace';
       ctx.fillText('SHELF OVERFLOWED!', W / 2, H / 2 + 5);
       ctx.fillText('SCORE: ' + score, W / 2, H / 2 + 35);
-      ctx.fillText('COINS: ' + coins, W / 2, H / 2 + 63);
+      ctx.shadowColor = '#ffd700';
+      ctx.fillStyle = '#ffd700';
+      ctx.font = '16px monospace';
+      ctx.fillText('SORT LV ' + level, W / 2, H / 2 + 60);
+      ctx.fillText('COINS: ' + coins, W / 2, H / 2 + 82);
       ctx.textAlign = 'left';
       ctx.shadowBlur = 0;
     }

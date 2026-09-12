@@ -10,6 +10,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   let maxTries = 10;
   let colors = ['#ff0044', '#00ff88', '#00ccff', '#ffcc00', '#ff8800', '#cc44ff'];
   let win = false;
+  // code master level: every solved code → next round, harder
+  let level = 1, levelFlash = 0, roundMsg = '', roundMsgT = 0;
 
   function reset() {
     secret = [];
@@ -20,6 +22,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
     coins = 0;
     over = false;
     win = false;
+    level = 1; levelFlash = 0; roundMsg = ''; roundMsgT = 0;
     onScore(0);
     for (let i = 0; i < 4; i++) {
       secret.push(Math.floor(Math.random() * colors.length));
@@ -39,27 +42,39 @@ let diffMul = 1;  // v7.20 difficulty ramp
 
     const exact = guess.filter((c, i) => c === secret[i]).length;
     if (exact === 4) {
-      if (typeof gameFX !== 'undefined') { try { var __r2 = canvas.getBoundingClientRect(); gameFX.burst(__r2.left + (W/2) * __r2.width / canvas.width, __r2.top + (H/2) * __r2.height / canvas.height, '#ffd700', 22); } catch(e){} gameFX.shake(2); }
-      win = true;
-      coins += Math.max(3, 10 - guesses.length);
-      onCoins(coins);
+      // ---- code master: solved! next round ----
+      level++;
+      levelFlash = 1.4;
+      const lvBonus = 50 * level;
+      score += lvBonus;
+      coins += 2 + level;
+      if (typeof onCoins === 'function') onCoins(coins);
       if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
-      over = true;
-      if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
-      onGameOver(score, coins);
+      win = true;
+      roundMsg = 'CODE ' + (level - 1) + ' CRACKED! ROUND ' + level;
+      roundMsgT = 1.8;
+      guesses = [];
+      currentGuess = [0, 0, 0, 0];
+      selected = 0;
+      secret = [];
+      const colorCount = Math.min(6 + Math.floor(level / 2), 8);
+      for (let i = 0; i < 4; i++) {
+        secret.push(Math.floor(Math.random() * colorCount));
+      }
+      if (typeof onScore === 'function') onScore(score);
       return;
     }
 
-    if (guesses.length >= maxTries) {
-      if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
-      over = true;
-      onGameOver(score, coins);
-      return;
-    }
-
-    currentGuess = [0, 0, 0, 0];
-    selected = 0;
+  if (guesses.length >= maxTries) {
+    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+    over = true;
+    onGameOver(score, coins);
+    return;
   }
+
+  currentGuess = [0, 0, 0, 0];
+  selected = 0;
+}
 
   function evaluate(guess) {
     const s = secret.slice();
@@ -85,6 +100,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
 
   function update(dt) {
     if (over) return;
+    if (roundMsgT > 0) roundMsgT -= dt;
 
     if (keys.ArrowLeft || touches.left) {
       selected = Math.max(0, selected - 1);
@@ -196,6 +212,26 @@ let diffMul = 1;  // v7.20 difficulty ramp
     ctx.shadowBlur = 5;
     ctx.font = '14px monospace';
     ctx.fillText('MASTERMIND', 10, 20);
+    // code master level badge
+    ctx.fillStyle = '#ffd700';
+    ctx.shadowColor = '#ffd700';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText('CODE LV ' + level, W - 90, 34);
+    ctx.shadowBlur = 0;
+    // round-clear banner
+    if (roundMsgT > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.012);
+      ctx.globalAlpha = Math.min(1, roundMsgT) * (0.7 + 0.3 * pulse);
+      ctx.fillStyle = '#ffd700';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 14;
+      ctx.font = 'bold 22px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(roundMsg, W / 2, 55);
+      ctx.textAlign = 'left';
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+    }
     ctx.fillText('LEFT/RIGHT PICK | UP/DOWN COLOR | SPACE GUESS | ' + guesses.length + '/' + maxTries, 10, 40);
     ctx.shadowBlur = 0;
 

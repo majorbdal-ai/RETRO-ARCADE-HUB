@@ -40,6 +40,13 @@ let diffMul = 1;  // v7.20 difficulty ramp
   let keyPos = null;
   let chestPos = null;
 
+  // dungeon depth (level) system — endless floors
+  let dungeonLevel = 1;
+  let levelClear = false;   // chest opened, mid-transition
+  let clearTimer = 0;       // countdown to next floor
+  let depthFlash = 0;       // white flash on floor transition
+  let floorBonus = 0;       // bonus just awarded (for banner)
+
   // sword swing
   let swordHit = null;
 
@@ -136,7 +143,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
   }
 
   function spawnEnemies(roomIndex) {
-    const count = 1 + Math.floor(Math.random() * 3) + Math.floor(roomIndex / 2);
+    const depthBoost = Math.floor((dungeonLevel - 1) / 2);
+    const count = 1 + Math.floor(Math.random() * 3) + Math.floor(roomIndex / 2) + Math.floor(dungeonLevel / 3);
     const enemyList = [];
     for (let i = 0; i < count; i++) {
       let ex, ey, tries = 0;
@@ -147,8 +155,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
       } while (tries < 30);
       enemyList.push({
         x: ex, y: ey, w: 28, h: 28,
-        hp: 2 + Math.floor(roomIndex / 3),
-        speed: 50 + Math.random() * 40,
+        hp: 2 + Math.floor(roomIndex / 3) + depthBoost,
+        speed: Math.min(150, 50 + Math.random() * 40 + depthBoost * 8),
         color: ['#FF10F0', '#FF4444', '#AA88FF'][Math.floor(Math.random() * 3)],
         dir: Math.random() * Math.PI * 2,
         moveTimer: 0,
@@ -202,7 +210,13 @@ let diffMul = 1;  // v7.20 difficulty ramp
     hasKey = false;
     chestOpened = false;
     currentRoom = 0;
+    dungeonLevel = 1;
+    levelClear = false;
+    clearTimer = 0;
+    depthFlash = 0;
+    floorBonus = 0;
     particles = [];
+    P.hp = P.maxHp;
     generateRooms();
     rooms[0].visited = true;
     P.x = COLS / 2 * TILE;
@@ -234,6 +248,29 @@ let diffMul = 1;  // v7.20 difficulty ramp
   // ---- update ----
   function update(dt) {
     if (over || !running) return;
+
+    // depth transition — freeze player, count down, then next floor
+    depthFlash = Math.max(0, depthFlash - dt * 2.2);
+    if (levelClear) {
+      clearTimer -= dt;
+      if (clearTimer <= 0) {
+        // next floor: fresh 5 rooms, heal, keep score/coins
+        dungeonLevel += 1;
+        levelClear = false;
+        hasKey = false;
+        chestOpened = false;
+        currentRoom = 0;
+        generateRooms();
+        rooms[0].visited = true;
+        P.x = COLS / 2 * TILE;
+        P.y = (ROWS - 2) * TILE;
+        P.hp = P.maxHp;
+        P.invincible = 1.2;
+        if (navigator.vibrate) { try { navigator.vibrate(40); } catch(e){} }
+        if (typeof window.playSfx === 'function') { try { window.playSfx('launch'); } catch (e) {} }
+      }
+      return; // frozen during transition
+    }
 
     let dx = 0, dy = 0;
     if (touches.left || keys.ArrowLeft || keys.KeyA) dx -= 1;
@@ -362,6 +399,17 @@ let diffMul = 1;  // v7.20 difficulty ramp
         if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
         if (navigator.vibrate) { try { navigator.vibrate(200); } catch(e){} }
         spawnParticles(chestPos.x, chestPos.y, '#FFE600', 20);
+        // ---- DEPTH CLEAR: start floor transition (endless dungeon) ----
+        levelClear = true;
+        clearTimer = 1.8;
+        floorBonus = 200 + dungeonLevel * 100;
+        score += floorBonus;
+        onScore(score);
+        coins += 20;
+        onCoins(20);
+        P.hp = Math.min(P.maxHp, P.hp + 1);
+        depthFlash = 1;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win'); } catch (e) {} }
       }
     }
 
@@ -590,6 +638,42 @@ let diffMul = 1;  // v7.20 difficulty ramp
     ctx.fillText('ROOM ' + (currentRoom + 1) + '/5', W - 120, 24);
     ctx.shadowBlur = 0;
 
+    // depth (level) indicator — endless dungeon floor
+    ctx.fillStyle = '#FFD700';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#FFA500';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('▣ DEPTH ' + dungeonLevel, W - 120, 44);
+    ctx.shadowBlur = 0;
+
+    // depth-clear banner + bonus
+    if (levelClear) {
+      const pulse = 0.6 + 0.4 * Math.sin(performance.now() * 0.008);
+      ctx.globalAlpha = pulse;
+      ctx.fillStyle = '#FFD700';
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = '#FFA500';
+      ctx.font = 'bold 24px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('DEPTH ' + dungeonLevel + ' CLEAR!', W / 2, H / 2 - 40);
+      ctx.font = '16px monospace';
+      ctx.fillStyle = '#00FF88';
+      ctx.shadowColor = '#00FF88';
+      ctx.fillText('BONUS +' + floorBonus + '  ♥+1', W / 2, H / 2 - 10);
+      ctx.strokeStyle = 'rgba(255,215,0,0.6)';
+      ctx.lineWidth = 2;
+      ctx.strokeText('⬇ NEXT FLOOR...', W / 2, H / 2 + 22);
+      ctx.textAlign = 'left';
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+    }
+
+    // white depth flash
+    if (depthFlash > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,' + (depthFlash * 0.5).toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+
     // game over overlay
     if (over) {
       ctx.fillStyle = 'rgba(5,7,10,0.85)';
@@ -605,6 +689,10 @@ let diffMul = 1;  // v7.20 difficulty ramp
       ctx.font = '18px monospace';
       ctx.fillText('SCORE: ' + Math.floor(score), W / 2, H / 2 + 10);
       ctx.fillText('COINS: ' + coins, W / 2, H / 2 + 38);
+      ctx.shadowColor = '#FFD700';
+      ctx.fillStyle = '#FFD700';
+      ctx.font = '16px monospace';
+      ctx.fillText('REACHED DEPTH ' + dungeonLevel, W / 2, H / 2 + 62);
       ctx.textAlign = 'left';
       ctx.shadowBlur = 0;
     }
