@@ -66,6 +66,26 @@ t('floor shown in HUD via onScoreCb', /const shown = s \+ reviveFloor/.test(core
 t('CONTINUE button present in overlay', /id="reviveBtn"/.test(html));
 // 12. 70-game target coverage — every game has a star/retry target
 t('GAME_TARGETS covers all 70 games', core.includes('const GAME_TARGETS') && core.match(/'[a-z0-9-]+':/g).filter(x => x.includes('-')).length >= 1, );
+// 13. RESIZE RECURSION GUARD (v7.29.1 regression): never dispatch a synthetic
+// 'resize' event from inside a resize/orientation listener — that recurses forever
+// and hangs the phone on game start.
+t('no synthetic resize dispatch in core.js', !/dispatchEvent\(\s*new Event\(['"]resize['"]\)/.test(core));
+t('no resize listener in core.js that re-dispatches resize', !/addEventListener\(\s*['"]resize['"][\s\S]{0,200}dispatchEvent/.test(core));
+// 14. AUTO-LANDSCAPE (v7.30.0): lock helper exists, is called AFTER gameState.id
+// is assigned (locking before the id is set silently no-ops), and retries on
+// fullscreenchange (Chrome rejects a bare lock before the transition settles).
+t('tryLockLandscape defined', /function tryLockLandscape\s*\(/.test(core));
+t('tryLockLandscape calls orientation.lock(landscape)', /tryLockLandscape[\s\S]{0,300}lock\(\s*['"]landscape['"]\s*\)/.test(core));
+t('tryLockLandscape called AFTER gameState.id assignment', /gameState = \{ id,[\s\S]{0,400}tryLockLandscape\(\)/.test(core));
+t('fullscreenchange retries landscape lock', /addEventListener\(\s*['"]fullscreenchange['"][\s\S]{0,200}tryLockLandscape\(\)/.test(core));
+t('exitToHub unlocks orientation', /exitToHub[\s\S]{0,600}orientation\.unlock/.test(core));
+// 15. AUTO-FULLSCREEN (v7.29.0): games request fullscreen on start, exit on hub
+t('bootGame requests fullscreen', /function bootGame[\s\S]{0,1500}requestFullscreen/.test(core));
+t('exitToHub exits fullscreen', /exitToHub[\s\S]{0,600}exitFullscreen/.test(core));
+// 16. rotate-hint fully removed (v7.29.1): no leftover DOM/CSS/JS references
+t('playAreaLabel removed from html', !html.includes('playAreaLabel'));
+t('updateGameOrientation removed', !core.includes('updateGameOrientation'));
+t('rotateHintTimer removed', !core.includes('rotateHintTimer'));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);

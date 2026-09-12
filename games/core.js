@@ -1483,7 +1483,7 @@ function exitToHub() {
 }
 
 // ---- orientation ----
-// v7.29.1: ROTATE hint/updateGameOrientation removed (games auto-landscape now).
+// v7.29.1: ROTATE hint removed (games auto-landscape now).
 // No resize/orientationchange listeners needed: CSS media queries (portrait/
 // landscape) refit the canvas on rotation automatically, and no engine listens
 // for resize events. (Do NOT dispatch synthetic resize events here — an engine
