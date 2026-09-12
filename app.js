@@ -1281,7 +1281,7 @@ function renderCoinStore() {
       <div class="coins">${p.coins.toLocaleString()}</div>
       <div style="font-size:11px;color:var(--sub)">COINS</div>
       <div class="price">$${p.price.toFixed(2)}</div>
-      <button class="btn btn-primary" style="width:100%;padding:10px" onclick="toast('Payment gateway comes with app release — this is a demo store')"><i class="fa-solid fa-lock"></i> BUY NOW</button>
+      <button class="btn btn-primary" style="width:100%;padding:10px;opacity:.75" onclick="toast('Coin purchase — coming soon with the app release')"><i class="fa-solid fa-lock"></i> COMING SOON</button>
     </div>`).join('');
 }
 
