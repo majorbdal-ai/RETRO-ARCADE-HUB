@@ -1,5 +1,5 @@
 {
-  "version": "7.32.0",
+  "version": "7.33.0",
   "games": 70,
   "build": "2026-09-12",
   "mastery-stars": true,
@@ -90,6 +90,7 @@
     "sfx-batch-10-puzzle-board",
     "png-logos",
     "missions-scorepool-49",
-    "missions-42-games"
+    "missions-42-games",
+    "dpr-sharp-canvas"
   ]
 }

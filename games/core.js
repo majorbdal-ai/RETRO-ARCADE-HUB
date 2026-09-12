@@ -129,13 +129,30 @@ const CTRL_BTN_LABELS = {
 // Game engines exposing pointerDown/pointerMove/pointerUp or swipe/onSwipe
 // get their touch events wired to the canvas automatically.
 // B1: canvas CSS → logical coordinate scaling + pointerId multi-touch tracking + touchcancel.
+// remove the per-game DPR resize hook (registered inside bootGame)
+function clearDPRResize() {
+  if (window.__dprResize) {
+    window.removeEventListener('resize', window.__dprResize);
+    window.__dprResize = null;
+  }
+}
 function canvasScale() {
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return { sx: 1, sy: 1 };
   const r = canvas.getBoundingClientRect();
+  // DPR-aware: canvas buffer is W*DPR wide, but engines use logical W (800).
+  // So the input→logical scale is (LOGICAL W) / r.width, NOT canvas.width / r.width.
+  // We read the logical size from the same const the engines use (800×450),
+  // but fall back to attribute/ratio generically if we can't derive it.
+  let lw = 800, lh = 450;
+  // If an engine ever switches to dynamic logical size, respect the attribute:
+  const logicalMult = (canvas.width && canvas.height) ? (canvas.width / lw) : 1;
+  if (logicalMult > 0 && Math.abs(logicalMult - 1) > 0.01) {
+    lw = canvas.width; lh = canvas.height;   // attribute already logical (no DPR scaling applied)
+  }
   return {
-    sx: (canvas.width && r.width) ? (canvas.width / r.width) : 1,
-    sy: (canvas.height && r.height) ? (canvas.height / r.height) : 1
+    sx: (lw && r.width) ? (lw / r.width) : 1,
+    sy: (lh && r.height) ? (lh / r.height) : 1
   };
 }
 function canvasXY(clientX, clientY) {
@@ -1015,6 +1032,26 @@ function bootGame(id, engine) {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
+  // DPR (devicePixelRatio) — sharp rendering on high-DPI phones
+  // (audit item #2). The canvas BUFFER becomes logicalW*dpr, but the
+  // engines keep drawing in their logical 800×450 space. We restore a
+  // setTransform scaling so ctx ops land at CSS-pixel scale; crispness
+  // comes from the bigger backing store. All input scaling (canvasScale)
+  // now reads logical dims, so touch coordinates stay correct.
+  function setupDPR() {
+    const dpr = (typeof window.devicePixelRatio === 'number' && window.devicePixelRatio > 0)
+      ? Math.min(3, window.devicePixelRatio) : 1;
+    // preserve the engine's logical dimensions — NEVER let attribute scale
+    // affect engine coordinate space (they hardcode 800×450)
+    const lw = 800, lh = 450;
+    canvas.width = Math.round(lw * dpr);
+    canvas.height = Math.round(lh * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  setupDPR();
+  window.__dprResize = () => { setupDPR(); };
+  window.addEventListener('resize', window.__dprResize);
+
   // create engine instance
   currentEngine = engine;
   let reviveFloor = pendingReviveFloor; pendingReviveFloor = 0;   // consumed once
@@ -1446,12 +1483,12 @@ function restartGame() {
   currentGame = null;
   currentEngine = null;
   gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  clearDPRResize();
   window.removeEventListener('keydown', keyDown);
   window.removeEventListener('keyup', keyUp);
   stopTouchKeySync();
   document.getElementById('gameOverOverlay').classList.remove('show');
-  reviveUsed = false; // fresh run — continue allowed again
-  // re-launch fresh
+  reviveUsed = false;
   launchGame(id);
 }
 
@@ -1476,6 +1513,7 @@ function reviveGame() {
   currentGame = null;
   currentEngine = null;
   gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  clearDPRResize();
   window.removeEventListener('keydown', keyDown);
   window.removeEventListener('keyup', keyUp);
   stopTouchKeySync();
@@ -1500,6 +1538,7 @@ function exitToHub() {
   if (currentGame) { try { currentGame.destroy(); } catch (e) {} }
   currentGame = null;
   gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  clearDPRResize();
   window.removeEventListener('keydown', keyDown);
   window.removeEventListener('keyup', keyUp);
   stopTouchKeySync();
