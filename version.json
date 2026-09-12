@@ -1,5 +1,5 @@
 {
-  "version": "7.33.3",
+  "version": "7.34.0",
   "games": 70,
   "build": "2026-09-12",
   "mastery-stars": true,
@@ -91,6 +91,7 @@
     "png-logos",
     "missions-scorepool-49",
     "missions-42-games",
-    "dpr-sharp-canvas"
+    "dpr-sharp-canvas",
+    "png-icons-manifest-og-favicon"
   ]
 }
