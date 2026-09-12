@@ -975,15 +975,9 @@ function bootGame(id, engine) {
     } catch (e) {}
   }
   // AUTO-LANDSCAPE (v7.29.1): rotate to landscape so the 16:9 canvas FILLS the
-  // screen (portrait keeps the canvas tiny). Lock INSIDE the user-gesture window
-  // (no setTimeout — Chrome rejects orientation.lock without user activation);
-  // iOS silently no-ops (caught).
-  try {
-    if (screen.orientation && screen.orientation.lock) {
-      const op = screen.orientation.lock('landscape');
-      if (op && op.catch) op.catch(() => {});
-    }
-  } catch (e) {}
+  // screen. We lock AFTER gameState.id is set (right below), and also retry on
+  // fullscreenchange — Chrome can reject a lock before the fullscreen transition
+  // settles. iOS silently no-ops (no orientation.lock API).
   document.getElementById('hudGameTitle').innerText = g.name;
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('hudCoins').innerText = '0';
@@ -999,6 +993,9 @@ function bootGame(id, engine) {
 
   // reset game state
   gameState = { id, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  // (v7.29.1) now that gameState.id is set, lock landscape (fullscreen may still
+  // be settling; fullscreenchange listener retries)
+  tryLockLandscape();
 
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
@@ -1491,6 +1488,24 @@ function exitToHub() {
 // landscape) refit the canvas on rotation automatically, and no engine listens
 // for resize events. (Do NOT dispatch synthetic resize events here — an engine
 // that did listen would recurse forever.)
+
+// AUTO-LANDSCAPE helper: lock landscape while a game is active. Chrome can
+// reject a bare orientation.lock before the fullscreen transition settles, so
+// we retry once per fullscreenchange; iOS has no lock API (silent no-op).
+function tryLockLandscape() {
+  if (!gameState.id) return; // only while a game is running
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      const op = screen.orientation.lock('landscape');
+      if (op && op.catch) op.catch(() => {});
+    }
+  } catch (e) {}
+}
+if (document.fullscreenEnabled) {
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement && gameState.id) tryLockLandscape();
+  });
+}
 
 // ---- pause / resume ----
 // B1 FIX [008-009]: clear all input state on pause, restore on resume
