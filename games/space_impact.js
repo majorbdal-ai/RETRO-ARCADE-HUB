@@ -516,6 +516,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
         if (lives <= 0) {
           phase = 'gameOver';
           if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+          // report score to the hub (coins/XP/best) — this legacy engine self-reports
+          if (typeof state.onGameOver === 'function') { try { state.onGameOver(score || 0, coins || 0); } catch (e) {} }
           return;
         }
         player.x = 80;

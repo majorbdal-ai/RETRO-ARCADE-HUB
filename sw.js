@@ -3,7 +3,7 @@
    pre-cache ALL 70 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.28.0';
+const CACHE = 'retro-arcade-hub-v7.28.1';
 const STATIC_CORE = [
   './',
   './index.html',
