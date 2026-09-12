@@ -336,7 +336,7 @@ body.game-active #topBar{display:none !important}
 /* ===== PAUSE-INSIDE (v7.16): সব কন্ট্রোল pause মেনুতে; HUD-তে শুধু pause trigger; back-to-hub সরানো ===== */
 body.game-active #page-game .hud{position:absolute;top:0;left:0;right:0;z-index:60;background:linear-gradient(rgba(5,7,10,.75),transparent);border-bottom:none;padding:8px 10px;pointer-events:none}
 body.game-active #page-game .hud-btn{display:none !important}
-body.game-active #page-game .hud-btn.pause-btn{display:flex !important}
+  body.game-active #page-game .hud-btn.pause-btn{display:flex !important;pointer-events:auto}
 /* ===== BIG GAME SCREEN (v7.7)
    Landscape: HUD floats above canvas, gameplay fills the whole screen.
    Portrait: compact layout + rotate hint on small phones. */
@@ -373,6 +373,10 @@ body.game-active #page-game .hud-btn.pause-btn{display:flex !important}
   body.game-active #gameCanvasWrap{min-height:0}
   body.game-active #gameCanvas{max-height:78vh;width:auto;max-width:100%}
 }
+/* AUTO-FULLSCREEN (v7.29): in real fullscreen, let the canvas use all vertical space
+   (documentElement is the fullscreen element → html:fullscreen; !important beats the portrait rule) */
+html:fullscreen #gameCanvas{max-height:100vh !important;max-width:100vw !important;width:auto;height:auto}
+html:fullscreen #gameCanvasWrap{inset:0;height:100%;width:100%;border-radius:0;position:fixed}
 /* B4 FIX [025]: very small screens (320-360px) — tighten controls so nothing overflows */
 @media (max-width: 360px){
   #touchControls .ctrl-btn{width:58px;height:58px;font-size:9px}
@@ -943,7 +947,6 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;justify-content:center">
           <button class="btn btn-ghost" onclick="toggleSound()" style="padding:9px 14px;font-size:12px" id="pauseSoundBtn"><i class="fa-solid fa-volume-high"></i> SOUND</button>
           <button class="btn btn-ghost" onclick="toggleMusic()" style="padding:9px 14px;font-size:12px" id="pauseMusicBtn"><i class="fa-solid fa-music"></i> MUSIC</button>
-          <button class="btn btn-ghost" onclick="toggleFullscreen()" style="padding:9px 14px;font-size:12px"><i class="fa-solid fa-expand"></i> FULLSCREEN</button>
           <button class="btn btn-ghost" onclick="toggleHelp()" style="padding:9px 14px;font-size:12px"><i class="fa-solid fa-circle-question"></i> HELP</button>
           <button class="btn btn-ghost" onclick="togglePause(); restartGame()" style="padding:9px 14px;font-size:12px"><i class="fa-solid fa-rotate-right"></i> RESTART</button>
         </div>

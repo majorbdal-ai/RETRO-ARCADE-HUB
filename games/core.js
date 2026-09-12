@@ -965,6 +965,17 @@ function bootGame(id, engine) {
 
   // switch to game page
   go('game');
+  // AUTO-FULLSCREEN (v7.29): game start → fullscreen immediately, no button needed.
+  // Inside the user-gesture window (called from tap) so it works on Android/desktop;
+  // iOS Safari has no fullscreen API on divs — silently skip (PWA standalone is app-like).
+  if (document.fullscreenEnabled && !document.fullscreenElement) {
+    try {
+      const p = document.documentElement.requestFullscreen();
+      if (p && p.catch) p.catch(() => {});
+      // let the browser settle the new viewport, then re-fit canvas/controls
+      setTimeout(() => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, 250);
+    } catch (e) {}
+  }
   document.getElementById('hudGameTitle').innerText = g.name;
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('hudCoins').innerText = '0';
@@ -1448,6 +1459,10 @@ function exitToHub() {
   unbindGameTouch();
   stopTilt(); // B1 [010]: clean up tilt listener
   lockGameScroll(false);
+  // AUTO-FULLSCREEN (v7.29): leaving a game → leave fullscreen back to the hub
+  if (document.fullscreenElement) {
+    try { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+  }
   // restore the user's global theme when leaving a game (skin-by-game off)
   if (typeof window.applyTheme === 'function' && typeof window.globalTheme === 'string') {
     try { window.applyTheme(window.globalTheme, true); } catch (e) {}
@@ -1936,26 +1951,6 @@ function initCRT() {
   const profCrt = document.getElementById('profCrtBtn');
   if (profCrt) profCrt.innerText = 'CRT: ' + (localStorage.getItem('rah_crt') === '1' ? 'ON' : 'OFF');
 }
-
-// ---- FULLSCREEN toggle (mobile) ----
-function toggleFullscreen() {
-  const el = document.documentElement;
-  const fsIcon = document.getElementById('fsIcon');
-  const req = el.requestFullscreen || el.webkitRequestFullscreen || function(){};
-  const exit = document.exitFullscreen || document.webkitExitFullscreen || function(){};
-  if (!document.fullscreenElement) {
-    const p = req.call(el);
-    if (p && p.catch) p.catch(()=>{});
-    if (fsIcon) fsIcon.className = 'fa-solid fa-compress';
-  } else {
-    exit.call(document);
-    if (fsIcon) fsIcon.className = 'fa-solid fa-expand';
-  }
-}
-document.addEventListener('fullscreenchange', () => {
-  const fsIcon = document.getElementById('fsIcon');
-  if (fsIcon) fsIcon.className = document.fullscreenElement ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
-});
 
 // ---- wire card clicks to launch (replaces comingSoon) ----
 function playGame(id, e) {
