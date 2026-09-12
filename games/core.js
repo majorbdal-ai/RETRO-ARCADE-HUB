@@ -1202,7 +1202,11 @@ function endGame(score, coinsEarned) {
       { id: 'mp-pinball',  ico: '🪩', game: 'pinball',  desc: 'Play Pinball once',       target: 1, reward: 40, prog: 0 },
       { id: 'mp-mines',    ico: '💣', game: 'mine-sweeper',   desc: 'Play Minesweeper once',   target: 1, reward: 45, prog: 0 },
       { id: 'mp-2048',     ico: '🔢', game: '2048',           desc: 'Play 2048 once',          target: 1, reward: 40, prog: 0 },
-      { id: 'mp-ludo',     ico: '🎲', game: 'ludo-king',      desc: 'Play Ludo once',          target: 1, reward: 45, prog: 0 }
+      { id: 'mp-ludo',     ico: '🎲', game: 'ludo-king',      desc: 'Play Ludo once',          target: 1, reward: 45, prog: 0 },
+      { id: 'mp-flappy',   ico: '🐤', game: 'flappy-neon',    desc: 'Play Flappy once',        target: 1, reward: 40, prog: 0 },
+      { id: 'mp-temple',   ico: '🗿', game: 'temple-run',     desc: 'Play Temple Run once',    target: 1, reward: 45, prog: 0 },
+      { id: 'mp-invaders', ico: '👾', game: 'space-invaders', desc: 'Play Invaders once',      target: 1, reward: 40, prog: 0 },
+      { id: 'mp-stack',    ico: '🧱', game: 'stack-drop',     desc: 'Play Stack once',         target: 1, reward: 40, prog: 0 }
     ];
     const scorePool = [
       { id: 'ms-flappy50',  ico: '🐤', game: 'flappy-neon',    desc: 'Flappy: score 50',       target: 50,  reward: 60, prog: 0 },
@@ -1223,7 +1227,39 @@ function endGame(score, coinsEarned) {
       { id: 'ms-switch30',  ico: '🎯', game: 'color-switch',   desc: 'Color Switch: 30',        target: 30,  reward: 60, prog: 0 },
       { id: 'ms-crossy25',  ico: '🐔', game: 'crossy-neon',    desc: 'Crossy: 25 roads',        target: 25,  reward: 60, prog: 0 },
       { id: 'ms-tetris12',  ico: '🧱', game: 'tetris-blitz',   desc: 'Tetris: 12 lines',        target: 12,  reward: 65, prog: 0 },
-      { id: 'ms-miner1000', ico: '🪨', game: 'space-miner',    desc: 'Miner: 1000 ore',         target: 1000,reward: 70, prog: 0 }
+      { id: 'ms-miner1000', ico: '🪨', game: 'space-miner',    desc: 'Miner: 1000 ore',         target: 1000,reward: 70, prog: 0 },
+      // ==== SCORE POOL v7.27 (31 more: every category now has a score mission) ====
+      { id: 'ms-duck8',     ico: '🦆', game: 'duck-hunt',      desc: 'Duck Hunt: 8 ducks',      target: 8,   reward: 55, prog: 0 },
+      { id: 'ms-pong8',     ico: '🏓', game: 'pong',           desc: 'Pong: 8 points',          target: 8,   reward: 55, prog: 0 },
+      { id: 'ms-cricket60', ico: '🏏', game: 'cricket-sixer',  desc: 'Cricket: 60 runs',        target: 60,  reward: 60, prog: 0 },
+      { id: 'ms-bowling60', ico: '🎳', game: 'bowling-strike', desc: 'Bowling: 60 pts',         target: 60,  reward: 60, prog: 0 },
+      { id: 'ms-hoop50',    ico: '🏀', game: 'hoop-dunk',      desc: 'Hoop: 50 pts',            target: 50,  reward: 60, prog: 0 },
+      { id: 'ms-archery60', ico: '🏹', game: 'archery-master', desc: 'Archery: 60 pts',         target: 60,  reward: 60, prog: 0 },
+      { id: 'ms-soccer10',  ico: '⚽', game: 'soccer-penalty', desc: 'Soccer: 10 goals',        target: 10,  reward: 60, prog: 0 },
+      { id: 'ms-sprint70',  ico: '🏃', game: 'athletics-sprint', desc: 'Sprint: 70m',          target: 70,  reward: 60, prog: 0 },
+      { id: 'ms-tank8',     ico: '🪖', game: 'tank-battle',    desc: 'Tank: 8 kills',           target: 8,   reward: 60, prog: 0 },
+      { id: 'ms-air200',    ico: '✈️', game: 'airstrike',      desc: 'Airstrike: 200 pts',      target: 200, reward: 60, prog: 0 },
+      { id: 'ms-tower600',  ico: '🗼', game: 'neon-tower',     desc: 'Neon Tower: 600',         target: 600, reward: 65, prog: 0 },
+      { id: 'ms-stack300',  ico: '🧱', game: 'stack-drop',     desc: 'Stack: 300 pts',          target: 300, reward: 60, prog: 0 },
+      { id: 'ms-dash60',    ico: '⚡', game: 'neon-dash',      desc: 'Neon Dash: 60',           target: 60,  reward: 60, prog: 0 },
+      { id: 'ms-slam300',   ico: '💥', game: 'neon-slam',      desc: 'Neon Slam: 300',          target: 300, reward: 60, prog: 0 },
+      { id: 'ms-bubble15',  ico: '🫧', game: 'bubble-shooter', desc: 'Bubble: 15 pops',         target: 15,  reward: 55, prog: 0 },
+      { id: 'ms-sort20',    ico: '🗂️', game: 'triple-sort',    desc: 'Triple Sort: 20',         target: 20,  reward: 55, prog: 0 },
+      { id: 'ms-water6',    ico: '🧪', game: 'water-sort',     desc: 'Water Sort: 6 levels',    target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-simon7',    ico: '🎹', game: 'simon-says',     desc: 'Simon: 7 rounds',         target: 7,   reward: 55, prog: 0 },
+      { id: 'ms-words4',    ico: '📖', game: 'word-search',    desc: 'Word Search: 4 words',    target: 4,   reward: 55, prog: 0 },
+      { id: 'ms-memory6',   ico: '🃏', game: 'memory-match',   desc: 'Memory: 6 pairs',         target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-master4',   ico: '🎯', game: 'mastermind',     desc: 'Mastermind: 4 codes',     target: 4,   reward: 55, prog: 0 },
+      { id: 'ms-slide20',   ico: '🧩', game: 'slide-puzzle',   desc: 'Slide: 20 moves',         target: 20,  reward: 55, prog: 0 },
+      { id: 'ms-checkers6', ico: '♟️', game: 'checkers',       desc: 'Checkers: 6 captures',    target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-candy40',   ico: '🍬', game: 'candy-crush',    desc: 'Candy: 40 matches',       target: 40,  reward: 60, prog: 0 },
+      { id: 'ms-fruit20',   ico: '🍉', game: 'fruit-merge',    desc: 'Fruit Merge: 20',         target: 20,  reward: 60, prog: 0 },
+      { id: 'ms-slash25',   ico: '🔪', game: 'fruit-slash',    desc: 'Fruit Slash: 25',         target: 25,  reward: 55, prog: 0 },
+      { id: 'ms-traffic400',ico: '🚗', game: 'traffic-racer',  desc: 'Traffic: 400 pts',        target: 400, reward: 65, prog: 0 },
+      { id: 'ms-hill150',   ico: '⛰️', game: 'hill-climb',     desc: 'Hill Climb: 150m',        target: 150, reward: 60, prog: 0 },
+      { id: 'ms-bounce150', ico: '🏀', game: 'bounce',         desc: 'Bounce: 150 pts',         target: 150, reward: 60, prog: 0 },
+      { id: 'ms-impact300', ico: '🚀', game: 'space-impact',   desc: 'Space Impact: 300',       target: 300, reward: 65, prog: 0 },
+      { id: 'ms-carrom3',   ico: '🎱', game: 'carrom-pool',    desc: 'Carrom: 3 coins',         target: 3,   reward: 55, prog: 0 }
     ];
     shuffle(playPool); shuffle(scorePool);
     state.dailyQuest = { date: today, list: [playPool[0], scorePool[0], scorePool[1]], done: [] };
@@ -1866,11 +1902,15 @@ function toggleCRT() {
   if (!el) return;
   const on = el.classList.toggle('on');
   localStorage.setItem('rah_crt', on ? '1' : '0');
+  const profCrt = document.getElementById('profCrtBtn');
+  if (profCrt) profCrt.innerText = 'CRT: ' + (on ? 'ON' : 'OFF');
   toast(on ? 'CRT ON' : 'CRT OFF');
 }
 function initCRT() {
   const el = document.getElementById('crtOverlay');
   if (el && localStorage.getItem('rah_crt') === '1') el.classList.add('on');
+  const profCrt = document.getElementById('profCrtBtn');
+  if (profCrt) profCrt.innerText = 'CRT: ' + (localStorage.getItem('rah_crt') === '1' ? 'ON' : 'OFF');
 }
 
 // ---- FULLSCREEN toggle (mobile) ----

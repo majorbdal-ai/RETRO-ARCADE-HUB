@@ -259,7 +259,6 @@ function liveFeatured() {
 function liveDeal() { return (LIVE && LIVE.deal && LIVE.deal.item) ? LIVE.deal : null; }
 function liveChallenge() { return (LIVE && LIVE.challenge) ? LIVE.challenge : null; }
 function liveBotBoost() { return (LIVE && Array.isArray(LIVE.botBoost)) ? LIVE.botBoost : null; }
-function liveRot() { return (LIVE && typeof LIVE.rot === 'number') ? LIVE.rot : 0; }
 
 /* ==================== NAVIGATION ==================== */
 const PAGES = ['home', 'arcade', 'shop', 'board', 'profile', 'store', 'themes', 'game'];
@@ -757,16 +756,30 @@ function renderHome() {
     let list = GAMES;
     if (q) list = list.filter(g => g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q));
     if (c !== 'ALL') list = list.filter(g => (g.cat || '').toUpperCase() === c);
-    const html = list.map(g => {
+    const html = list.map((g) => {
       const ready = !!engineReady(g.id);
-      const badge = ready ? 'OPEN' : 'SOON';
-      return `<div class="card game-card" style="cursor:pointer;position:relative">
-        <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px">${badge}</span>
-        <div class="thumb" style="border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${g.icon}</div>
-        <h4>${g.name}</h4>
-        <p>${g.desc}</p>
-        <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
-      </div>`;
+      const isNew = ready && GAMES.indexOf(g) >= GAMES.length - 8;
+      const isHot = ready && !!g.featured;
+      const badge = !ready ? 'SOON' : isNew ? 'NEW' : isHot ? 'HOT' : (state.best[g.id] ? 'BEST ' + state.best[g.id].toLocaleString() : 'PLAY');
+      const badgeColor = !ready ? 'var(--sub)' : isNew ? 'var(--green)' : isHot ? 'var(--pink)' : 'var(--cyan)';
+      // pseudo play-count (deterministic from id + date — feels live)
+      let h = 0; for (let k = 0; k < g.id.length; k++) h = (h * 31 + g.id.charCodeAt(k)) >>> 0;
+      const daySeed = h % 7;
+      const plays = 1200 + ((h + daySeed * 310) % 9800); // 1.2k–11k fake-plays
+      const logo = gameLogo(g.id);
+      return `<div class="card game-card" style="cursor:pointer;position:relative" onclick="playGame('${g.id}')">
+      <button class="fav-btn" data-fav="${g.id}" onclick="toggleFavorite('${g.id}', event)" style="position:absolute;top:6px;left:6px;z-index:5;background:rgba(0,0,0,.45);border:none;border-radius:999px;width:26px;height:26px;font-size:13px;cursor:pointer;color:${isFav(g.id) ? 'var(--pink)' : '#888'};display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:transform var(--transition-fast)">${isFav(g.id) ? '❤️' : '🤍'}</button>
+      <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px;background:${badgeColor}22;color:${badgeColor};border:1px solid ${badgeColor}55">${badge}</span>
+      <div class="thumb" style="border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${logo}</div>
+      <h4>${g.name}</h4>
+      <p>${g.desc}</p>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:var(--sub)">
+        <span style="color:${g.color}">●</span>
+        <span>${plays.toLocaleString()} played</span>
+        <span style="margin-left:auto;color:var(--yellow)">★ ${(4.0 + (h % 10) / 10).toFixed(1)}</span>
+      </div>
+      <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="event.stopPropagation();${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
+    </div>`;
     }).join('');
     const g1 = document.getElementById('gameGrid');
     if (g1) g1.innerHTML = html;
@@ -814,45 +827,6 @@ function gameLogo(id, size = 120) {
   const g = GAMES.find(x => x.id === id);
   // size param only affects the emoji fallback — game logos use full-bleed images
   return `<span style="font-size:${(size || 120) * 0.28}px;filter:drop-shadow(0 4px 12px ${g ? g.color : '#fff'}66)">${g ? g.icon : '🎮'}</span>`;
-}
-
-function renderGameGrid(filter = '', cat = '') {
-  const q = (filter || '').toLowerCase();
-  const c = (cat || currentCatFilter).toUpperCase();
-  let list = GAMES;
-  if (q) list = list.filter(g => g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q));
-  if (c !== 'ALL') list = list.filter(g => (g.cat || '').toUpperCase() === c);
-  const html = list.map((g, i) => {
-    const ready = !!engineReady(g.id);
-    // NEW-ish games (last 8 in array) get NEW badge; featured get HOT
-    const isNew = ready && i >= GAMES.length - 8;
-    const isHot = ready && !!g.featured;
-    const badge = !ready ? 'SOON' : isNew ? 'NEW' : isHot ? 'HOT' : (state.best[g.id] ? 'BEST ' + state.best[g.id].toLocaleString() : 'PLAY');
-    const badgeColor = !ready ? 'var(--sub)' : isNew ? 'var(--green)' : isHot ? 'var(--pink)' : 'var(--cyan)';
-    // pseudo play-count (deterministic from id + date — feels live)
-    const today = new Date().toDateString();
-    let h = 0; for (let k = 0; k < g.id.length; k++) h = (h * 31 + g.id.charCodeAt(k)) >>> 0;
-    const daySeed = h % 7;
-    const plays = 1200 + ((h + daySeed * 310) % 9800); // 1.2k–11k fake-plays
-    const logo = gameLogo(g.id);
-    return `<div class="card game-card" style="cursor:pointer;position:relative" onclick="playGame('${g.id}')">
-      <button class="fav-btn" data-fav="${g.id}" onclick="toggleFavorite('${g.id}', event)" style="position:absolute;top:6px;left:6px;z-index:5;background:rgba(0,0,0,.45);border:none;border-radius:999px;width:26px;height:26px;font-size:13px;cursor:pointer;color:${isFav(g.id) ? 'var(--pink)' : '#888'};display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:transform var(--transition-fast)">${isFav(g.id) ? '❤️' : '🤍'}</button>
-      <span class="badge" style="position:absolute;top:8px;right:8px;font-size:8px;background:${badgeColor}22;color:${badgeColor};border:1px solid ${badgeColor}55">${badge}</span>
-      <div class="thumb" style="border-color:${g.color}55;box-shadow:0 0 14px ${g.color}22">${logo}</div>
-      <h4>${g.name}</h4>
-      <p>${g.desc}</p>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:var(--sub)">
-        <span style="color:${g.color}">●</span>
-        <span>${plays.toLocaleString()} played</span>
-        <span style="margin-left:auto;color:var(--yellow)">★ ${(4.0 + (h % 10) / 10).toFixed(1)}</span>
-      </div>
-      <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="event.stopPropagation();${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
-    </div>`;
-  }).join('');
-  const g1 = document.getElementById('gameGrid');
-  const g2 = document.getElementById('arcadeGrid');
-  if (g1) g1.innerHTML = html;
-  if (g2) g2.innerHTML = html;
 }
 
 function renderArcadeGrid(filter = '') {
@@ -1742,6 +1716,7 @@ function comboTimeRemaining() {
   const remain = COMBO_WINDOW_MS - (Date.now() - state.combo.lastTime);
   return Math.max(0, Math.ceil(remain / 1000));
 }
+// NOTE: comboTimeRemaining is kept as a shared helper (used by a future countdown chip)
 
 /* ==================== INIT ==================== */
 function init() {
