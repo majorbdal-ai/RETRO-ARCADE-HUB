@@ -799,7 +799,12 @@ function renderHome() {
 
 function gameLogo(id, size = 120) {
   const svg = (window.GAME_LOGOS && window.GAME_LOGOS[id]) || '';
-  if (svg) return `<svg viewBox="0 0 120 120" style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg">${svg.replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>`;
+  if (svg) {
+    if (svg.startsWith('data:image')) {
+      return `<img src="${svg}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:14px" loading="lazy">`;
+    }
+    return `<svg viewBox="0 0 120 120" style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg">${svg.replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>`;
+  }
   const g = GAMES.find(x => x.id === id);
   return `<span style="font-size:${size * 0.28}px;filter:drop-shadow(0 4px 12px ${g ? g.color : '#fff'}66)">${g ? g.icon : '🎮'}</span>`;
 }
