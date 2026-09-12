@@ -1,28 +1,28 @@
 {
-  "rot": 16,
-  "updated": "2026-09-12T14:56:18.562Z",
+  "rot": 17,
+  "updated": "2026-09-12T20:09:09.328Z",
   "featured": [
-    "sling-birds",
     "cricket-sixer",
     "neon-racer",
     "cyber-shooter",
     "pixel-dungeon",
-    "light-cycle"
+    "light-cycle",
+    "tank-battle"
   ],
   "deal": {
-    "item": "veh-viper",
-    "name": "VIPER GT",
-    "pct": 15
+    "item": "veh-phantom",
+    "name": "PHANTOM CYCLE",
+    "pct": 20
   },
-  "challenge": "trash-sorter",
+  "challenge": "cricket-sixer",
   "botBoost": [
-    1.22,
-    1.45,
-    1.68,
-    1.81,
-    1.04,
-    1.27,
-    1.4,
-    1.63
+    1.49,
+    1.62,
+    1.85,
+    1.08,
+    1.21,
+    1.44,
+    1.67,
+    1.8
   ]
 }
