@@ -974,18 +974,16 @@ function bootGame(id, engine) {
       if (p && p.catch) p.catch(() => {});
     } catch (e) {}
   }
-  // AUTO-LANDSCAPE (v7.29.1): once fullscreen settles, rotate to landscape so the
-  // 16:9 canvas FILLS the screen (portrait keeps the canvas tiny). Chrome/Firefox
-  // allow orientation.lock while fullscreen; iOS silently no-ops (caught).
-  setTimeout(() => {
-    try { window.dispatchEvent(new Event('resize')); } catch (e) {}
-    try {
-      if (screen.orientation && screen.orientation.lock) {
-        const op = screen.orientation.lock('landscape');
-        if (op && op.catch) op.catch(() => {});
-      }
-    } catch (e) {}
-  }, 300);
+  // AUTO-LANDSCAPE (v7.29.1): rotate to landscape so the 16:9 canvas FILLS the
+  // screen (portrait keeps the canvas tiny). Lock INSIDE the user-gesture window
+  // (no setTimeout — Chrome rejects orientation.lock without user activation);
+  // iOS silently no-ops (caught).
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      const op = screen.orientation.lock('landscape');
+      if (op && op.catch) op.catch(() => {});
+    }
+  } catch (e) {}
   document.getElementById('hudGameTitle').innerText = g.name;
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('hudCoins').innerText = '0';
@@ -1487,10 +1485,12 @@ function exitToHub() {
   renderArcadeGrid('');
 }
 
-// ---- orientation: (v7.29.1) rotate hint REMOVED — games auto-landscape now,
-// so the hint box is gone; listeners below just no-op safely ----
-window.addEventListener('orientationchange', () => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} });
-window.addEventListener('resize', () => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, { passive: true });
+// ---- orientation ----
+// v7.29.1: ROTATE hint/updateGameOrientation removed (games auto-landscape now).
+// No resize/orientationchange listeners needed: CSS media queries (portrait/
+// landscape) refit the canvas on rotation automatically, and no engine listens
+// for resize events. (Do NOT dispatch synthetic resize events here — an engine
+// that did listen would recurse forever.)
 
 // ---- pause / resume ----
 // B1 FIX [008-009]: clear all input state on pause, restore on resume
