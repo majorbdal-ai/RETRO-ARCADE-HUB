@@ -1,26 +1,45 @@
 function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
   const W = 800, H = 450;
+  const START_Y = H - 60, HOLD_SPACE = 90, REACH = 130;
   let raf = null, last = 0, running = false, over = false, overSent = false;
   let score = 0, coins = 0, keys = {}, touches = {};
   let time = 0, climber = null, holds = [], speed = 0, state = 'play';
-  let hand = 0, combo = 0, diffMul = 1;
+  let combo = 0, diffMul = 1, prevPress = false;
+  let hearts = 3, missFlash = 0, hintTimer = 4;
 
   function key(n) { return !!keys[n]; }
   function t(n) { return !!touches[n]; }
 
+  function sfx(n) { if (typeof window.playSfx === 'function') { try { window.playSfx(n); } catch (e) {} } }
+  function haptic(p) { if (typeof window.hapticVibe === 'function') { try { window.hapticVibe(p); } catch (e) {} } }
+  function fxBurst(x, y, color, count) { if (window.gameFX && window.gameFX.burst) { try { window.gameFX.burst(x, y, color, count); } catch (e) {} } }
+  function fxShake(i) { if (window.gameFX && window.gameFX.shake) { try { window.gameFX.shake(i); } catch (e) {} } }
+  function holdScreen(h) {
+    try { const r = canvas.getBoundingClientRect(); return { x: r.left + r.width * (h.x / W), y: r.top + r.height * (h.y / H) }; }
+    catch (e) { return { x: h.x, y: h.y }; }
+  }
+
+  function holdX(prevX) {
+    // consecutive holds max ±100px horizontal step — always inside the
+    // 130px reach window, so skill is tap TIMING, never broken geometry
+    const nx = prevX + (Math.random() - 0.5) * 200;
+    return Math.max(90, Math.min(W - 90, nx));
+  }
+
   function reset() {
     over = false; overSent = false;
-    score = 0; coins = 0; time = 0; hand = 0; combo = 0;
-    state = 'play'; speed = 90;
-    climber = { x: W / 2, y: H - 60, grip: 0 };
+    score = 0; coins = 0; time = 0; combo = 0; hearts = 3;
+    prevPress = false; missFlash = 0; hintTimer = 4;
+    state = 'play';
+    climber = { x: W / 2, y: START_Y };
 
-    // climbing holds — column x positions (3 lanes), each a rock to grab
+    // chain of reachable holds climbing up from the start position
     holds = [];
-    // generate a path of reachable holds going up
-    let x = W / 2;
-    for (let i = 0; i < 40; i++) {
-      x = Math.max(90, Math.min(W - 90, x + (Math.random() - 0.5) * 120));
-      holds.push({ x: x, y: H - 60 - i * 90, grabbed: false, missed: false });
+    let x = W / 2, y = START_Y - HOLD_SPACE - 20;
+    for (let i = 0; i < 8; i++) {
+      holds.push({ x: x, y: y, grabbed: false });
+      x = holdX(x);
+      y -= HOLD_SPACE;
     }
   }
 
@@ -30,107 +49,88 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
   function die() {
     if (overSent) return;
     overSent = true; over = true; state = 'over';
-    if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+    sfx('over');
+    haptic('over');
     callScore();
-    if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
-      onGameOver(score, coins);
+    try {
+      const s = holdScreen({ x: climber.x, y: climber.y });
+      fxBurst(s.x, s.y, '#ff4444', 16);
+    } catch (e) {}
+    fxShake(5);
+    if (typeof onGameOver === 'function') onGameOver(score, coins);
   }
 
-  function grabNext() {
+  // grab the nearest ungrabbed hold inside the reach window above the climber
+  function tryGrab() {
     if (over) return;
-    // find current target hold (the next one above climber)
-    let target = null, minY = 1e9;
+    let best = null, bestY = -1e9;
     for (let i = 0; i < holds.length; i++) {
       const h = holds[i];
-      // holds above current position (lower y) not yet passed
-      if (h.y < climber.y - 30 && !h.missed) {
-        if (h.y < minY + 90) { target = h; minY = h.y; }
-        break;
-      }
-      if (h.y < climber.y - 30 && !h.missed && !h.grabbed) { target = h; break; }
+      if (h.grabbed) continue;
+      if (h.y > climber.y - 25 || h.y < climber.y - 175) continue; // outside window
+      if (Math.abs(h.x - climber.x) >= REACH) continue;             // out of arm's reach
+      if (h.y > bestY) { bestY = h.y; best = h; }                   // nearest (largest y) first
     }
-  }
+    if (!best) return; // tapped too early/empty air — nothing to grab
 
-  function input() {
-    // tap/action = grab next hold
-    const pressNow = t('action') || key('Space') || key('ArrowUp') || key('KeyW');
-    if (pressNow) {
-      // find next hold above
-      let target = null;
-      for (let i = 0; i < holds.length; i++) {
-        const h = holds[i];
-        if (h.y < climber.y - 20 && !h.grabbed) { target = h; break; }
-      }
-      if (target) {
-        // reach check — horizontal distance small enough?
-        const dx = Math.abs(target.x - climber.x);
-        if (dx < 130) {
-          climber.y = target.y;
-          climber.x = target.x;
-          target.grabbed = true;
-          hand = (hand + 1) % 2;
-          combo++;
-          if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
-          const pts = 5 + (combo >= 4 ? 3 : 0);
-          score += pts; callScore();
-          coins++; callCoins();
-          if (typeof window.playSfx === 'function') { try { window.playSfx('coin'); } catch (e) {} }
-          // spring score pop at the hold (canvas → screen coords)
-          try {
-            const c = document.getElementById('gameCanvas');
-            const r = c.getBoundingClientRect();
-            const sx = r.left + r.width * (target.x / W), sy = r.top + r.height * (target.y / H);
-            if (typeof window.popScore === 'function') window.popScore(sx, sy, '+' + pts);
-          } catch (e) {}
-        } else {
-          // too far — miss
-          combo = 0;
-          if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
-          lifeLoss();
-        }
-      }
-    }
-  }
-
-  function lifeLoss() {
-    // fall a bit
-    score = 0; // reset? No — keep simple: reduce
-    die();
+    best.grabbed = true;
+    climber.x = best.x;
+    climber.y = best.y;
+    combo++;
+    const pts = 5 + (combo >= 4 ? 3 : 0);
+    score += pts; callScore();
+    coins++; callCoins();
+    sfx(combo >= 4 ? 'win2' : 'click');
+    haptic('tap');
+    try {
+      const s = holdScreen(best);
+      fxBurst(s.x, s.y - 8, '#3bff8f', 5);
+      if (typeof window.popScore === 'function') window.popScore(s.x, s.y - 14, '+' + pts);
+    } catch (e) {}
   }
 
   function update(dt) {
     time = time + dt;
-    input();
+    if (missFlash > 0) missFlash -= dt;
+    if (hintTimer > 0) hintTimer -= dt;
 
-    // auto-scroll: climber drifts up slowly; if they don't grab, they fall
-    climber.y -= speed * dt * 0.0; // climber stays, holds scroll down instead
+    speed = Math.min(330, (90 + score * 0.9) * diffMul);
 
-    // scroll holds down toward climber
-    for (let i = 0; i < holds.length; i++) {
-      if (holds[i].y > climber.y) {
-        holds[i].y += speed * dt;
+    // whole wall scrolls down — the next hold is always arriving;
+    // miss it and it falls past you.
+    for (let i = holds.length - 1; i >= 0; i--) {
+      const h = holds[i];
+      h.y += speed * dt;
+      if (!h.grabbed && h.y > climber.y + 6) {
+        // hold slipped past — fell!
+        holds.splice(i, 1);
+        combo = 0;
+        hearts--;
+        missFlash = 0.35;
+        sfx('error');
+        haptic('over');
+        fxShake(2);
+        if (hearts <= 0) { die(); return; }
+      } else if (h.y > H + 80) {
+        holds.splice(i, 1); // old scenery below — recycle
       }
-      if (holds[i].y > H + 60) {
-        holds[i].missed = true;
-        holds[i].y = climber.y - 400;
-        holds[i].grabbed = false;
-        holds[i].x = Math.max(90, Math.min(W - 90, holds[i].x + (Math.random() - 0.5) * 100));
-      }
     }
 
-    // check miss: next ungrabbed hold above climber got scrolled below
-    let nextHold = null;
+    // keep the chain stocked ahead of the climber
+    let topY = 1e9, topX = W / 2;
     for (let i = 0; i < holds.length; i++) {
-      if (!holds[i].grabbed && !holds[i].missed && holds[i].y < climber.y - 20) { nextHold = holds[i]; break; }
+      if (holds[i].y < topY) { topY = holds[i].y; topX = holds[i].x; }
     }
-    if (nextHold && nextHold.y > climber.y) {
-      // missed the hold — fall / game over
-      if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
-      die();
-      return;
+    if (topY > climber.y - 400) {
+      const nx = holdX(topX);
+      holds.push({ x: nx, y: topY - HOLD_SPACE, grabbed: false });
     }
 
-    speed = (90 + score * 1.2) * diffMul;
+    // edge-triggered grab: only a fresh tap/space counts (no hold-to-auto-climb)
+    const press = t('action') || key('Space') || key('ArrowUp') || key('KeyW');
+    if (press && !prevPress) tryGrab();
+    prevPress = press;
+
     render();
   }
 
@@ -167,35 +167,36 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     for (let i = 0; i < holds.length; i++) {
       const h = holds[i];
       if (h.y < -20 || h.y > H + 20) continue;
+      // hold about to pass the climber → danger pulse (must grab NOW)
+      const danger = !h.grabbed && h.y > climber.y - 70 && h.y <= climber.y - 25;
+      const pulse = danger ? (0.5 + 0.5 * Math.abs(Math.sin(time * 10))) : 0;
       if (h.grabbed) {
         glowCircle(h.x, h.y, 9, '#3bff8f');
+      } else if (danger) {
+        glowCircle(h.x, h.y, 8 + pulse * 2, pulse > 0.7 ? '#ff3b3b' : '#ff9d3b');
       } else {
         glowCircle(h.x, h.y, 8, '#c084fc');
       }
     }
 
-    // climber (rock climber with 2 hands)
+    // climber
     if (climber) {
       const cx = climber.x, cy = climber.y;
-      // body
       ctx.fillStyle = '#ffd93b';
       ctx.shadowColor = '#ffd93b'; ctx.shadowBlur = 10;
       ctx.beginPath();
       ctx.arc(cx, cy - 12, 11, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
-      // head
       ctx.fillStyle = '#f5b3a0';
       ctx.beginPath();
       ctx.arc(cx, cy - 26, 7, 0, Math.PI * 2);
       ctx.fill();
-      // arms (reaching up)
       ctx.strokeStyle = '#ffd93b';
       ctx.lineWidth = 4;
       ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(cx, cy - 14); ctx.lineTo(cx - 16, cy - 34); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(cx, cy - 14); ctx.lineTo(cx + 16, cy - 34); ctx.stroke();
-      // helmet
       ctx.fillStyle = '#ff3b6b';
       ctx.beginPath();
       ctx.arc(cx, cy - 28, 8, Math.PI, 0);
@@ -204,10 +205,22 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
 
     // HUD
     neonText('LADDER CLIMB', 14, 20, 15, '#7df9ff');
-    neonText('TAP / SPACE TO GRAB NEXT HOLD', 14, 36, 9, '#8a93b8');
+    if (hintTimer > 0) {
+      neonText('TAP WHEN THE HOLD IS IN REACH — DON\'T LET IT FALL!', 14, 36, 9, '#8a93b8');
+    }
     ctx.textAlign = 'right';
     neonText('SCORE ' + score, W - 14, 20, 16, '#ffd93b');
+    // hearts
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i < hearts ? '#ff4d5e' : 'rgba(255,255,255,0.15)';
+      ctx.font = '16px "Courier New", monospace';
+      ctx.fillText('\u2665', W - 14 - (i + 1) * 22, 40);
+    }
     ctx.textAlign = 'left';
+    if (missFlash > 0) {
+      ctx.fillStyle = 'rgba(255,40,60,' + Math.min(0.5, missFlash * 1.4) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
 
     if (combo >= 4) {
       ctx.textAlign = 'center';
@@ -219,7 +232,7 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
       ctx.fillStyle = 'rgba(4,4,10,0.8)';
       ctx.fillRect(0, 0, W, H);
       ctx.textAlign = 'center';
-      neonText('FELL!', W / 2, 170, 44, '#ff4d5e');
+      neonText(hearts > 0 ? 'FELL!' : 'FELL!', W / 2, 170, 44, '#ff4d5e');
       neonText('HEIGHT ' + score, W / 2, 224, 24, '#ffd93b');
       neonText('COINS +' + coins, W / 2, 258, 16, '#3bff8f');
       ctx.textAlign = 'left';

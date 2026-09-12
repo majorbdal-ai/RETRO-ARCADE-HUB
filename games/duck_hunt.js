@@ -12,6 +12,8 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
   var hintTimer = 3;
   var diffMul = 1;   // v7.18 difficulty ramp // control hint display
   var shakeTimer = 0, shakeIntensity = 0; // canvas shake
+  var fireCooldown = 0; // v7.33: tap-to-shoot anti-repeat guard
+  var trailTimer = 0;   // crosshair sparkle trail throttle
 
   // Safe SFX/haptic wrappers
   function sfx(name) {
@@ -33,6 +35,7 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
     ducks = []; particles = [];
     roundTimer = 0; spawnTimer = 0; roundActive = false;
     hintTimer = 3; muzzleFlash = 0;
+    fireCooldown = 0; trailTimer = 0;
     message = 'ROUND 1 — TAP TO SHOOT!';
     msgTimer = 2.5;
   }
@@ -141,6 +144,8 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
     // Missed shot — break streak
     streak = 0;
     sfx('click');
+    haptic('err');
+    fx_shake(0.2);
     particles.push({ x: mx, y: my, vx: 0, vy: 0, life: 0.3, color: 'red', text: 'MISS', size: 0 });
   }
 
@@ -148,6 +153,7 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
     if (msgTimer > 0) msgTimer -= dt;
     if (hintTimer > 0) hintTimer -= dt;
     if (muzzleFlash > 0) muzzleFlash -= dt;
+    if (fireCooldown > 0) fireCooldown -= dt;
 
     // Spawn ducks
     if (roundActive) {
@@ -168,13 +174,17 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
             haptic('over');
             fx_shake(1.0);
           } else {
-            message = 'Round ' + round + ' CLEAR! +' + cfg.bonusPoints + ' bonus!';
-            score += cfg.bonusPoints;
+            // Perfect round = bagged every duck that could be on screen
+            var perfect = ducksHit >= cfg.maxOnScreen;
+            var roundPts = cfg.bonusPoints + (perfect ? 150 : 0);
+            message = (perfect ? 'PERFECT ROUND! +' : 'Round ' + round + ' CLEAR! +') + roundPts + (perfect ? '' : ' bonus!');
+            score += roundPts;
             coins += 2;
             onScore(score);
-            sfx('win');
+            sfx(perfect ? 'win2' : 'win');
             haptic('win');
-            fx_burst(W / 2, H / 2, '#FFD700', 15);
+            fx_burst(W / 2, H / 2, '#FFD700', perfect ? 22 : 15);
+            if (perfect) fx_burst(W / 2, H / 2 - 60, '#0ff', 10);
           }
           if (lives <= 0) {
             over = true;
@@ -253,9 +263,33 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
       if (p.life <= 0) particles.splice(i, 1);
     }
 
-    // Track crosshair from input
-    if (touches.action || keys.Space || keys.Enter) {
+    // Aim via finger (pointer-drag): crosshair follows within the play sky.
+    if (touches.pointerDown) {
+      crosshair.x = Math.max(30, Math.min(W - 30, touches.pointerDown.x));
+      crosshair.y = Math.max(30, Math.min(H - 60, touches.pointerDown.y));
+      // sparkle trail while aiming
+      trailTimer += dt;
+      if (trailTimer > 0.05) {
+        trailTimer = 0;
+        particles.push({
+          x: crosshair.x + (Math.random() - 0.5) * 14,
+          y: crosshair.y + (Math.random() - 0.5) * 14,
+          vx: (Math.random() - 0.5) * 30, vy: (Math.random() - 0.5) * 30,
+          life: 0.25 + Math.random() * 0.15,
+          color: '#ff0', size: 1 + Math.random() * 2
+        });
+      }
+    }
+
+// Track crosshair from input
+    if (fireCooldown <= 0 && (touches.action || keys.Space || keys.Enter)) {
       shoot(crosshair.x, crosshair.y);
+      fireCooldown = 0.22;
+      touches.action = false;
+      keys.Space = false;
+      keys.Enter = false;
+    } else if (touches.action || keys.Space || keys.Enter) {
+      // cooldown active — swallow the held input so it can't fire again
       touches.action = false;
       keys.Space = false;
       keys.Enter = false;
@@ -544,6 +578,20 @@ function duckHunt(canvas, ctx, onScore, onGameOver, onCoins) {
     pause: pause,
     resume: resume,
     destroy: destroy,
+    // Mobile aim: drag finger to move crosshair, tap to fire (core binds
+    // these for canvas-layout games — this was the missing wiring that
+    // made Duck Hunt unplayable on phones).
+    pointerDown: function(x, y) {
+      if (x === undefined || y === undefined) return;
+      crosshair.x = Math.max(30, Math.min(W - 30, x));
+      crosshair.y = Math.max(30, Math.min(H - 60, y));
+      if (roundActive && fireCooldown <= 0) shoot(crosshair.x, crosshair.y);
+    },
+    pointerMove: function(x, y) {
+      if (x === undefined || y === undefined) return;
+      crosshair.x = Math.max(30, Math.min(W - 30, x));
+      crosshair.y = Math.max(30, Math.min(H - 60, y));
+    },
     setInput: function(t, k) {
       touches = t || {};
       keys = k || {};
