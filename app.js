@@ -89,6 +89,7 @@ function saveState() {
   store.set('rh_favorites', state.favorites);
   store.set('rh_recently', state.recentlyPlayed);
   store.set('rh_combo', state.combo);
+  store.set('rah_stars', state.stars || {});
   store.set('rh_dailyBonus', state.dailyBonus);
 }
 
@@ -455,7 +456,7 @@ function confirmDelete() {
   const v = document.getElementById('deleteInput').value.trim();
   if (v.toUpperCase() !== 'DELETE') { toast('Type DELETE to confirm'); return; }
   Object.values(K).forEach(k => localStorage.removeItem(k));
-  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, lastPlay: 0, streak: 0, streakClaimed: {}, favorites: [], recentlyPlayed: [], combo: { count: 0, lastTime: 0, bestSession: 0 }, dailyBonus: null };
+  state = { coins: 0, profile: { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }, scores: {}, inventory: [], equipped: { skin: null, vehicle: null, effect: null, theme: 'neon' }, daily: {}, stats: { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }, best: {}, lastPlay: 0, streak: 0, streakClaimed: {}, favorites: [], recentlyPlayed: [], combo: { count: 0, lastTime: 0, bestSession: 0 }, dailyBonus: null, stars: {} };
   saveState();   // persist the reset (B3: state actually resets everywhere)
   applyTheme((state.equipped && state.equipped.theme) || 'neon');
   closeDeleteModal();
@@ -468,6 +469,26 @@ function confirmDelete() {
 }
 /* ==================== RENDER: HOME ==================== */
 function isFav(id) { return (state.favorites || []).includes(id); }
+/* Mastery stars (v7.32): persisted per-game ★ rating from endGame (max kept). */
+function getGameStars(id) { return Math.max(0, Math.min(3, (state.stars || {})[id] || 0)); }
+function starRow(id, size = 10) {
+  const s = getGameStars(id);
+  const on = 'color:var(--yellow);text-shadow:0 0 6px rgba(255,230,0,.8)';
+  const off = 'color:rgba(255,255,255,.22)';
+  return '<span style="font-size:' + size + 'px;letter-spacing:1px">' +
+    '<span style="' + (s >= 1 ? on : off) + '">★</span>' +
+    '<span style="' + (s >= 2 ? on : off) + '">★</span>' +
+    '<span style="' + (s >= 3 ? on : off) + '">★</span></span>';
+}
+function starText(id) { return getGameStars(id) + '/3'; }
+function masteredCount() {
+  const stars = state.stars || {};
+  return GAMES.filter(g => (stars[g.id] || 0) >= 3).length;
+}
+function totalStarsEarned() {
+  const stars = state.stars || {};
+  return GAMES.reduce((acc, g) => acc + Math.min(3, stars[g.id] || 0), 0);
+}
 function toggleFavorite(id, e) {
   if (e) e.stopPropagation();
   state.favorites = state.favorites || [];
@@ -594,6 +615,22 @@ function claimDailyBonus(e) {
   if (typeof renderProfile === 'function') renderProfile();
   toast('🎁 Daily Bonus +' + d.amount.toLocaleString() + ' 🪙');
   if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e2) {} }
+}
+/* ==================== MASTERY STARS (v7.32) ==================== */
+function renderMastery() {
+  const wrap = document.getElementById('masteryWidget');
+  if (!wrap) return;
+  const mastered = masteredCount();
+  const total = totalStarsEarned();
+  const pct = Math.round(total / (GAMES.length * 3) * 100);
+  let html = '<div style="font-size:11px;font-weight:700;color:var(--yellow);letter-spacing:.5px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">' +
+    '<span>⭐ MASTERY STARS</span>' +
+    '<span style="color:var(--sub);font-weight:400">' + total + ' / ' + (GAMES.length * 3) + '</span></div>' +
+    '<div style="display:flex;gap:3px;align-items:center;margin-bottom:6px">' +
+    '<div class="xp-bar" style="flex:1;height:10px"><div class="xp-fill" style="width:' + pct + '%"></div></div>' +
+    '<span style="font-size:10px;color:var(--sub)">' + pct + '%</span></div>' +
+    '<div style="font-size:10px;color:var(--sub)">' + mastered + ' game' + (mastered === 1 ? '' : 's') + ' MASTERED 🏆 — get 3★ in every game to fill the board!</div>';
+  wrap.innerHTML = html;
 }
 function renderStreak() {
   const wrap = document.getElementById('streakWidget');
@@ -761,8 +798,9 @@ function renderHome() {
       const ready = !!engineReady(g.id);
       const isNew = ready && GAMES.indexOf(g) >= GAMES.length - 8;
       const isHot = ready && !!g.featured;
-      const badge = !ready ? 'SOON' : isNew ? 'NEW' : isHot ? 'HOT' : (state.best[g.id] ? 'BEST ' + state.best[g.id].toLocaleString() : 'PLAY');
-      const badgeColor = !ready ? 'var(--sub)' : isNew ? 'var(--green)' : isHot ? 'var(--pink)' : 'var(--cyan)';
+      const isMastered = ready && getGameStars(g.id) >= 3;
+      const badge = !ready ? 'SOON' : isMastered ? 'MASTERED' : isNew ? 'NEW' : isHot ? 'HOT' : (state.best[g.id] ? 'BEST ' + state.best[g.id].toLocaleString() : 'PLAY');
+      const badgeColor = !ready ? 'var(--sub)' : isMastered ? 'var(--gold)' : isNew ? 'var(--green)' : isHot ? 'var(--pink)' : 'var(--cyan)';
       // pseudo play-count (deterministic from id + date — feels live)
       let h = 0; for (let k = 0; k < g.id.length; k++) h = (h * 31 + g.id.charCodeAt(k)) >>> 0;
       const daySeed = h % 7;
@@ -777,7 +815,7 @@ function renderHome() {
       <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:var(--sub)">
         <span style="color:${g.color}">●</span>
         <span>${plays.toLocaleString()} played</span>
-        <span style="margin-left:auto;color:var(--yellow)">★ ${(4.0 + (h % 10) / 10).toFixed(1)}</span>
+        <span style="margin-left:auto;color:var(--yellow)">${starRow(g.id)}</span>
       </div>
       <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="event.stopPropagation();${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
     </div>`;
@@ -846,10 +884,7 @@ function renderArcadeGrid(filter = '') {
   const html = list.map(g => {
     const ready = !!engineReady(g.id);
     const badge = ready ? 'OPEN' : 'SOON';
-    // deterministic rating from game id — stable across renders
-    let rH = 0; for (let k = 0; k < g.id.length; k++) rH = (rH * 31 + g.id.charCodeAt(k)) >>> 0;
-    const rating = (4.0 + (rH % 10) / 10).toFixed(1);
-    // list view needs different structure
+    // real mastery stars (v7.32) — replaces fake hash rating
     const isList = arcadeViewMode === 'list';
     if (isList) {
       return `<div class="card game-card" style="cursor:pointer;position:relative;display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);min-height:80px">
@@ -861,7 +896,7 @@ function renderArcadeGrid(filter = '') {
           <p style="font-size:var(--font-xs);color:var(--sub);margin-bottom:var(--space-xs);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.desc}</p>
           <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap">
             <span style="font-size:var(--font-xs);color:var(--sub);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:999px">${g.cat || '—'}</span>
-            <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">★ ${rating}</span>
+            <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">${starRow(g.id)}</span>
           </div>
         </div>
         <div class="actions" style="flex-shrink:0">
@@ -877,7 +912,7 @@ function renderArcadeGrid(filter = '') {
         <p style="font-size:var(--font-xs);color:var(--sub);margin-bottom:var(--space-sm);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.desc}</p>
         <div style="display:flex;align-items:center;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm)">
           <span style="font-size:var(--font-xs);color:var(--sub);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:999px">${g.cat || '—'}</span>
-          <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">★ ${rating}</span>
+          <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">${starRow(g.id)}</span>
         </div>
         <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
       </div>`;
@@ -1156,6 +1191,7 @@ function renderProfile() {
   const profMusic = document.getElementById('profMusicBtn');
   if (profMusic && window.AppMusic) profMusic.innerText = window.AppMusic.isPlaying() ? 'MUSIC: ON' : 'MUSIC: OFF';
   renderStreak();
+  renderMastery();
   renderDailyBonus();
 
   // ACHIEVEMENTS (visual grid, v7.5 redesign) — v7.15: dynamic count

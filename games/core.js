@@ -1133,6 +1133,21 @@ function endGame(score, coinsEarned) {
   const isNewBest = score > prevBest;
   if (isNewBest) state.best[gameState.id] = score;
 
+  // ==== MASTERY STARS (v7.32) ==== keep max earned per game ★ rating
+  if (typeof state.stars !== 'object' || state.stars === null) state.stars = {};
+  let earnedStars = 0;
+  if (score > 0) {
+    const tgt = GAME_TARGETS[gameState.id];
+    earnedStars = !tgt ? 1 : score >= tgt ? 3 : score >= tgt * 0.6 ? 2 : 1;
+    const prev = state.stars[gameState.id] || 0;
+    if (earnedStars > prev) {
+      state.stars[gameState.id] = earnedStars;
+      if (typeof window.saveState === 'function') { try { window.saveState(); } catch (e) {} }
+      if (earnedStars === 3 && typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e2) {} }
+      if (earnedStars === 3 && typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e3) {} }
+    }
+  }
+
   // ==== SESSION COMBO (v8.0) payoff: combine score coins + pickups with multiplier ====
   // combo live if a game was played within the window; multiplier applies to the
   // score-based coins. Combo expires after the window — reset to 1 so the next

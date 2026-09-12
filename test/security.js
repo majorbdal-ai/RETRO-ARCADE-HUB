@@ -96,6 +96,11 @@ t('swipe+action games use touches.action', core.includes("pressed('action'"));
 t('bindGameTouch skips non-gesture layouts', /gestureTypes\.indexOf\(cType\) === -1\)\s*\{[\s\S]{0,200}return;/.test(core));
 t('tutorial toast element exists', html.includes('tutorialToast'));
 t('tutorial toast shown at bootGame', /bootGame[\s\S]{0,2000}showTutorialToast\(/.test(core));
+// 19. MASTERY STARS (v7.32): persisted per-game ★ rating — state key + endGame write + card render
+t('mastery stars storage key in app state', app.includes("stars: store.get('rah_stars', {})"));
+t('mastery stars persisted in saveState', /store\.set\('rah_stars', state\.stars/.test(app));
+t('endGame writes max stars', /MASTERY STARS[\s\S]{0,400}state\.stars\[gameState\.id\]/.test(core) && /earnedStars > prev/.test(core));
+t('cards render real stars (no fake hash)', !app.includes('Math.random()*4') && app.includes('starRow(g.id)'));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);
