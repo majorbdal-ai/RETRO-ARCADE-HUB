@@ -135,10 +135,20 @@ let diffMul = 1;  // v7.20 difficulty ramp
       const dx = p.x - pk.x, dy = p.y - pk.y;
       if (Math.hypot(dx, dy) < pk.r - 4) {
         p.pocketed = true; p.alive = false;
+        fxBurst(p.x, p.y, p.queen ? '#FFD700' : (p.color || '#FFE600'), p.queen ? 14 : 8);
         return true;
       }
     }
     return false;
+  }
+
+  // canvas-coord → screen-coord FX burst (gameFX uses window coords)
+  function fxBurst(cx, cy, color, count) {
+    if (typeof window.gameFX === 'undefined') return;
+    try {
+      const r = canvas.getBoundingClientRect();
+      window.gameFX.burst(r.left + cx * r.width / canvas.width, r.top + cy * r.height / canvas.height, color, count);
+    } catch (e) {}
   }
 
   // ---- update ----
@@ -223,11 +233,15 @@ let diffMul = 1;  // v7.20 difficulty ramp
             onCoins(25);
             queenCovered = true;
             if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+            fxBurst(p.x, p.y, '#FFD700', 22);
+            if (typeof window.gameFX !== 'undefined') { try { window.gameFX.shake(3); } catch (e) {} }
           } else {
             const bonus = p.color === '#FFE600' ? 15 : 10;
             score += bonus;
             onCoins(10);
             if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
+            const c = p.color === '#FFE600' ? '#FFE600' : '#00E5FF';
+            fxBurst(p.x, p.y, c, 10);
           }
         }
       }

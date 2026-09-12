@@ -53,6 +53,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
       win = true;
       roundMsg = 'CODE ' + (level - 1) + ' CRACKED! ROUND ' + level;
       roundMsgT = 1.8;
+      if (typeof window.gameFX === 'function') { try { window.gameFX.burst(window.innerWidth / 2, window.innerHeight / 2, '#00E5FF', 18); } catch (e) {} }
+      if (typeof window.gameFX !== 'undefined') { try { window.gameFX.shake(2); } catch (e) {} }
       guesses = [];
       currentGuess = [0, 0, 0, 0];
       selected = 0;

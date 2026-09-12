@@ -23,6 +23,15 @@ let diffMul = 1;  // v7.20 difficulty ramp
   }
   function botH() { return Math.max(34, padH - Math.floor(rally / 3) * 8); }
 
+  // canvas-coord → screen-coord FX (gameFX uses window coords)
+  function fxBurst(cx, cy, color, count) {
+    if (typeof window.gameFX === 'undefined') return;
+    try {
+      var r = canvas.getBoundingClientRect();
+      window.gameFX.burst(r.left + cx * r.width / W, r.top + cy * r.height / H, color, count);
+    } catch (e) {}
+  }
+
   function serve() {
     var fromP = server === 0;
     ball.x = fromP ? PX - 16 : BX + 16;
@@ -42,9 +51,11 @@ let diffMul = 1;  // v7.20 difficulty ramp
       var nc = Math.floor(pScore / 2);
       if (nc > coins) { coins = nc; if (onCoins) onCoins(coins); }
       if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} }
+      fxBurst(ball.x, ball.y, '#00E5FF', 8);
     } else {
       bScore++;
       if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
+      fxBurst(ball.x, ball.y, '#FF5252', 6);
     }
     if (pScore >= 11) {
       setLevel++;
@@ -56,6 +67,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
       if (typeof onCoins === 'function') onCoins(Math.max(3, Math.floor(lvBonus / 50)));
       if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
       if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} }
+      fxBurst(W / 2, H / 2, '#FFD700', 20);
+      if (typeof window.gameFX !== 'undefined') { try { window.gameFX.shake(2); } catch (e) {} }
       pScore = 0; bScore = 0; rally = 0; server = 0;
       state = 'serve'; serveT = 1.0;
       return;
