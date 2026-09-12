@@ -151,10 +151,6 @@ function bindGameTouch(engine) {
   if (!canvas) return;
   // track active pointers per pointerId (multi-touch safe)
   const pointers = new Map();
-  const primaryXY = (e) => {
-    if (e.touches && e.touches.length) return canvasXY(e.touches[0].clientX, e.touches[0].clientY);
-    return canvasXY(e.clientX, e.clientY);
-  };
   // pointer-drag style (carrom)
   if (typeof engine.pointerDown === 'function') {
     const down = (e) => { e.preventDefault(); const { x, y } = canvasXY(e.clientX, e.clientY); engine.pointerDown(x, y); };
@@ -1628,19 +1624,8 @@ function togglePause() {
   };
   window.AppMusic = api;
   window.startMusic = start;
-  window.stopMusic = stop;
   window.setMusicMuted = (m) => api.setMuted(m);
 })();
-window.setHUDLives = (n) => {
-  const el = document.getElementById('hudLives');
-  if (!el) return;
-  if (typeof n === 'number' && n >= 0) {
-    el.style.display = '';
-    document.getElementById('hudLivesVal').innerText = n;
-  } else {
-    el.style.display = 'none';
-  }
-};
 
 // ---- auto-pause when call / backgrounded (mobile) ----
 function onVisibilityChange() {

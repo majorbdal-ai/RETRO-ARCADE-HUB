@@ -1685,15 +1685,6 @@ function updateComboHUD() {
   el.style.background = tier.color + '15';
   el.style.textShadow = '0 0 8px ' + tier.glow;
 }
-function resetCombo() {
-  if (state.combo && state.combo.count > (state.combo.bestSession || 0)) {
-    state.combo.bestSession = state.combo.count;
-  }
-  state.combo.count = 0;
-  state.combo.lastTime = 0;
-  saveState();
-  if (typeof window.updateComboHUD === 'function') { try { window.updateComboHUD(); } catch (e) {} }
-}
 function applyComboMilestone(count) {
   // Milestone rewards at specific combo levels
   const MILESTONES = [
