@@ -81,7 +81,7 @@ const GAME_ENGINE = {
   'reversi':            'reversi',
 };
 
-// true when the game's engine file is available (all 60 are; lazy-loaded on launch)
+// true when the game's engine file is available (all 70 are; lazy-loaded on launch)
 function engineReady(id) {
   return !!GAME_ENGINE[id];
 }
@@ -821,6 +821,10 @@ function launchGame(id) {
   const now = Date.now();
   if (state.combo.lastTime && (now - state.combo.lastTime) < COMBO_WINDOW_MS) {
     state.combo.count++;
+    // combo active — show the HUD chip
+    if (typeof window.updateComboHUD === 'function') { try { window.updateComboHUD(); } catch (e) {} }
+    // milestone rewards at exact counts (5/10/15/20)
+    if (typeof window.applyComboMilestone === 'function') { try { window.applyComboMilestone(state.combo.count); } catch (e) {} }
     // gameFX: combo glow
     if (window.gameFX) { try { window.gameFX.comboFlash(state.combo.count); } catch(e) {} }
   } else {
@@ -829,6 +833,7 @@ function launchGame(id) {
       state.combo.bestSession = state.combo.count;
     }
     state.combo.count = 1;
+    if (typeof window.updateComboHUD === 'function') { try { window.updateComboHUD(); } catch (e) {} }
   }
   state.combo.lastTime = now;
   if (state.combo.count > (state.stats.bestCombo || 0)) {
@@ -1105,6 +1110,23 @@ function endGame(score, coinsEarned) {
   const prevBest = state.best[gameState.id] || 0;
   const isNewBest = score > prevBest;
   if (isNewBest) state.best[gameState.id] = score;
+
+  // ==== SESSION COMBO (v8.0) payoff: combine score coins + pickups with multiplier ====
+  // combo live if a game was played within the window; multiplier applies to the
+  // score-based coins. Combo expires after the window — reset to 1 so the next
+  // play starts a fresh chain.
+  if (!state.combo) state.combo = { count: 0, lastTime: 0, bestSession: 0 };
+  if (state.combo.lastTime && (Date.now() - state.combo.lastTime) > COMBO_WINDOW_MS) {
+    // combo expired — reset chain
+    if (state.combo.count > (state.combo.bestSession || 0)) state.combo.bestSession = state.combo.count;
+    state.combo.count = 0;
+  }
+  const comboMult = getComboMultiplier(state.combo.count || 0);
+  if (comboMult > 1) {
+    const comboBonus = Math.floor((scoreCoins + coinsEarned) * (comboMult - 1));
+    if (comboBonus > 0) state.coins += comboBonus;
+  }
+  if (typeof window.updateComboHUD === 'function') { try { window.updateComboHUD(); } catch (e) {} }
 
   // stats
   state.stats.gamesPlayed++;

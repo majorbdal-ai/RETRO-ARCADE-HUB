@@ -745,7 +745,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
 <!-- ============ TOP BAR ============ -->
 <div id="topBar" style="display:none">
   <div class="logo glitch" data-text="RETRO<b>ARCADE</b>"><span>RETRO<b>ARCADE</b></span></div>
-  <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search games..."></div>
+  <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search games..." oninput="setHomeQuery(this.value)"></div>
   <div class="coin-badge"><i class="fa-solid fa-coins"></i><span id="coinDisplay">0</span></div>
   <button class="hud-btn" id="themeQuickBtn" onclick="cycleTheme()" title="Theme"><i class="fa-solid fa-palette"></i></button>
 </div>

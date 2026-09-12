@@ -725,7 +725,7 @@ function renderHome() {
       <button class="btn btn-primary play-btn" style="padding:7px 14px;font-size:11px" onclick="playGame('${g.id}')">${engineReady(g.id) ? '▶ PLAY NOW' : 'COMING SOON'}</button>
     </div>`).join('');
   }
-  renderGameGrid('');
+  renderHomeGrid();
   renderDiscovery();
   renderFavorites();
   renderRecent();
@@ -739,6 +739,11 @@ function renderHome() {
 
   // NEW UI: Home Category Tabs
   let currentHomeCat = 'ALL';
+  let currentHomeQuery = '';
+  function setHomeQuery(q) {
+    currentHomeQuery = (q || '').toLowerCase();
+    renderHomeGrid();
+  }
   function setHomeCat(cat) {
     currentHomeCat = cat;
     document.querySelectorAll('#homeCatTabs .cat-tab').forEach(t => 
@@ -747,9 +752,10 @@ function renderHome() {
   }
 
   function renderHomeGrid() {
-    const q = ''.toLowerCase();
+    const q = currentHomeQuery;
     const c = currentHomeCat.toUpperCase();
     let list = GAMES;
+    if (q) list = list.filter(g => g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q));
     if (c !== 'ALL') list = list.filter(g => (g.cat || '').toUpperCase() === c);
     const html = list.map(g => {
       const ready = !!engineReady(g.id);
@@ -806,7 +812,8 @@ function gameLogo(id, size = 120) {
     return `<svg viewBox="0 0 120 120" style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg">${svg.replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>`;
   }
   const g = GAMES.find(x => x.id === id);
-  return `<span style="font-size:${size * 0.28}px;filter:drop-shadow(0 4px 12px ${g ? g.color : '#fff'}66)">${g ? g.icon : '🎮'}</span>`;
+  // size param only affects the emoji fallback — game logos use full-bleed images
+  return `<span style="font-size:${(size || 120) * 0.28}px;filter:drop-shadow(0 4px 12px ${g ? g.color : '#fff'}66)">${g ? g.icon : '🎮'}</span>`;
 }
 
 function renderGameGrid(filter = '', cat = '') {
@@ -864,6 +871,9 @@ function renderArcadeGrid(filter = '') {
   const html = list.map(g => {
     const ready = !!engineReady(g.id);
     const badge = ready ? 'OPEN' : 'SOON';
+    // deterministic rating from game id — stable across renders
+    let rH = 0; for (let k = 0; k < g.id.length; k++) rH = (rH * 31 + g.id.charCodeAt(k)) >>> 0;
+    const rating = (4.0 + (rH % 10) / 10).toFixed(1);
     // list view needs different structure
     const isList = arcadeViewMode === 'list';
     if (isList) {
@@ -876,7 +886,7 @@ function renderArcadeGrid(filter = '') {
           <p style="font-size:var(--font-xs);color:var(--sub);margin-bottom:var(--space-xs);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.desc}</p>
           <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap">
             <span style="font-size:var(--font-xs);color:var(--sub);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:999px">${g.cat || '—'}</span>
-            <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">★ ${(Math.random()*4+1).toFixed(1)}</span>
+            <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">★ ${rating}</span>
           </div>
         </div>
         <div class="actions" style="flex-shrink:0">
@@ -892,7 +902,7 @@ function renderArcadeGrid(filter = '') {
         <p style="font-size:var(--font-xs);color:var(--sub);margin-bottom:var(--space-sm);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.desc}</p>
         <div style="display:flex;align-items:center;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm)">
           <span style="font-size:var(--font-xs);color:var(--sub);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:999px">${g.cat || '—'}</span>
-          <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">★ ${(Math.random()*4+1).toFixed(1)}</span>
+          <span style="font-size:var(--font-xs);color:var(--yellow);font-family:'Orbitron',sans-serif">★ ${rating}</span>
         </div>
         <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
       </div>`;
@@ -1611,9 +1621,11 @@ function applyTheme(id, silent) {
   // resolve: exact theme, or a game id → its palette, else default neon
   let t = THEMES.find(x => x.id === id);
   if (!t) t = THEMES[0];
-  state.equipped.theme = id;
-  saveState();
+  // PERSIST only on explicit user choice (non-silent). Silent calls (game-skin apply,
+  // exit-restore) must NOT overwrite the saved theme preference with a game palette.
   if (!silent) {
+    state.equipped.theme = id;
+    saveState();
     globalTheme = id;
     toast('Theme: ' + t.name + ' ' + t.ico);
   }
@@ -1665,6 +1677,7 @@ let game = { id: null, running: false, paused: false, over: false, score: 0, tou
 /* ==================== SESSION COMBO SYSTEM (v8.0) ==================== */
 // Combo increments each game you play back-to-back (within 3 min window).
 // Higher combo = bigger coin/XP multiplier. Milestones at 5/10/15/20.
+// Lives in core.js scope (used by launchGame/endGame there); UI helpers in app.js.
 const COMBO_WINDOW_MS = 3 * 60 * 1000; // 3 minutes between games to keep combo alive
 function getComboMultiplier(count) {
   if (count <= 1) return 1.0;
@@ -1705,6 +1718,7 @@ function resetCombo() {
   state.combo.count = 0;
   state.combo.lastTime = 0;
   saveState();
+  if (typeof window.updateComboHUD === 'function') { try { window.updateComboHUD(); } catch (e) {} }
 }
 function applyComboMilestone(count) {
   // Milestone rewards at specific combo levels
