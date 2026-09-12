@@ -51,7 +51,8 @@ let state = {
   streakClaimed: store.get('rh_streakClaimed', {}),
   favorites: store.get('rh_favorites', []),
   recentlyPlayed: store.get('rh_recently', []),
-  combo: store.get('rh_combo', { count: 0, lastTime: 0, bestSession: 0 })
+  combo: store.get('rh_combo', { count: 0, lastTime: 0, bestSession: 0 }),
+  stars: store.get('rah_stars', {})
 };
 // [P1 hardening] normalize critical numerics on boot — never let poisoned storage reach UI [140-153]
 if (typeof state.coins !== 'number' || !isFinite(state.coins) || state.coins < 0) state.coins = 0;
