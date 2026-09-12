@@ -1,5 +1,5 @@
 {
-  "version": "7.26.0",
+  "version": "7.27.0",
   "games": 70,
   "build": "2026-09-12",
   "features": [
@@ -87,6 +87,8 @@
     "daily-bonus-7day",
     "sfx-batch-10-action-sports",
     "sfx-batch-10-puzzle-board",
-    "png-logos"
+    "png-logos",
+    "missions-scorepool-49",
+    "missions-42-games"
   ]
 }
