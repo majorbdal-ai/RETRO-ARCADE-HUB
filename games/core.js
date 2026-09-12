@@ -1206,7 +1206,25 @@ function endGame(score, coinsEarned) {
       { id: 'mp-flappy',   ico: '🐤', game: 'flappy-neon',    desc: 'Play Flappy once',        target: 1, reward: 40, prog: 0 },
       { id: 'mp-temple',   ico: '🗿', game: 'temple-run',     desc: 'Play Temple Run once',    target: 1, reward: 45, prog: 0 },
       { id: 'mp-invaders', ico: '👾', game: 'space-invaders', desc: 'Play Invaders once',      target: 1, reward: 40, prog: 0 },
-      { id: 'mp-stack',    ico: '🧱', game: 'stack-drop',     desc: 'Play Stack once',         target: 1, reward: 40, prog: 0 }
+      { id: 'mp-stack',    ico: '🧱', game: 'stack-drop',     desc: 'Play Stack once',         target: 1, reward: 40, prog: 0 },
+      // ==== PLAY POOL v7.27b (17 remaining games) ====
+      { id: 'mp-dungeon',  ico: '🕳️', game: 'pixel-dungeon', desc: 'Play Dungeon once',      target: 1, reward: 40, prog: 0 },
+      { id: 'mp-piano',    ico: '🎹', game: 'piano-tiles',   desc: 'Play Piano once',         target: 1, reward: 40, prog: 0 },
+      { id: 'mp-sling',    ico: '🪃', game: 'sling-birds',   desc: 'Play Sling once',         target: 1, reward: 40, prog: 0 },
+      { id: 'mp-cosmic',   ico: '🌌', game: 'cosmic-dash',   desc: 'Play Cosmic once',        target: 1, reward: 40, prog: 0 },
+      { id: 'mp-lazer',    ico: '🔦', game: 'lazer-maze',    desc: 'Play Lazer Maze once',    target: 1, reward: 40, prog: 0 },
+      { id: 'mp-timerush', ico: '⏱️', game: 'time-rush',     desc: 'Play Time Rush once',     target: 1, reward: 40, prog: 0 },
+      { id: 'mp-pingpong', ico: '🏓', game: 'table-tennis',  desc: 'Play Table Tennis once',  target: 1, reward: 40, prog: 0 },
+      { id: 'mp-flow',     ico: '🔗', game: 'flow-free',     desc: 'Play Flow once',          target: 1, reward: 40, prog: 0 },
+      { id: 'mp-ttt',      ico: '⭕', game: 'tic-tac-toe',   desc: 'Play Tic-Tac-Toe once',   target: 1, reward: 40, prog: 0 },
+      { id: 'mp-cfour',    ico: '🟡', game: 'connect-four',  desc: 'Play Connect Four once',  target: 1, reward: 40, prog: 0 },
+      { id: 'mp-nonogram', ico: '🎨', game: 'nonogram',      desc: 'Play Nonogram once',      target: 1, reward: 40, prog: 0 },
+      { id: 'mp-spin',     ico: '🎰', game: 'lucky-spin',    desc: 'Play Lucky Spin once',    target: 1, reward: 40, prog: 0 },
+      { id: 'mp-trash',    ico: '🗑️', game: 'trash-sorter', desc: 'Play Trash Sorter once',  target: 1, reward: 40, prog: 0 },
+      { id: 'mp-ladder',   ico: '🪜', game: 'ladder-climb',  desc: 'Play Ladder once',        target: 1, reward: 40, prog: 0 },
+      { id: 'mp-math',     ico: '➗', game: 'math-dash',     desc: 'Play Math Dash once',     target: 1, reward: 40, prog: 0 },
+      { id: 'mp-bantumi',  ico: '🏺', game: 'bantumi',       desc: 'Play Bantumi once',       target: 1, reward: 40, prog: 0 },
+      { id: 'mp-reversi',  ico: '⬛', game: 'reversi',       desc: 'Play Reversi once',       target: 1, reward: 40, prog: 0 }
     ];
     const scorePool = [
       { id: 'ms-flappy50',  ico: '🐤', game: 'flappy-neon',    desc: 'Flappy: score 50',       target: 50,  reward: 60, prog: 0 },
@@ -1259,7 +1277,25 @@ function endGame(score, coinsEarned) {
       { id: 'ms-hill150',   ico: '⛰️', game: 'hill-climb',     desc: 'Hill Climb: 150m',        target: 150, reward: 60, prog: 0 },
       { id: 'ms-bounce150', ico: '🏀', game: 'bounce',         desc: 'Bounce: 150 pts',         target: 150, reward: 60, prog: 0 },
       { id: 'ms-impact300', ico: '🚀', game: 'space-impact',   desc: 'Space Impact: 300',       target: 300, reward: 65, prog: 0 },
-      { id: 'ms-carrom3',   ico: '🎱', game: 'carrom-pool',    desc: 'Carrom: 3 coins',         target: 3,   reward: 55, prog: 0 }
+      { id: 'ms-carrom3',   ico: '🎱', game: 'carrom-pool',    desc: 'Carrom: 3 coins',         target: 3,   reward: 55, prog: 0 },
+      // ==== SCORE POOL v7.27b (17 remaining games get score missions) ====
+      { id: 'ms-dungeon8',  ico: '🕳️', game: 'pixel-dungeon',  desc: 'Dungeon: reach depth 8',  target: 8,   reward: 60, prog: 0 },
+      { id: 'ms-piano50',   ico: '🎹', game: 'piano-tiles',    desc: 'Piano: 50 tiles',         target: 50,  reward: 55, prog: 0 },
+      { id: 'ms-sling6',    ico: '🪃', game: 'sling-birds',    desc: 'Sling: 6 birds',          target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-cosmic40',  ico: '🌌', game: 'cosmic-dash',    desc: 'Cosmic: 40 pts',          target: 40,  reward: 55, prog: 0 },
+      { id: 'ms-lazer4',    ico: '🔦', game: 'lazer-maze',     desc: 'Lazer: 4 levels',         target: 4,   reward: 55, prog: 0 },
+      { id: 'ms-time30',    ico: '⏱️', game: 'time-rush',      desc: 'Time Rush: 30 pts',       target: 30,  reward: 55, prog: 0 },
+      { id: 'ms-pingpong12',ico: '🏓', game: 'table-tennis',   desc: 'Table Tennis: 12 pts',    target: 12,  reward: 55, prog: 0 },
+      { id: 'ms-flow4',     ico: '🔗', game: 'flow-free',      desc: 'Flow: 4 puzzles',         target: 4,   reward: 55, prog: 0 },
+      { id: 'ms-ttt1',      ico: '⭕', game: 'tic-tac-toe',    desc: 'Tic-Tac-Toe: win 1',      target: 1,   reward: 50, prog: 0 },
+      { id: 'ms-cfour1',    ico: '🟡', game: 'connect-four',   desc: 'Connect Four: win 1',     target: 1,   reward: 50, prog: 0 },
+      { id: 'ms-nonogram5', ico: '🎨', game: 'nonogram',       desc: 'Nonogram: 5 puzzles',     target: 5,   reward: 55, prog: 0 },
+      { id: 'ms-spin60',    ico: '🎰', game: 'lucky-spin',     desc: 'Lucky Spin: 60 pts',      target: 60,  reward: 55, prog: 0 },
+      { id: 'ms-trash8',    ico: '🗑️', game: 'trash-sorter',  desc: 'Trash: 8 items',          target: 8,   reward: 55, prog: 0 },
+      { id: 'ms-ladder150', ico: '🪜', game: 'ladder-climb',   desc: 'Ladder: 150m',            target: 150, reward: 60, prog: 0 },
+      { id: 'ms-math6',     ico: '➗', game: 'math-dash',      desc: 'Math: 6 correct',         target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-bantumi16', ico: '🏺', game: 'bantumi',        desc: 'Bantumi: 16 seeds',       target: 16,  reward: 55, prog: 0 },
+      { id: 'ms-reversi1',  ico: '⬛', game: 'reversi',        desc: 'Reversi: win 1',          target: 1,   reward: 50, prog: 0 }
     ];
     shuffle(playPool); shuffle(scorePool);
     state.dailyQuest = { date: today, list: [playPool[0], scorePool[0], scorePool[1]], done: [] };
