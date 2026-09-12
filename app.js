@@ -1122,7 +1122,19 @@ function renderBoard(range = 'weekly', gameId = null) {
     if (gameSel) gameSel.style.display = 'none';
     list.push({ name: myName, score: Math.max(myBest, 100), avatar: state.profile.avatar, me: true });
     if (range === 'alltime') list.forEach(b => b.score = Math.round(b.score * 1.7));
-    else if (range === 'friends') list = list.filter(b => b.me || b.bot || b.friend); // no random exclude — show all friends/bots
+    else if (range === 'friends') {
+      // "TOP PLAYERS" — deterministic per-rotation bot lineup, no fake "friends" claim
+      const rot = ((liveBotBoost() && Math.floor(Date.now() / 86400000)) || 0);
+      const n = 5 + (rot % 3); // 5-7 bots, shuffles daily
+      const pool = BOTS.slice().sort((a, b) => b.score - a.score);
+      const picked = [];
+      for (let i = 0; i < pool.length && picked.length < n; i++) {
+        if ((i + rot) % 2 === 0) picked.push(pool[i]);
+      }
+      list = picked.map((b, i) => ({ ...b, score: Math.round(b.score * (boost[i % boost.length] || 1)), me: false, bot: true }));
+      list.push({ name: myName, score: Math.max(myBest, 100), avatar: state.profile.avatar, me: true, bot: false });
+      list.sort((a, b) => b.score - a.score);
+    }
     list.sort((a, b) => b.score - a.score);
   }
   const myRank = list.findIndex(b => b.me) + 1;
