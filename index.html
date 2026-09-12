@@ -365,7 +365,6 @@ body.game-active #page-game .hud-btn{display:none !important}
   body.game-active #touchControls .ctrl-swipe-zone{min-height:70px;max-width:300px;width:38vw}
   body.game-active #touchControls .dpad{grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px)}
   body.game-active #backToHub{display:none}
-  #playAreaLabel{display:none}
 }
 /* B4 FIX [018,017]: portrait — canvas keeps aspect (object-fit:contain) so no distortion;
    v7.16: top HUD buttons removed → canvas fills freed vertical space (pause-inside design) */
@@ -912,8 +911,6 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <button class="hud-btn pause-btn" onclick="togglePause()" title="Pause"><i class="fa-solid fa-pause"></i></button>
     </div>
     <div id="gameCanvasWrap">
-      <!-- rotate hint (small portrait phones with landscape games) -->
-      <div id="playAreaLabel" style="position:absolute;inset:0;z-index:8;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;text-align:center;padding:20px"><div style="font-size:34px">📱↻</div><div style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;color:#fff;text-shadow:0 0 12px rgba(0,255,255,.8)">ROTATE FOR FULL-SCREEN</div><div style="font-size:11px;color:var(--sub)">TURN YOUR PHONE SIDEWAYS</div></div>
       <canvas id="gameCanvas" width="800" height="450"></canvas>
       <div id="gameOverOverlay">
         <div class="go-panel">

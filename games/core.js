@@ -972,10 +972,20 @@ function bootGame(id, engine) {
     try {
       const p = document.documentElement.requestFullscreen();
       if (p && p.catch) p.catch(() => {});
-      // let the browser settle the new viewport, then re-fit canvas/controls
-      setTimeout(() => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, 250);
     } catch (e) {}
   }
+  // AUTO-LANDSCAPE (v7.29.1): once fullscreen settles, rotate to landscape so the
+  // 16:9 canvas FILLS the screen (portrait keeps the canvas tiny). Chrome/Firefox
+  // allow orientation.lock while fullscreen; iOS silently no-ops (caught).
+  setTimeout(() => {
+    try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        const op = screen.orientation.lock('landscape');
+        if (op && op.catch) op.catch(() => {});
+      }
+    } catch (e) {}
+  }, 300);
   document.getElementById('hudGameTitle').innerText = g.name;
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('hudCoins').innerText = '0';
@@ -1056,10 +1066,6 @@ function bootGame(id, engine) {
   // hide game over overlay
   document.getElementById('gameOverOverlay').classList.remove('show');
 
-  // flag for the rotate hint: only show once per game boot
-  gameState.justStarted = true;
-  gameState.hintShown = false;
-
   // start
   gameState.running = true;
   if (typeof currentGame.setInput === 'function') currentGame.setInput(gameState.touches, gameState.keys);
@@ -1086,8 +1092,7 @@ function bootGame(id, engine) {
 
   // touch → key sync for keyboard-driven engines
   startTouchKeySync();
-  // big-screen orientation state (rotate hint on small portrait phones)
-  updateGameOrientation();
+  // big-screen orientation state (rotate hint removed v7.29.1 — auto-landscape handles it)
 }
 
 // ---- end game ---- (spring score pop + theme accent on overlay)
@@ -1463,6 +1468,8 @@ function exitToHub() {
   if (document.fullscreenElement) {
     try { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
   }
+  // AUTO-LANDSCAPE (v7.29.1): release the landscape lock when returning to the hub
+  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
   // restore the user's global theme when leaving a game (skin-by-game off)
   if (typeof window.applyTheme === 'function' && typeof window.globalTheme === 'string') {
     try { window.applyTheme(window.globalTheme, true); } catch (e) {}
@@ -1476,46 +1483,14 @@ function exitToHub() {
   const tcWrap = document.getElementById('touchControls');
   if (tcWrap) tcWrap.classList.remove('show');
   document.body.classList.remove('landscape-game');
-  const hint = document.getElementById('playAreaLabel');
-  if (hint) hint.style.display = 'none';
   go('arcade');
   renderArcadeGrid('');
 }
 
-// ---- orientation: big-screen game experience (v7.7) ----
-// Landscape CSS kicks in automatically via media query (HUD floats over
-// fullscreen canvas). Portrait games have their own touch controls, so the
-// rotate hint is unnecessary there — hidden entirely. Only used on TINY
-// portrait phones as a one-time (3.5s) nudge; auto-dismisses permanently.
-let rotateHintTimer = null;
-function updateGameOrientation() {
-  if (!gameState.id) { const h = document.getElementById('playAreaLabel'); if (h) h.style.display = 'none'; return; }
-  const hint = document.getElementById('playAreaLabel');
-  if (!hint) return;
-  // only show on very small portrait phones, once per game boot
-  const tinyPortrait = window.matchMedia('(orientation: portrait) and (max-width: 389px)').matches;
-  if (!tinyPortrait) { hint.style.display = 'none'; return; }
-  if (gameState.justStarted && !gameState.hintShown) {
-    hint.style.display = 'flex';
-    gameState.hintShown = true;
-    clearTimeout(rotateHintTimer);
-    rotateHintTimer = setTimeout(() => {
-      hint.style.display = 'none';
-      gameState.justStarted = false;
-    }, 3500);
-  }
-}
-// tapping the hint dismisses it instantly (and prevents future re-show this game)
-document.addEventListener('click', (e) => {
-  if (e.target && e.target.closest && e.target.closest('#playAreaLabel')) {
-    const hint = document.getElementById('playAreaLabel');
-    if (hint) hint.style.display = 'none';
-    if (gameState) gameState.justStarted = false;
-  }
-});
-// onChange for orientation + manual toggle when phone rotates while playing
-window.addEventListener('orientationchange', () => { setTimeout(updateGameOrientation, 120); });
-window.addEventListener('resize', () => { if (gameState.id) updateGameOrientation(); }, { passive: true });
+// ---- orientation: (v7.29.1) rotate hint REMOVED — games auto-landscape now,
+// so the hint box is gone; listeners below just no-op safely ----
+window.addEventListener('orientationchange', () => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} });
+window.addEventListener('resize', () => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, { passive: true });
 
 // ---- pause / resume ----
 // B1 FIX [008-009]: clear all input state on pause, restore on resume
