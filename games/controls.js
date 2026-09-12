@@ -26,7 +26,7 @@ const CONTROL_LAYOUT = {
   'fruit-slash':     { type: 'swipe',      hint: 'SWIPE TO SLASH FRUITS' },
   'fruit-merge':     { type: 'canvas',     hint: 'DRAG TO AIM · RELEASE TO DROP' },
   'bubble-shooter':  { type: 'canvas',     hint: 'DRAG TO AIM · RELEASE TO SHOOT' },
-  'piano-tiles':     { type: 'swipe',       hint: 'TAP THE BLACK TILES FAST — SWIPE LEFT/RIGHT/UP/DOWN FOR LANES' },
+  'piano-tiles':     { type: 'dpad',        hint: 'D-PAD: ← LANE 1 · ↓ LANE 2 · ↑ LANE 3 · → LANE 4' },
 
   // ============ GROUP 3: BANGLADESH VIRAL (8) ============
   'ludo-king':       { type: 'tap',        hint: 'TAP TO ROLL · TAP PIECE TO MOVE' },
