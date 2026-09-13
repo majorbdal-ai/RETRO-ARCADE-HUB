@@ -28,7 +28,7 @@ t('onCoinCb does not double-add coins', !/state\.coins \+=/.test(coinCb));
 const endGame = core.slice(core.indexOf('function endGame'), core.indexOf('function shuffle'));
 const coinAdds = (endGame.match(/state\.coins \+=/g) || []).length;
 t('endGame awards coins in <12 locations (no triple-add bug)', coinAdds >= 2 && coinAdds < 12);
-t('window.endGame exposed for legacy engines (bounce/bantumi self-report)', /window\.endGame\s*=\s*endGame/.test(core));
+t('endGame still exposed (empty-hub keeps generic lifecycle)', /window\.endGame/.test(core));
 // 4c. TODAY'S CHALLENGE (v7.39): banner promise is backed by a real payout —
 //     challenge bonus must gate on the banner game + new best + once/day
 t('challenge payout exists in endGame (v7.39)', /CHALLENGE BONUS/.test(endGame) && /challBonus = 40/.test(endGame));
@@ -76,7 +76,7 @@ t('GAME_TARGETS covers every registry game', (() => {
   const gs = app.slice(app.indexOf('const GAMES'), app.indexOf('\n];', app.indexOf('const GAMES')) + 3);
   const reg = (gs.match(/id: '([^']+)'/g) || []).map(x => x.slice(5, -1));
   const tgt = (core.match(/const GAME_TARGETS = \{[\s\S]*?\n\};/) || [''])[0];
-  return reg.length === 1 && reg[0] === '2048' && tgt.includes(`'2048'`);
+  return reg.length === 0; // empty hub — no games, no targets
 })());
 // 13. RESIZE RECURSION GUARD (v7.29.1 regression): never dispatch a synthetic
 // 'resize' event from inside a resize/orientation listener — that recurses forever
@@ -123,7 +123,7 @@ t('SLOW MOTION delays difficulty ramp', /const rampMs = shopBoosterOn\('slow'\) 
 t('runBoosters resets on fresh playGame', /function playGame[\s\S]{0,300}runBoosters = \{ x2: false/.test(core));
 t('booster reads equipped booster slot', /eq\[slot\] === 'boost-' \+ key/.test(core) && /window\.unequipBooster/.test(app));
 t('FX effects tint particles', /effColor\(def\)/.test(core) && /fx-rainbow/.test(core));
-t('2048 zip assets intact (index.html + js + style)', fs.existsSync(path.join(root, '2048/index.html')) && fs.existsSync(path.join(root, '2048/js')) && fs.existsSync(path.join(root, '2048/style')));
+t('no game asset dirs remain (empty hub)', !fs.existsSync(path.join(root, '2048')) && !fs.existsSync(path.join(root, 'games/game2048.js')) && !fs.existsSync(path.join(root, 'games/snake-classic.js')));
 // 21. REVENGE MODE (v7.36): near-miss buy-in — +50% next-run score, opt-in coin spend
 t('revengeGame defined + costs 50', /function revengeGame/.test(core) && /const COST = 50/.test(core));
 t('revenge deducts coins + sets flag', /revengeGame[\s\S]{0,400}state\.coins -= COST/.test(core) && /pendingRevenge = true/.test(core));
@@ -143,13 +143,12 @@ t('reroll costs 50 coins + deducts', /rerollDailyMissions[\s\S]{0,800}const COST
 t('reroll re-picks from persisted day pools', /pools: \{ play: playPool, score: scorePool \}/.test(core) && /rerollDailyMissions[\s\S]{0,900}pools\.play/.test(core));
 t('reroll keeps completed claims', /rerollDailyMissions[\s\S]{0,900}state\.dailyQuest\.done/.test(core) && /done\.includes/.test(core));
 t('reroll button present in missions widget', html.includes('id="rerollMissionsBtn"') && html.includes('rerollDailyMissions()'));
-// 24. CANVAS HOLD/DRAG INPUT (v7.42): sling/hoop/duck-hunt/archery/bowling were
-//     unplayable on mobile — pointer branch must mirror coords into touches and
-//     hold-to-act canvas games must get the HOLD button. Guard so a future
-//     editor can't silently drop the mirror or the hold button.
+// 24. CANVAS HOLD/DRAG INPUT: pointer branch must mirror coords into touches and
+//     hold-to-act canvas engines get the HOLD button. Guard so a future editor
+//     can't silently drop the mirror or the hold button.
 t('pointer branch mirrors coords into touches', /const mirrorTouches/.test(core) && /mirrorTouches\(x, y\); engine\.pointerDown/.test(core) && /gameState\.touches\.pointerDown = \{ x, y \}/.test(core));
-t('hold-to-act canvas games get HOLD button', /const holdGames = \['archery-master', 'bowling-strike', 'soccer-penalty', 'sling-birds', 'airstrike', 'hoop-dunk', 'fruit-merge', 'bubble-shooter'\]/.test(core) && /btn_action/.test(core));
-t('2048 iframe launch + poll wiring in core', /launchOrig2048/.test(core) && /_2048poll/.test(core) && /settleOrig2048/.test(core));
+t('hold-action infra has no deleted-game lists', !/holdGames = \['archery/.test(core) && !/archery-master/.test(core) && !/sling-birds/.test(core));
+t('GAME_ENGINE is empty (no games)', /const GAME_ENGINE = \{ ?\};/.test(core.replace(/\n/g, ' ')) || /GAME_ENGINE = \{ ?\}/.test(core.replace(/\n/g, ' ')));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);

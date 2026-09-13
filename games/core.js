@@ -8,9 +8,7 @@
 // Game files define top-level functions (neonRacer, cyberShooter, ...)
 // that become globals. Map game id -> engine function name, resolve
 // lazily so script load order never matters.
-const GAME_ENGINE = {
-'2048':           'game2048',
-};
+const GAME_ENGINE = { }; // empty hub — no canvas engines (original zip games run standalone)
 
 // true when the game's engine file is available (all 70 are; lazy-loaded on launch)
 function engineReady(id) {
@@ -27,10 +25,8 @@ let pendingReviveFloor = 0;        // score floor carried into the revived run
 // 70 games — per-game star/retry/mission targets (single source of truth)
 // 70 games — per-game star/retry/mission targets
 // 1★ = play & score something · 2★ = 60% · 3★ = beat target (realistic per-game goals)
-const GAME_TARGETS = {
-    '2048': 512,
-};
-// per-game touch/pointer binding (carrom, temple, snake-classic use canvas swipes)
+const GAME_TARGETS = { }; // no games — no per-game targets
+// per-game touch/pointer binding (gesture-driven engines use canvas swipes)
 let canvasSwipe = { startX: 0, startY: 0, started: false };
 let swipeBinding = null; // { el, handlers } or null
 
@@ -40,7 +36,7 @@ const CTRL_BTN_LABELS = {
   drift:  { icon: 'wind',        text: 'DRIFT' }
 };
 
-// ---- per-game canvas touch binding (carrom / temple-run / snake-classic) ----
+// ---- per-game canvas touch binding (gesture-driven engines) ----
 // Game engines exposing pointerDown/pointerMove/pointerUp or swipe/onSwipe
 // get their touch events wired to the canvas automatically.
 // B1: canvas CSS → logical coordinate scaling + pointerId multi-touch tracking + touchcancel.
@@ -51,10 +47,10 @@ function clearDPRResize() {
     window.__dprResize = null;
   }
 }
-let tapBinding = null; // universal canvas tap → touches.lastTapX/Y + action (fix: memory-match/checkers)
+let tapBinding = null; // universal canvas tap → touches.lastTapX/Y + action (tap-board engines)
 
 // Universal canvas tap tracker:
-// Engines that run on BOARD TAPS (memory-match, checkers, nonogram, sudoku,
+// Engines that run on BOARD TAPS (tap-cell engines)
 // ludo, mine-sweeper, water-sort, …) read touches.lastTapX/lastTapY + touches.action.
 // core.js previously NEVER set those for button-controlled games, so those games
 // were unplayable (tap did nothing). This binds on the canvas for EVERY game and
@@ -64,8 +60,8 @@ function bindTapTracker(canvas) {
   if (!canvas) return;
   let holdTimer = null;
   const clearHold = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } };
-  // nonogram long-press → X-mark (toggleR/C after 300ms hold)
-  // nonogram grid: offsetX=160, offsetY=60, cellSize=30
+  // long-press → X-mark toggle (300ms hold on grid cells)
+  // grid: offsetX=160, offsetY=60, cellSize=30
   const startHold = (x, y) => {
     clearHold();
     holdTimer = setTimeout(() => {
@@ -82,12 +78,12 @@ function bindTapTracker(canvas) {
     const { x, y } = canvasXY(clientX, clientY);
     gameState.touches.lastTapX = x;
     gameState.touches.lastTapY = y;
-    // engines that read touches.x/touches.y for tap position (nonogram,
-    // sudoku, ludo-king, soccer-penalty) get the same coordinates
+    // engines that read touches.x/touches.y for tap position (tap-grid
+    // engines using pointer-readback get the same coordinates
     gameState.touches.x = x;
     gameState.touches.y = y;
-    // engines reading their own tap-props: nonogram/sudoku read clickX/clickY,
-    // lazer-maze reads pointerX/pointerY+pointerJustTap, duck-hunt reads mx/my
+    // engines reading their own tap-props read clickX/clickY,
+    // engines read pointerX/pointerY+pointerJustTap or mx/my from touches
     gameState.touches.clickX = x;
     gameState.touches.clickY = y;
     gameState.touches.pointerX = x;
@@ -156,7 +152,7 @@ function bindGameTouch(engine) {
   // v7.31: BUTTON-CONTROLLED games do NOT bind canvas touch/swipe at all —
   // the user controls them purely with the on-screen buttons (dpad/joystick/
   // TAP/etc). Only screen-gesture games (canvas/swipe/swipe-zone/drag types)
-  // and the two dual-mode games (neon-racer tilt, tetris swipe) get canvas
+  // dual-mode engines (tilt + swipe) get canvas
   // touch binding here. Layout type lives in CONTROL_LAYOUT.
   const layout = (typeof CONTROL_LAYOUT !== 'undefined' && CONTROL_LAYOUT[gameState.id]) || null;
   const cType = layout ? layout.type : null;
@@ -168,10 +164,10 @@ function bindGameTouch(engine) {
   }
   // track active pointers per pointerId (multi-touch safe)
   const pointers = new Map();
-  // pointer-drag style (carrom, sling-birds, hoop-dunk, duck-hunt, word-search)
+  // pointer-drag style engines use the pointer canvas branch
   if (typeof engine.pointerDown === 'function') {
-    // duck-hunt reads touches.pointerDown/touches.action/touches.mx/my for
-    // crosshair + fire; carrom reads touches.pointerDown for drag-aim.
+    // engines read touches.pointerDown/touches.action/touches.mx/my for
+    // crosshair + fire; drag-aim engines read touches.pointerDown.
     // All pointer-drag engines need the coordinates mirrored into touches
     // so their update loops (which poll touches.*, not the x/y args) react.
     const mirrorTouches = (x, y) => {
@@ -195,29 +191,29 @@ function bindGameTouch(engine) {
     swipeBinding = { el: canvas, type: 'pointer', handlers: { down, move, up } };
     return;
   }
-  // generic swipe fallback → touches (snake, light-cycle, 2048, invaders, pac-runner, etc.)
+  // generic swipe fallback → touches
   if (typeof engine.swipe !== 'function' && typeof engine.onSwipe !== 'function' && typeof engine.pointerDown !== 'function') {
     let swipeDirTimer = null;
     let activePointer = null;
     // v7.42: canvas press feeds coords + down for drag-aim games, but ONLY an
-    // action pulse for the hold-to-act canvas games (archery/bowling/soccer/
-    // duck-hunt). swipe+action games (neon-dash, mastermind, connect-four,
-    // trash-sorter) must NOT get a canvas action pulse — it would falsely
+    // action pulse for hold-to-act canvas engines
+    // swipe+action engines (swipe direction + tap action)
+    // swipe+action engines must NOT get a canvas action pulse — it would falsely
     // trigger their ACTION (jump/confirm/drop) on every touchstart.
     const layoutG = (typeof CONTROL_LAYOUT !== 'undefined' && CONTROL_LAYOUT[gameState.id]) || {};
     const cTypeG = layoutG.type || '';
     // v7.42: drag/hold canvas games need coords + down + action fed from canvas
-    // touches (archery/bowling/soccer/duck-hunt/sling/hoop were UNPLAYABLE on
+    // touches (hold/pull engines were UNPLAYABLE on
     // mobile — nothing set touches.action/down for canvas layouts). Swipe-type
-    // games (dino-run, temple-run, traffic-racer) keep the pure swipe path —
+    // pure-swipe engines keep the swipe path —
     // a global touches.down would falsely slide dino / steer on touchstart.
     const feedCoords = cTypeG === 'canvas';
     // Hold/tap-fire games that poll touches.action directly from canvas:
-    // archery (hold pull), bowling (hold to wind), duck-hunt (tap fire at
-    // crosshair), fruit-merge (hold aim, release drop). soccer-penalty reads
+    // hold-pull engines (pull to aim, hold to wind, tap to fire at
+    // crosshair, hold aim + release drop) read
     // only touches.down + x/y (feedCoords covers it); air_strike uses the
     // HOLD ACTION button (buttons.action).
-    const holdAction = feedCoords && ['archery-master','bowling-strike','duck-hunt','fruit-merge'].indexOf(gameState.id) !== -1;
+    const holdAction = feedCoords && (gameState.id && window.GAME_ENGINE && window.GAME_ENGINE[gameState.id] && (window.GAME_ENGINE[gameState.id].gesture || '').includes('hold'));
     const clearDir = () => { gameState.touches.left = gameState.touches.right = gameState.touches.up = gameState.touches.down = false; };
     const start = (e) => {
       const t = e.touches ? e.touches[0] : e;
@@ -228,7 +224,7 @@ function bindGameTouch(engine) {
         gameState.touches.down = true;
         gameState.touches.x = x; gameState.touches.y = y;
         gameState.touches.mouseX = x; gameState.touches.mouseY = y;
-        gameState.touches.mx = x; gameState.touches.my = y; // duck-hunt crosshair
+        gameState.touches.mx = x; gameState.touches.my = y; // crosshair engines
         gameState.touches.mouseDown = true;
         if (holdAction) gameState.touches.action = true;
       }
@@ -245,12 +241,12 @@ function bindGameTouch(engine) {
           if (Math.abs(dx) > Math.abs(dy)) { gameState.touches.left = dx < 0; gameState.touches.right = dx > 0; }
           else { gameState.touches.up = dy < 0; gameState.touches.down = dy > 0; }
         }
-        // keep feeding live drag coords + down state (soccer/archery aim)
+        // keep feeding live drag coords + down state (drag-aim engines)
         if (feedCoords) {
           const { x, y } = canvasXY(t.clientX, t.clientY);
           gameState.touches.x = x; gameState.touches.y = y;
           gameState.touches.mouseX = x; gameState.touches.mouseY = y;
-          gameState.touches.mx = x; gameState.touches.my = y; // duck-hunt crosshair
+          gameState.touches.mx = x; gameState.touches.my = y; // crosshair engines
           gameState.touches.down = true;
           if (holdAction) gameState.touches.action = true;
         }
@@ -289,7 +285,7 @@ function bindGameTouch(engine) {
     swipeBinding = { el: canvas, type: 'swipe', handlers: { start, move, end } };
     return;
   }
-  // swipe style (temple-run / snake-classic)
+  // swipe-style engines feed coords
   if (typeof engine.swipe === 'function' || typeof engine.onSwipe === 'function') {
     const cb = typeof engine.swipe === 'function' ? engine.swipe : engine.onSwipe;
     let activePointer = null;
@@ -356,7 +352,7 @@ function unbindGameTouch() {
     swipeBinding = null;
   }
 }
-// keyboard for snake-classic (arrows already global; route to engine too)
+// keyboard for arrow-driven engines (arrows already global; route to engine too)
 function routeKeyToEngine(e) {
   if (currentGame && typeof currentGame.onKey === 'function') {
     currentGame.onKey(e.code);
@@ -643,11 +639,11 @@ function drawControls(gameId) {
 
   const type = layout.type || 'tap';
   // Canvas-based games: most draw their own aiming; but games that poll
-  // touches.action (hold-to-pull arcade: archery, bowling, soccer, sling,
-  // airstrike, hoop-dunk) need an on-screen hold button on mobile — the
+  // touches.action (hold-to-pull arcade engines need
+  // an on-screen hold button on mobile when the engine asks — the
   // canvas swipe path alone never sets touches.action (v7.42 P1 fix).
   if (type === 'canvas') {
-    const holdGames = ['archery-master', 'bowling-strike', 'soccer-penalty', 'sling-birds', 'airstrike', 'hoop-dunk', 'fruit-merge', 'bubble-shooter'];
+    const holdGames = []; // empty hub — HOLD button list populated when games return
     if (holdGames.indexOf(gameId) !== -1) {
       html += `<div class="ctrl-spacer"></div>`;
       html += `<div class="ctrl-group"><button class="ctrl-btn ctrl-btn-action" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)" style="min-width:120px;padding:14px 22px;font-size:13px;border-radius:16px;background:linear-gradient(135deg,#ff3355,#ff8800);color:#fff;font-weight:900;box-shadow:0 4px 0 #a01020"><i class="fa-solid fa-hand-pointer"></i> HOLD&nbsp;·&nbsp;RELEASE</button></div>`;
@@ -655,7 +651,7 @@ function drawControls(gameId) {
       html += `<div class="ctrl-spacer"></div>`;
     }
   }
-  // Swipe + rotate button (tetris: swipe move + tap rotate)
+  // Swipe + rotate button (swipe-move + tap-rotate engines)
   else if (type === 'swipe+drag') {
     html += `<div class="ctrl-group"><button class="ctrl-btn" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-rotate"></i>ROTATE</button></div>`;
   }
@@ -672,7 +668,7 @@ function drawControls(gameId) {
     html += `<div class="joystick" id="joystick"><div class="knob" id="jKnob"></div></div>`;
     html += `<div class="ctrl-group"><button class="ctrl-btn" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-hand-fist"></i>ATTACK</button></div>`;
   }
-  // Dual joystick (tank battle)
+  // Dual joystick (move + aim axes)
   else if (type === 'dual') {
     html += `<div class="joystick" id="joyL"><div class="knob" id="jKnobL"></div></div>`;
     html += `<div class="joystick" id="joyR"><div class="knob" id="jKnobR"></div></div>`;
@@ -719,7 +715,7 @@ function drawControls(gameId) {
   else if (type === 'swipe-zone') {
     html += `<div class="ctrl-swipe-zone" id="swipeZone"><i class="fa-solid fa-arrows-up-down-left-right"></i><span>SWIPE</span></div>`;
   }
-  // Swipe + ACTION button (mastermind/connect-four/neon-dash/trash-sorter:
+  // Swipe + ACTION button (swipe-to-move + tap-to-act engines)
   // directional swipe + confirm/drop/jump action button)
   else if (type === 'swipe+action') {
     html += `<div class="ctrl-swipe-zone" id="swipeZone"><i class="fa-solid fa-arrows-up-down-left-right"></i><span>SWIPE</span></div>`;
@@ -761,7 +757,7 @@ function drawControls(gameId) {
       <button class="ctrl-btn ctrl-drift" id="btn_drift" ontouchstart="pressed('drift',true,event)" ontouchend="pressed('drift',false,event)" ontouchcancel="pressed('drift',false,event)" onmousedown="pressed('drift',true,event)" onmouseup="pressed('drift',false,event)" onmouseleave="pressed('drift',false,event)"><i class="fa-solid fa-wind"></i>DRIFT</button>
     </div>`;
   }
-  // Touch-split (hill-climb: left gas / right brake)
+  // Touch-split (left gas / right brake)
   else if (type === 'touch') {
     html += `<div class="ctrl-touch-left" id="touchLeft" ontouchstart="pressed('gas',true,event)" ontouchend="pressed('gas',false,event)" ontouchcancel="pressed('gas',false,event)" onmousedown="pressed('gas',true,event)" onmouseup="pressed('gas',false,event)" onmouseleave="pressed('gas',false,event)"><i class="fa-solid fa-gas-pump"></i><span>GAS</span></div>`;
     html += `<div class="ctrl-touch-right" id="touchRight" ontouchstart="pressed('brake',true,event)" ontouchend="pressed('brake',false,event)" ontouchcancel="pressed('brake',false,event)" onmousedown="pressed('brake',true,event)" onmouseup="pressed('brake',false,event)" onmouseleave="pressed('brake',false,event)"><i class="fa-solid fa-brake-warning"></i><span>BRAKE</span></div>`;
@@ -883,226 +879,14 @@ function loadGameEngine(id, cb) {
   if (!fn) { cb(null); return; }
   if (typeof window[fn] === 'function') { cb(window[fn]); return; }
   const fname = fn.replace(/([A-Z])/g, m => '_' + m.toLowerCase()).replace(/^_/, '');
-  const file = fn === 'game2048' ? 'games/game2048.js'
-    : (fname === 'pin_ball' ? 'games/pin_ball.js' : 'games/' + fname + '.js');
+  const file =
+    (fname === 'pin_ball' ? 'games/pin_ball.js' : 'games/' + fname + '.js');
   const s = document.createElement('script');
   s.src = file;
   s.onload = () => cb(window[fn] || null);
   s.onerror = () => cb(null);
   document.head.appendChild(s);
 }
-
-// ---- ORIGINAL 2048 (zip) iframe host — 100% original app inside ---- 
-// The 2048-master.zip app is untouched: its own index.html, main.css, fonts,
-// animated tiles, score/best boxes, messages. The hub just frames it and
-// awards coins when a run ends, reading the game's own localStorage keys.
-let _2048lastBest = 0;      // hub-side copy of the original game's best score
-let _2048started = false;   // true once the iframe engine has booted a run
-function launchOrig2048() {
-  const g = GAMES.find(x => x.id === '2048');
-  pushGameHistory();
-  if (typeof window.applyGameSkin === 'function') { try { window.applyGameSkin('2048'); } catch (e) {} }
-  go('game');
-  if (document.fullscreenEnabled && !document.fullscreenElement) {
-    try { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
-  }
-  if (typeof window.showTutorialToast === 'function') { try { window.showTutorialToast(g, '2048'); } catch (e) {} }
-  document.getElementById('hudGameTitle').innerText = g.name;
-  document.getElementById('hudScore').innerText = '0';
-  document.getElementById('hudCoins').innerText = '0';
-  const hudLivesEl = document.getElementById('hudLives');
-  if (hudLivesEl) hudLivesEl.style.display = 'none';
-  const hudComboEl = document.getElementById('hudCombo');
-  if (hudComboEl) hudComboEl.style.display = 'none';
-  const hudRevengeEl = document.getElementById('hudRevenge');
-  if (hudRevengeEl) hudRevengeEl.style.display = 'none';
-  lockGameScroll(true);
-  gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
-  document.body.classList.add('game-2048');
-  // switch the canvas host to the original app
-  const canvas = document.getElementById('gameCanvas');
-  const frame = document.getElementById('orig2048Frame');
-  const stage = document.getElementById('orig2048Stage');
-  if (canvas) canvas.style.display = 'none';
-  if (stage) stage.style.display = 'flex';
-  if (frame) {
-    frame.style.display = 'block';
-    // (re)load the pristine original — never mutated
-    frame.src = '2048/index.html';
-  }
-  _2048started = false;
-  _2048lastBest = 0;
-  // keep the hub HUD top score in sync with the original's live score via rAF polling
-  if (window._2048poll) { try { clearInterval(window._2048poll); } catch (e) {} }
-  window._2048poll = setInterval(() => {
-    try {
-      if (typeof frame !== 'undefined' && frame && frame.contentWindow && frame.contentWindow.localStorage) {
-        const ls = frame.contentWindow.localStorage;
-        const coinsEl = document.getElementById('origLocalCoins');
-        if (coinsEl) {
-          const cur = parseInt(coinsEl.innerText || '0', 10) || 0;
-          const live = Math.max(cur, Math.floor(gameState.score / 10));
-          coinsEl.innerText = String(live);
-        }
-        const hubScore = document.querySelector('.orig2048-stats .score-container');
-        if (hubScore) hubScore.innerText = String(gameState.score);
-        const stateJSON = ls.getItem('gameState');
-        if (stateJSON) {
-          const st = JSON.parse(stateJSON);
-          if (st && typeof st.score === 'number') {
-            _2048started = true;
-            if (st.score !== gameState.score) {
-              gameState.score = st.score;
-              document.getElementById('hudScore').innerText = String(st.score);
-              const liveEl = document.getElementById('origLocalCoins');
-              if (liveEl) liveEl.innerText = String(Math.floor(st.score / 10));
-            }
-          }
-        }
-      }
-    } catch (e) {}
-  }, 500);
-  document.getElementById('gameOverOverlay').classList.remove('show');
-}
-
-// Coin bridge for the original 2048: called when the player leaves the iframe
-// (LOBBY) or on a run's game-over. Uses the ORIGINAL game's own state, so a
-// 100%-untouched zip needs zero instrumentation.
-function settleOrig2048() {
-  if (!gameState.id || gameState.id !== '2048') return;
-  if (gameState.over) return; // already settled
-  gameState.over = true;
-  gameState.running = false;
-  let score = gameState.score || 0;
-  let coins = 0;
-  try {
-    const frame = document.getElementById('orig2048Frame');
-    if (frame && frame.contentWindow && frame.contentWindow.localStorage) {
-      const ls = frame.contentWindow.localStorage;
-      const stJSON = ls.getItem('gameState');
-      if (stJSON) {
-        const st = JSON.parse(stJSON);
-        if (st && typeof st.score === 'number') score = Math.max(score, st.score);
-      }
-      const best = parseInt(ls.getItem('bestScore') || '0', 10) || 0;
-      if (best > _2048lastBest) _2048lastBest = best;
-      const hubBest = document.querySelector('.orig2048-stats .best-container');
-      if (hubBest) hubBest.innerText = String(Math.max(gameState.score, best));
-    }
-  } catch (e) {}
-  // coins from the ORIGINAL scoring (10% of score like the hub economy)
-  coins = Math.floor(score / 10);
-  clearInterval(window._2048poll);
-  window._2048poll = null;
-  const prevBest = state.best['2048'] || 0;
-  const isNewBest = score > prevBest;
-  if (isNewBest) state.best['2048'] = score;
-  // TODAY'S CHALLENGE (v7.39): the original 2048 settles here (not via
-  // endGame), so the once-per-day beat-your-best bonus is paid out here too.
-  const challId2048 = (typeof window.liveChallenge === 'function') ? (window.liveChallenge() || null) : null;
-  if (challId2048 === '2048' && isNewBest && score > 0) {
-    const challKey = 'rah_chall_' + new Date().toDateString();
-    try {
-      if (localStorage.getItem(challKey) !== 'done') {
-        localStorage.setItem(challKey, 'done');
-        state.coins += 40;
-        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
-        if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
-        setTimeout(() => toast('🏆 CHALLENGE BONUS: +40 🪙'), 900);
-      }
-    } catch (e) {}
-  }
-  if (Math.floor(score / 10) > 0) state.coins += Math.floor(score / 10);
-  if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
-  if (gameFX) { try { gameFX.deathFX(); } catch(e) {} }
-  const gc = document.getElementById('gameCanvas');
-  const frameEl = document.getElementById('orig2048Frame');
-  const stageEl = document.getElementById('orig2048Stage');
-  if (gc) gc.style.display = '';
-  if (frameEl) { try { frameEl.style.display = 'none'; } catch (e) {} }
-  if (stageEl) stageEl.style.display = 'none';
-  document.body.classList.remove('game-2048');
-  document.getElementById('gameOverOverlay').classList.add('show');
-  document.getElementById('overScore').innerText = String(score);
-  document.getElementById('overCoins').innerText = String(Math.floor(score / 10));
-  document.getElementById('overBest').innerText = String(Math.max(prevBest, score));
-  // stars via the same GAME_TARGETS tiering as every other game
-  const tgt = GAME_TARGETS['2048'];
-  let stars = !tgt ? 1 : score >= tgt ? 3 : score >= tgt * 0.6 ? 2 : 1;
-  if (typeof state.stars !== 'object' || state.stars === null) state.stars = {};
-  const prevStars = state.stars['2048'] || 0;
-  if (stars > prevStars) state.stars['2048'] = stars;
-  const starEls = document.querySelectorAll('#overStars span');
-  if (starEls.length) {
-    for (let i = 0; i < 3; i++) {
-      starEls[i].style.opacity = i < stars ? '1' : '0.22';
-      starEls[i].style.filter = i < stars ? 'none' : 'grayscale(1)';
-    }
-  }
-  document.getElementById('overStarProg').style.display = stars >= 1 ? 'block' : 'none';
-  const fill = document.getElementById('overStarProgFill');
-  const label = document.getElementById('overStarProgLabel');
-  if (fill) fill.style.width = (Math.min(100, Math.floor((score / tgt) * 100)) + '%');
-  if (label) label.innerText = 'NEXT STAR: ' + (tgt && score < tgt ? tgt + ' | ' + Math.floor(score / tgt * 100) + '%' : 'MAX ★★★');
-  reviveUsed = false;
-  pendingRevenge = false;
-  gameState.coinsEarned = coins;
-  if (typeof window.saveState === 'function') { try { window.saveState(); } catch (e) {} }
-  if (typeof window.updateCoinDisplay === 'function') { try { window.updateCoinDisplay(); } catch (e) {} }
-}
-
-// restart for the original 2048 = reload the pristine iframe
-function restartOrig2048() {
-  if (!gameState.id || gameState.id !== '2048') return;
-  if (gameState.over) { gameState.over = false; }
-  clearInterval(window._2048poll); window._2048poll = null;
-  _2048lastBest = 0;
-  const gc = document.getElementById('gameCanvas');
-  const frameEl = document.getElementById('orig2048Frame');
-  try {
-    if (frameEl && frameEl.contentWindow && frameEl.contentWindow.location) {
-      frameEl.contentWindow.location.reload();
-    } else if (frameEl) { frameEl.src = '2048/index.html'; }
-  } catch (e) { if (frameEl) frameEl.src = '2048/index.html'; }
-  if (gc) gc.style.display = 'none';
-  const stg = document.getElementById('orig2048Stage');
-  if (stg) stg.style.display = 'flex';
-  gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
-  document.getElementById('hudScore').innerText = '0';
-  document.getElementById('gameOverOverlay').classList.remove('show');
-  const rCoins = document.getElementById('origLocalCoins');
-  if (rCoins) rCoins.innerText = '0';
-  if (window._2048poll) {} else {
-    window._2048poll = setInterval(() => {
-      try {
-        const fr = document.getElementById('orig2048Frame');
-        if (fr && fr.contentWindow && fr.contentWindow.localStorage) {
-          const ls = fr.contentWindow.localStorage;
-          const stJSON = ls.getItem('gameState');
-          if (stJSON) {
-            const st = JSON.parse(stJSON);
-            if (st && typeof st.score === 'number') {
-              _2048started = true;
-              if (st.score !== gameState.score) {
-                gameState.score = st.score;
-                document.getElementById('hudScore').innerText = String(st.score);
-                const cEl = document.getElementById('origLocalCoins');
-                if (cEl) cEl.innerText = String(Math.floor(st.score / 10));
-              }
-            }
-          }
-        }
-      } catch (e) {}
-    }, 500);
-  }
-  document.getElementById('hudCoins').innerText = '0';
-}
-
-// original 2048 has no canvas engine — reuse hub lifecycle wrappers
-function pauseOrig2048Frame() {
-  try { const fr = document.getElementById('orig2048Frame'); if (fr && fr.contentWindow && fr.contentWindow.postMessage) {} } catch (e) {}
-}
-// ---- end ORIGINAL 2048 iframe host ----
 
 // ---- launch a game by id (lazy-loads engine for mobile perf) ----
 function launchGame(id) {
@@ -1137,10 +921,8 @@ function launchGame(id) {
   saveState();
 
   const engine = window[GAME_ENGINE[id]];
-  // ==== ORIGINAL 2048 (zip) runs as a full iframe — 100% untouched original ====
-  // Game loop, design, HTML/CSS/JS, fonts, animations: all from 2048-master.zip.
   // Hub only hosts it + awards coins on game-over via the game's own localStorage.
-  if (id === '2048') { launchOrig2048(); return; }
+  /* no iframe games */
   if (typeof engine === 'function') { bootGame(id, engine); return; }
   // engine not loaded yet — lazy load it (performance), show loading screen
   const gl = document.getElementById('gameLoading');
@@ -1153,7 +935,7 @@ function launchGame(id) {
 }
 
 // legacy engine input adapter: exposes pressed()/down() from gameState touches+keys,
-// plus touches/keys objects (bounce style), plus x/y pointer coords
+// plus touches/keys objects, plus x/y pointer coords
 function makeLegacyInput() {
   const KEYMAP = {
     enter: 'Enter', ' ': ' ', space: ' ', up: 'ArrowUp', down: 'ArrowDown',
@@ -1388,7 +1170,7 @@ function bootGame(id, engine) {
     if (cType === 'tilt' || cType === 'gyro') { try { initTilt(); } catch(e) {} }
   }
 
-  // bind canvas touch (carrom/temple/snake-classic + all canvas-driven)
+  // bind canvas touch (all canvas-driven engines)
   bindGameTouch(currentGame);
 
   // hide game over overlay
@@ -1629,9 +1411,6 @@ function endGame(score, coinsEarned) {
     { id: 'win1000', ico: '📿', name: 'Marathon Man',       test: () => state.stats.gamesPlayed >= 1000 },
     { id: 'score100k',ico: '🌋', name: 'Lifetime 100K',     test: () => (state.stats.totalScore || 0) >= 100000 },
     { id: 'score1m', ico: '🪐', name: 'Lifetime 1M',        test: () => (state.stats.totalScore || 0) >= 1000000 },
-    { id: 'tile512',  ico: '🧩', name: 'Tile 512',           test: () => (state.best['2048'] || 0) >= 512 },
-    { id: 'tile1024', ico: '🏅', name: 'Tile 1024',          test: () => (state.best['2048'] || 0) >= 1024 },
-    { id: 'tile2048', ico: '🎖️', name: 'Tile 2048!',         test: () => (state.best['2048'] || 0) >= 2048 },
     { id: 'rich5k',  ico: '💸', name: 'Tycoon',             test: () => state.coins >= 5000 },
     { id: 'rich50k', ico: '🏦', name: 'Coin Vault',         test: () => state.coins >= 50000 },
     { id: 'revive25',ico: '🐍', name: 'No Retreat',         test: () => (state.stats.revivesUsed || 0) >= 25 }
@@ -1650,14 +1429,11 @@ function endGame(score, coinsEarned) {
   if (!state.dailyQuest.date || state.dailyQuest.date !== today) {
     // new day: pick 3 game-specific missions (1 play + 2 score, known-score games)
     const playPool = [
-      { id: 'mp-2048',     ico: '🔢', game: '2048',       desc: 'Play 2048 once',          target: 1, reward: 40, prog: 0 }
+      { id: 'mp-play',     ico: '🎮', game: '',       desc: 'Play any game once',        target: 1, reward: 40, prog: 0 }
     ];
     const scorePool = [
-      { id: 'ms-2048-512',  ico: '🔢', game: '2048', desc: '2048: reach 512 tile',  target: 512,  reward: 60, prog: 0 },
-      { id: 'ms-2048-1024', ico: '🔢', game: '2048', desc: '2048: reach 1024 tile', target: 1024, reward: 70, prog: 0 },
-      { id: 'ms-2048-2048', ico: '🏆', game: '2048', desc: '2048: reach 2048 tile!',target: 2048, reward: 80, prog: 0 },
-      { id: 'ms-2048-10k',   ico: '💎', game: '2048', desc: '2048: score 10,000',   target: 10000,reward: 65, prog: 0 },
-      { id: 'ms-2048-25k',   ico: '💎', game: '2048', desc: '2048: score 25,000',   target: 25000,reward: 75, prog: 0 }
+      { id: 'ms-1k',       ico: '💎', game: '', desc: 'Score 1,000 in one run',  target: 1000, reward: 65, prog: 0 },
+      { id: 'ms-5k',       ico: '💎', game: '', desc: 'Score 5,000 in one run',  target: 5000, reward: 75, prog: 0 }
     ];
     shuffle(playPool); shuffle(scorePool);
     // v7.41: persist the day's pools so rerollDailyMissions() re-draws fresh picks
@@ -1795,7 +1571,7 @@ function endGame(score, coinsEarned) {
     if (nv) revengeBtn.innerText = '🔥 REVENGE ×1.5 (50 🪙)';
   }
 }
-// legacy engines (bounce, bantumi) self-report via window.endGame — expose the funnel
+// legacy engines self-report via window.endGame — expose the funnel
 window.endGame = endGame;
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
@@ -1837,7 +1613,6 @@ function rerollDailyMissions() {
 function restartGame() {
   if (!gameState.id) return;
   const id = gameState.id;
-  if (id === '2048') { restartOrig2048(); return; }
   // full cleanup (same as exitToHub minus go('arcade'))
   unbindGameTouch();
   stopTilt();
@@ -1858,7 +1633,6 @@ function restartGame() {
 // ---- coin continue (2nd chance, arcade revive) ----
 function reviveGame() {
   if (!gameState.id || !gameState.over) return;
-  if (gameState.id === '2048') { restartOrig2048(); return; } // original has its own Try again
   if (reviveUsed) { toast('One continue per run!'); return; }
   const COST = 150;
   if (state.coins < COST) { toast('Need ' + COST + ' coins for continue!'); if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('err'); } catch (e) {} } return; }
@@ -1891,7 +1665,6 @@ function reviveGame() {
 // retry-compulsion loop the user wants — miss, spend, try again harder.
 function revengeGame() {
   if (!gameState.id || !gameState.over) return;
-  if (gameState.id === '2048') { restartOrig2048(); return; } // original keep-going handles it
   if (pendingRevenge) { toast('Revenge already charged!'); return; }
   const COST = 50;
   if (state.coins < COST) { toast('Need ' + COST + ' coins for revenge!'); return; }
@@ -1919,30 +1692,8 @@ function revengeGame() {
 }
 
 // ---- exit to hub ----
+// ---- exit to hub ----
 function exitToHub() {
-  if (gameState.id === '2048') {
-    clearInterval(window._2048poll); window._2048poll = null;
-    settleOrig2048();
-    const frameEl = document.getElementById('orig2048Frame');
-    const canvas = document.getElementById('gameCanvas');
-    const stageEl = document.getElementById('orig2048Stage');
-    if (frameEl) frameEl.style.display = 'none';
-    if (canvas) canvas.style.display = '';
-    if (stageEl) stageEl.style.display = 'none';
-    document.body.classList.remove('game-2048');
-    if (frameEl && frameEl.contentWindow) { try { frameEl.contentWindow.location.replace('about:blank'); } catch (e) { frameEl.src = 'about:blank'; } }
-    // fall through to normal exit cleanup + Lobby, but skip the canvas teardown
-    if (document.fullscreenElement) { try { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
-    if (typeof window.applyTheme === 'function' && typeof window.globalTheme === 'string') { try { window.applyTheme(window.globalTheme, true); } catch (e) {} }
-    lockGameScroll(false);
-    gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
-    const tcWrap = document.getElementById('touchControls');
-    if (tcWrap) tcWrap.classList.remove('show');
-    document.body.classList.remove('landscape-game');
-    go('arcade');
-    renderArcadeGrid('');
-    return;
-  }
   clearInterval(window._diffTimer);   // stop difficulty ramp timer on exit
   unbindGameTouch();
   stopTilt(); // B1 [010]: clean up tilt listener
@@ -1979,23 +1730,6 @@ function exitToHub() {
 // B1 FIX [008-009]: clear all input state on pause, restore on resume
 function togglePause() {
   if (!gameState.id || gameState.over) return;
-  // original 2048 iframe: pausing the original app is not supported — the
-  // overlay just sits above it (resume leaves the original untouched)
-  if (gameState.id === '2048' && !gameState.paused) {
-    gameState.paused = true;
-    document.getElementById('pauseOverlay').classList.add('show');
-    const tc = document.getElementById('touchControls');
-    gameState._tcShown = !!(tc && tc.classList.contains('show'));
-    if (tc) { tc.classList.remove('show'); }
-    return;
-  }
-  if (gameState.id === '2048' && gameState.paused) {
-    gameState.paused = false;
-    document.getElementById('pauseOverlay').classList.remove('show');
-    const tc = document.getElementById('touchControls');
-    if (tc && gameState._tcShown) { tc.classList.add('show'); }
-    return;
-  }
   if (gameState.paused) {
     gameState.paused = false;
     document.getElementById('pauseOverlay').classList.remove('show');
@@ -2273,7 +2007,7 @@ function generateShareCard() {
 
   ctx.font = "11px 'Arial', sans-serif";
   ctx.fillStyle = '#555555';
-  ctx.fillText('2048 · XP · achievements · free to play', W/2, 375);
+  ctx.fillText('ARCADE HUB · XP · achievements · free to play', W/2, 375);
 
   return cvs;
 }
@@ -2332,7 +2066,7 @@ function copyScoreText() {
     const t = GAME_TARGETS[gameState.id];
     return t ? (score >= t ? 3 : score >= t * 0.6 ? 2 : 1) : 1;
   })());
-  const text = `🎮 ${game.name}: ${score.toLocaleString()} ${stars}\nRETRO ARCADE HUB — 2048!`;
+  const text = `🎮 ${game.name}: ${score.toLocaleString()} ${stars}\nRETRO ARCADE HUB`;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => toast('Score copied! 📋')).catch(() => toast('Could not copy'));
   } else {

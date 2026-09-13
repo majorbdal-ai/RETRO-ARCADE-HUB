@@ -193,9 +193,7 @@ async function syncScore(gameId, score) {
 }
 
 /* ==================== 70 GAMES ==================== */
-const GAMES = [
-{ id: '2048',    name: '2048',    icon: '🔢', color: '#84CC16', desc: 'Swipe merge, reach 2048', featured: false, type: '2048', cat: 'Arcade', controls: 'swipe4' }
-];
+const GAMES = [];
 
 
 /* ==================== LIVE STATE (auto-rotated 4x/day by GitHub Actions) ==================== */
@@ -220,12 +218,7 @@ function liveDeal() { return (LIVE && LIVE.deal && LIVE.deal.item) ? LIVE.deal :
 // index exactly like rotate_daily.js) so offline / live_state.json-down still
 // has a real, stable daily challenge. The bonus payout in core.js reads THIS
 // same function, so banner and reward can never disagree.
-const CHALL_FALLBACK_POOL = [
-  'neon-racer', 'cyber-shooter', 'pixel-dungeon', 'neon-snake', 'brick-breaker',
-  'tetris-blitz', 'flappy-neon', 'pac-runner', 'space-invaders', 'fruit-slash',
-  'water-sort', '2048', 'pinball', 'crossy-neon', 'math-dash', 'ladder-climb',
-  'trash-sorter', 'cricket-sixer', 'bowling-strike', 'helix-drop'
-];
+const CHALL_FALLBACK_POOL = [];
 function liveChallenge() {
   if (LIVE && LIVE.challenge) return LIVE.challenge;
   // deterministic: same game all day, rotates daily (rot = whole-day index)
@@ -941,14 +934,14 @@ function resetSearch() {
 let currentShopTab = 'skins';
 const SHOP_ITEMS = {
   skins: [
-    { id: 'skin-dragon', name: 'DRAGON SKIN', ico: '🐉', price: 500, desc: 'Snake turns into a fire dragon' },
+    { id: 'skin-dragon', name: 'DRAGON SKIN', ico: '🐉', price: 500, desc: 'Fiery dragon look for your runs' },
     { id: 'skin-cyber',  name: 'NEON PHANTOM', ico: '👻', price: 800, desc: 'Phantom glow for every game' },
     { id: 'skin-gold',   name: 'GOLD LEGEND', ico: '🏆', price: 1500, desc: 'Pure gold — for kings only' }
   ],
   vehicles: [
-    { id: 'veh-falcon', name: 'FALCON X', ico: '🏎️', price: 900, desc: 'Racer: sleek falcon body' },
-    { id: 'veh-viper',  name: 'VIPER GT', ico: '🐍', price: 1200, desc: 'Racer: venom-green viper' },
-    { id: 'veh-phantom', name: 'PHANTOM CYCLE', ico: '🏍️', price: 700, desc: 'Light cycle black edition' }
+    { id: 'veh-falcon', name: 'FALCON X', ico: '🏎️', price: 900, desc: 'Sleek falcon body kit' },
+    { id: 'veh-viper',  name: 'VIPER GT', ico: '🐍', price: 1200, desc: 'Venom-green viper body' },
+    { id: 'veh-phantom', name: 'PHANTOM CYCLE', ico: '🏍️', price: 700, desc: 'Black edition cycle' }
   ],
   effects: [
     { id: 'fx-fire',   name: 'FIRE TRAIL', ico: '🔥', price: 400, desc: 'Explosions leave fire trails' },
@@ -1213,8 +1206,6 @@ function renderProfile() {
     { id: 'win1000', ico: '📿', name: 'MARATHON MAN' },
     { id: 'score100k',ico:'🌋', name: 'LIFETIME 100K' },
     { id: 'score1m', ico: '🪐', name: 'LIFETIME 1M' },
-    { id: 'thirty',  ico: '🧩', name: 'CATALOG PRO' },
-    { id: 'all70',   ico: '🎖️', name: 'FULL CATALOG' },
     { id: 'rich5k',  ico: '💸', name: 'TYCOON' },
     { id: 'rich50k', ico: '🏦', name: 'COIN VAULT' },
     { id: 'revive25',ico: '🐍', name: 'NO RETREAT' }
@@ -1279,39 +1270,7 @@ function renderCoinStore() {
 
 /* Per-game skin mapping — each game gets its own palette (skin-by-game).
    Map game type/category → theme id. Individual games can be overridden below. */
-const GAME_SKIN = {
-  // Action neon
-  'neon-racer': 'neon', 'cyber-shooter': 'neon2', 'pixel-dungeon': 'void',
-  'light-cycle': 'neon', 'neon-snake': 'neon', 'tank-battle': 'matrix',
-  'airstrike': 'sunset', 'neon-dash': 'neon', 'traffic-racer': 'sunset',
-  'dino-run': 'sunset', 'sling-birds': 'void', 'space-miner': 'royal', 'neon-slam': 'neon', 'neon-tower': 'royal', 'cosmic-dash': 'void', 'lazer-maze': 'matrix', 'time-rush': 'sunset', 'hill-climb': 'sunset',
-  'temple-run': 'void', 'helix-drop': 'matrix',
-  // Arcade vibrant
-  'flappy-neon': 'neon', 'pac-runner': 'void', 'space-invaders': 'matrix',
-  'brick-breaker': 'neon2', 'tetris-blitz': 'neon2',
-  'fruit-slash': 'sunset', 'piano-tiles': 'void', 'candy-crush': 'sunset',
-  'snake-classic': 'matrix', 'duck-hunt': 'void', 'color-switch': 'neon2',
-  'neon-jumper': 'neon', 'stack-drop': 'neon', 'lucky-spin': 'royal',
-  '2048': 'void',
-  // Puzzle / brain
-  'water-sort': 'neon2', 'triple-sort': 'neon2', 'fruit-merge': 'sunset',
-  'bubble-shooter': 'neon2', 'flow-free': 'neon', 'word-search': 'sunset',
-  'memory-match': 'neon2', 'mine-sweeper': 'matrix', 'sudoku': 'void',
-  'mastermind': 'neon', 'simon-says': 'sunset', 'tic-tac-toe': 'void',
-  'connect-four': 'sunset', 'checkers': 'royal', 'slide-puzzle': 'neon2',
-  'nonogram': 'void',
-  // Sports
-  'pong': 'neon', 'table-tennis': 'neon2', 'bowling-strike': 'void',
-  'cricket-sixer': 'royal', 'hoop-dunk': 'sunset', 'archery-master': 'matrix',
-  'soccer-penalty': 'neon', 'athletics-sprint': 'sunset',
-  // Retro / classic
-  'pinball': 'neon', 'crossy-neon': 'void', 'trash-sorter': 'matrix',
-  'ladder-climb': 'sunset', 'math-dash': 'neon2',
-  // Board
-  'ludo-king': 'royal', 'carrom-pool': 'sunset',
-  // default
-  '_default': 'neon'
-};
+const GAME_SKIN = { _default: 'neon' };
 /* Apply a game's skin palette while playing (skin-by-game). Falls back to global. */
 function applyGameSkin(gameId) {
   const themeId = GAME_SKIN[gameId] || GAME_SKIN._default || 'neon';

@@ -12,10 +12,7 @@ const ROOT = path.join(__dirname, '..');
 const STATE_FILE = path.join(ROOT, 'live_state.json');
 
 // ---- current (static) app constants mirrored for rotation ----
-const ALL_FEATURED = [
-  'neon-racer', 'cyber-shooter', 'pixel-dungeon', 'light-cycle',
-  'tank-battle', 'bubble-shooter', 'neon-dash', 'sling-birds', 'cricket-sixer'
-];
+const ALL_FEATURED = [];
 const FEATURED_SHOW = 6;
 const SHOP_ITEMS = [
   { id: 'skin-dragon', name: 'DRAGON SKIN' }, { id: 'skin-cyber', name: 'NEON PHANTOM' },
@@ -25,12 +22,7 @@ const SHOP_ITEMS = [
   { id: 'fx-stars', name: 'STARBURST' }, { id: 'boost-2x', name: '2X SCORE' },
   { id: 'boost-shield', name: 'SHIELD' }, { id: 'boost-slow', name: 'SLOW MOTION' }
 ];
-const CHALLENGE_POOL = [
-  'neon-racer', 'cyber-shooter', 'pixel-dungeon', 'neon-snake', 'brick-breaker',
-  'tetris-blitz', 'flappy-neon', 'pac-runner', 'space-invaders', 'fruit-slash',
-  'water-sort', '2048', 'pinball', 'crossy-neon', 'math-dash', 'ladder-climb',
-  'trash-sorter', 'cricket-sixer', 'bowling-strike', 'helix-drop'
-];
+const CHALLENGE_POOL = [];
 const BOT_COUNT = 8;
 
 function rotCur(state) {

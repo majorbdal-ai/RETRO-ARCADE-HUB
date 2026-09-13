@@ -3,7 +3,7 @@
    pre-cache ALL 70 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.43.0';
+const CACHE = 'retro-arcade-hub-v7.44.0';
 const STATIC_CORE = [
   './',
   './index.html',
@@ -29,7 +29,6 @@ const CDN_FONTS = [
 ];
 // Pre-cache ALL game engines so the entire arcade is playable offline.
 const ENGINE_PRELOAD = [
-  'games/game2048.js'
 ];
 
 self.addEventListener('install', (e) => {

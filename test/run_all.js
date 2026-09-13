@@ -28,12 +28,11 @@ while ((m = re.exec(core))) {
   const f = fn[0].toLowerCase() + fn.slice(1).replace(/([A-Z])/g, '_$1').toLowerCase() + '.js';
   if (['core.js','controls.js','project_status.js'].includes(f)) continue;
   const fp = path.join(G, f);
-  // iframe-hosted games (2048) keep their dir, not an engine .js — skip from engine map
-  if (fn !== 'game2048' && fs.existsSync(fp) && fs.readFileSync(fp,'utf8').includes('function '+fn+'(')) map[f.slice(0,-3)] = fn;
+  if (fs.existsSync(fp) && fs.readFileSync(fp,'utf8').includes('function '+fn+'(')) map[f.slice(0,-3)] = fn;
 }
-const IFRAME_HOSTED = ['2048']; // original-app zip games: verified as dirs below
+const IFRAME_HOSTED = []; // no zip-hosted games (hub is empty)
 
-// (v7.43: single-game hub — only 2048 iframe remains; alias engines removed)
+// (v7.44: empty hub — no engines, no iframe games; alias engines removed)
 const results = [];
 const legacyNames = [];
 for (const [file, fn] of Object.entries(map)) {

@@ -5,6 +5,4 @@
    the same exact bindings. Real mobile game control research applied.
    ============================================================ */
 
-const CONTROL_LAYOUT = {
-'2048':            { type: 'swipe-zone', hint: 'SWIPE ANYWHERE TO MERGE' },
-};
+const CONTROL_LAYOUT = { }; // no games — no control layouts
