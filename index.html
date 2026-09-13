@@ -358,6 +358,9 @@ body.game-active{overflow:hidden}
 body.game-active main{display:none}
 body.game-active #topBar{display:none !important}
 #page-game .hud{flex-shrink:0}
+/* 2048 (zip iframe) finish: hide hub score/coin chips, keep pause, center title */
+body.game-2048 #page-game .hud .hud-stats{display:none !important}
+body.game-2048 #page-game .hud{justify-content:center}
 #gameCanvasWrap{width:100%}
 #touchControls{width:100%;box-sizing:border-box}
 /* ===== PAUSE-INSIDE (v7.16): সব কন্ট্রোল pause মেনুতে; HUD-তে শুধু pause trigger; back-to-hub সরানো ===== */

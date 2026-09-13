@@ -941,6 +941,7 @@ function launchOrig2048() {
   if (hudRevengeEl) hudRevengeEl.style.display = 'none';
   lockGameScroll(true);
   gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  document.body.classList.add('game-2048');
   // switch the canvas host to the original app
   const canvas = document.getElementById('gameCanvas');
   const frame = document.getElementById('orig2048Frame');
@@ -960,6 +961,12 @@ function launchOrig2048() {
     try {
       if (typeof frame !== 'undefined' && frame && frame.contentWindow && frame.contentWindow.localStorage) {
         const ls = frame.contentWindow.localStorage;
+        const coinsEl = document.getElementById('origLocalCoins');
+        if (coinsEl) {
+          const cur = parseInt(coinsEl.innerText || '0', 10) || 0;
+          const live = Math.max(cur, Math.floor(gameState.score / 10));
+          coinsEl.innerText = String(live);
+        }
         const stateJSON = ls.getItem('gameState');
         if (stateJSON) {
           const st = JSON.parse(stateJSON);
@@ -968,6 +975,10 @@ function launchOrig2048() {
             if (st.score !== gameState.score) {
               gameState.score = st.score;
               document.getElementById('hudScore').innerText = String(st.score);
+              const liveEl = document.getElementById('origLocalCoins');
+              if (liveEl) liveEl.innerText = String(Math.floor(st.score / 10));
+              const scoreEl = document.getElementById('origLocalScore');
+              if (scoreEl) scoreEl.innerText = String(st.score);
             }
           }
         }
@@ -998,6 +1009,8 @@ function settleOrig2048() {
       }
       const best = parseInt(ls.getItem('bestScore') || '0', 10) || 0;
       if (best > _2048lastBest) _2048lastBest = best;
+      const bestEl = document.getElementById('origLocalBest');
+      if (bestEl) bestEl.innerText = String(Math.max(parseInt(bestEl.innerText || '0', 10) || 0, best));
     }
   } catch (e) {}
   // coins from the ORIGINAL scoring (10% of score like the hub economy)
@@ -1031,6 +1044,7 @@ function settleOrig2048() {
   if (gc) gc.style.display = '';
   if (frameEl) { try { frameEl.style.display = 'none'; } catch (e) {} }
   if (stageEl) stageEl.style.display = 'none';
+  document.body.classList.remove('game-2048');
   document.getElementById('gameOverOverlay').classList.add('show');
   document.getElementById('overScore').innerText = String(score);
   document.getElementById('overCoins').innerText = String(Math.floor(score / 10));
@@ -1079,6 +1093,10 @@ function restartOrig2048() {
   gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('gameOverOverlay').classList.remove('show');
+  const rScore = document.getElementById('origLocalScore');
+  const rCoins = document.getElementById('origLocalCoins');
+  if (rScore) rScore.innerText = '0';
+  if (rCoins) rCoins.innerText = '0';
   if (window._2048poll) {} else {
     window._2048poll = setInterval(() => {
       try {
@@ -1093,6 +1111,10 @@ function restartOrig2048() {
               if (st.score !== gameState.score) {
                 gameState.score = st.score;
                 document.getElementById('hudScore').innerText = String(st.score);
+                const sEl = document.getElementById('origLocalScore');
+                if (sEl) sEl.innerText = String(st.score);
+                const cEl = document.getElementById('origLocalCoins');
+                if (cEl) cEl.innerText = String(Math.floor(st.score / 10));
               }
             }
           }
@@ -1990,6 +2012,7 @@ function exitToHub() {
     if (frameEl) frameEl.style.display = 'none';
     if (canvas) canvas.style.display = '';
     if (stageEl) stageEl.style.display = 'none';
+    document.body.classList.remove('game-2048');
     if (frameEl && frameEl.contentWindow) { try { frameEl.contentWindow.location.replace('about:blank'); } catch (e) { frameEl.src = 'about:blank'; } }
     // fall through to normal exit cleanup + Lobby, but skip the canvas teardown
     if (document.fullscreenElement) { try { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
