@@ -1626,6 +1626,35 @@ function endGame(score, coinsEarned) {
     nearEl.innerText = msg;
   }
 
+  // ==== NEXT-STAR PROGRESS BAR (v7.37): concrete distance to the next ★ ====
+  // Retry-compulsion: a numeric "X more to ★" goal beats a vague nudge. Uses the
+  // same GAME_TARGETS thresholds as the star rating + retry fuel, so 60%/100% of
+  // target = the 2★/3★ boundaries exactly (never contradicts the stars shown).
+  const spEl = document.getElementById('overStarProg');
+  if (spEl) {
+    const tgt = GAME_TARGETS[gameState.id];
+    const step = tgt ? tgt * 0.6 : 0;              // width of 1 star tier
+    let pct = 0, label = '';
+    if (tgt && score > 0 && score < tgt) {         // below the 3★ target: show climb
+      const into = score - Math.floor(score / step) * step; // progress within current tier
+      pct = Math.max(4, Math.min(100, Math.round((into / step) * 100)));
+      const left = tgt - score;
+      label = '⭐ ' + left.toLocaleString() + ' MORE TO THE NEXT STAR';
+    } else if (tgt && score >= tgt) {              // 3★ reached: full bar
+      pct = 100;
+      label = '⭐⭐⭐ ALL STARS!';
+    }
+    const fill = document.getElementById('overStarProgFill');
+    const lbl = document.getElementById('overStarProgLabel');
+    if (fill && pct > 0) {
+      spEl.style.display = '';
+      fill.style.width = pct + '%';
+      if (lbl) lbl.innerText = label;
+    } else {
+      spEl.style.display = 'none';
+    }
+  }
+
   // ==== REVENGE MODE (v7.36): near-miss (score < 60% of target) — buy +50% next run ====
   // User priority #1 is retry-compulsion — a bad run becomes a reason to continue
   // with a real advantage. OPT-IN (player spends coins) keeps the economy fair:

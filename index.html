@@ -596,6 +596,10 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 .go-stars{display:flex;gap:6px;justify-content:center;margin:10px 0 4px;font-size:26px}
 .go-stars span{opacity:.18;transform:scale(.8);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
 .go-stars span.on{opacity:1;transform:scale(1);text-shadow:0 0 16px var(--yellow)}
+.go-star-progress{margin:8px auto 0;max-width:260px;padding:0 6px}
+.go-star-progress-track{height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;border:1px solid rgba(255,215,0,.25);box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+.go-star-progress-fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,var(--gold,#FFD700),#ffb300);box-shadow:0 0 12px rgba(255,215,0,.6);transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+.go-star-progress-label{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--gold,#FFD700);text-align:center;margin-top:5px;text-shadow:0 0 8px rgba(255,215,0,.4)}
 .go-buttons{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center}
 .go-replay{flex:1;min-width:150px;padding:14px 20px;font-size:15px;border:none;border-radius:14px;cursor:pointer;
   background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#000;font-weight:900;font-family:'Orbitron',sans-serif;
@@ -949,6 +953,10 @@ body.cb-safe .badge{background:var(--cb-orange)}
             <span>⭐</span><span>⭐</span><span>⭐</span>
           </div>
           <div id="overNearMiss" style="text-align:center;color:var(--yellow);font-size:13px;font-weight:700;margin-top:4px;min-height:18px"></div>
+          <div class="go-star-progress" id="overStarProg" style="display:none">
+            <div class="go-star-progress-track"><div class="go-star-progress-fill" id="overStarProgFill"></div></div>
+            <div class="go-star-progress-label" id="overStarProgLabel"></div>
+          </div>
           <div style="text-align:center;color:var(--yellow);font-size:12px;margin-top:2px">+ <span id="overCoins">0</span> COINS</div>
           <div style="text-align:center;color:var(--sub);font-size:11px;margin-top:4px">BEST: <span id="overBest" style="color:#fff">0</span> &nbsp;|&nbsp; <span id="overLevel" style="color:#fff">LVL 1</span></div>
           <div class="go-buttons">

@@ -122,6 +122,11 @@ t('revengeGame defined + costs 50', /function revengeGame/.test(core) && /const 
 t('revenge deducts coins + sets flag', /revengeGame[\s\S]{0,400}state\.coins -= COST/.test(core) && /pendingRevenge = true/.test(core));
 t('revenge boost applied before 2x booster', /pendingRevenge[\s\S]{0,300}state\.coins -= COST/.test(core) && /if \(pendingRevenge\)[\s\S]{0,200}score = Math\.floor\(score \* 1\.5\)/.test(core));
 t('revenge resets on fresh hub pick', /function playGame[\s\S]{0,200}pendingRevenge = false/.test(core));
+// 22. NEXT-STAR PROGRESS BAR (v7.37): concrete retry-compulsion goal on game-over —
+//     bar + label live in endGame, same GAME_TARGETS thresholds as the star rating
+t('game-over next-star progress bar DOM exists', html.includes('overStarProg') && html.includes('overStarProgFill') && html.includes('overStarProgLabel'));
+t('next-star progress computed in endGame', /NEXT-STAR PROGRESS BAR[\s\S]{0,500}const step = tgt \? tgt \* 0\.6/.test(core) && /MORE TO THE NEXT STAR/.test(core));
+t('all-stars full bar at 100%', /ALL STARS!/.test(core) && /pct = 100/.test(core));
 t('revenge button + chip in overlay', html.includes('id="revengeBtn"') && html.includes('id="hudRevenge"'));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);

@@ -1,5 +1,5 @@
 {
-  "version": "7.36.3",
+  "version": "7.37.0",
   "games": 70,
   "build": "2026-09-13",
   "mastery-stars": true,
@@ -94,6 +94,7 @@
     "dpr-sharp-canvas",
     "png-icons-manifest-og-favicon",
     "shop-items-real",
-    "revenge-mode"
+    "revenge-mode",
+    "next-star-progress"
   ]
 }
