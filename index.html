@@ -361,6 +361,29 @@ body.game-active #topBar{display:none !important}
 /* 2048 (zip iframe) finish: hide hub score/coin chips, keep pause, center title */
 body.game-2048 #page-game .hud .hud-stats{display:none !important}
 body.game-2048 #page-game .hud{justify-content:center}
+/* 2048 zip-style bottom stats (score/best/coins) in hub below the iframe */
+.orig2048-stats{
+  display:flex;gap:10px;justify-content:center;align-items:center;
+  padding:10px 12px;margin-top:4px;z-index:56}
+.orig2048-stats .score-container,
+.orig2048-stats .best-container,
+.orig2048-stats .coins-container{
+  position:relative;min-width:74px;display:inline-block;background:#141c3c;
+  border:1px solid rgba(255,255,255,.12);padding:12px 18px 10px;font-size:22px;
+  height:22px;line-height:30px;font-weight:bold;border-radius:12px;color:#fff;
+  text-align:center;font-family:'Orbitron',sans-serif}
+.orig2048-stats .score-container:after,
+.orig2048-stats .best-container:after,
+.orig2048-stats .coins-container:after{
+  content:"SCORE";position:absolute;width:100%;top:4px;left:0;
+  text-transform:uppercase;font-size:9px;line-height:9px;text-align:center;
+  letter-spacing:1px;color:#7ff;font-family:'Orbitron',sans-serif}
+.orig2048-stats .best-container:after{content:"BEST";color:#ffe74a}
+.orig2048-stats .coins-container:after{content:"COINS";color:#ff8ad8}
+.orig2048-stats .coins-container{border-color:rgba(255,62,200,.4);box-shadow:0 0 12px rgba(255,62,200,.12)}
+.orig2048-stats .score-container{border-color:rgba(0,229,255,.4);box-shadow:0 0 12px rgba(0,229,255,.12)}
+.orig2048-stats .best-container{border-color:rgba(255,230,0,.35);box-shadow:0 0 12px rgba(255,230,0,.1)}
+body.game-2048 #orig2048Stage::after{display:none}
 #gameCanvasWrap{width:100%}
 #touchControls{width:100%;box-sizing:border-box}
 /* ===== PAUSE-INSIDE (v7.16): সব কন্ট্রোল pause মেনুতে; HUD-তে শুধু pause trigger; back-to-hub সরানো ===== */
@@ -966,6 +989,11 @@ body.cb-safe .badge{background:var(--cb-orange)}
     <div id="gameCanvasWrap">
       <div id="orig2048Stage">
         <iframe id="orig2048Frame" src="2048/index.html" allow="fullscreen" style="width:100%;height:100%;border:0;background:#faf8ef"></iframe>
+      </div>
+      <div id="orig2048Stats" class="orig2048-stats">
+        <div class="score-container">0</div>
+        <div class="best-container">0</div>
+        <div class="coins-container" id="origLocalCoins">0</div>
       </div>
       <canvas id="gameCanvas" width="800" height="450"></canvas>
       <div id="tutorialToast" class="tutorial-toast"></div>

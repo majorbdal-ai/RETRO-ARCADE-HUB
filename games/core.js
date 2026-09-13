@@ -967,6 +967,8 @@ function launchOrig2048() {
           const live = Math.max(cur, Math.floor(gameState.score / 10));
           coinsEl.innerText = String(live);
         }
+        const hubScore = document.querySelector('.orig2048-stats .score-container');
+        if (hubScore) hubScore.innerText = String(gameState.score);
         const stateJSON = ls.getItem('gameState');
         if (stateJSON) {
           const st = JSON.parse(stateJSON);
@@ -1007,6 +1009,8 @@ function settleOrig2048() {
       }
       const best = parseInt(ls.getItem('bestScore') || '0', 10) || 0;
       if (best > _2048lastBest) _2048lastBest = best;
+      const hubBest = document.querySelector('.orig2048-stats .best-container');
+      if (hubBest) hubBest.innerText = String(Math.max(gameState.score, best));
     }
   } catch (e) {}
   // coins from the ORIGINAL scoring (10% of score like the hub economy)

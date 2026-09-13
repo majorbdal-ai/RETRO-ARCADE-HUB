@@ -47,17 +47,16 @@ h1.title {
     top: -50px;
     opacity: 0; } }
 .scores-container {
-  text-align: center;
-  margin-top: 12px; }
-.scores-container:after {
-  content: "";
-  display: block;
-  clear: both; }
-.scores-container .score-container, .scores-container .best-container,
-.scores-container .coins-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  text-align: center; }
+
+.score-container, .best-container, .coins-container {
   position: relative;
   display: inline-block;
-  background: #141c3c;
+  background: #bbada0;
   padding: 15px 25px;
   font-size: 25px;
   height: 25px;
@@ -67,9 +66,6 @@ h1.title {
   color: white;
   margin-top: 8px;
   text-align: center; }
-.scores-container .coins-container {
-  background: #141c3c;
-  border: 1px solid rgba(255, 62, 200, 0.45); }
   .score-container:after, .best-container:after, .coins-container:after {
     position: absolute;
     width: 100%;
@@ -87,7 +83,7 @@ h1.title {
     font-size: 25px;
     line-height: 25px;
     font-weight: bold;
-    color: rgba(215, 224, 255, 0.9);
+    color: rgba(119, 110, 101, 0.9);
     z-index: 100;
     -webkit-animation: move-up 600ms ease-in;
     -moz-animation: move-up 600ms ease-in;
