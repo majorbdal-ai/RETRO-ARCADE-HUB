@@ -1773,7 +1773,8 @@ function endGame(score, coinsEarned) {
       { id: 'ms-reversi1',  ico: '⬛', game: 'reversi',        desc: 'Reversi: win 1',          target: 1,   reward: 50, prog: 0 }
     ];
     shuffle(playPool); shuffle(scorePool);
-    state.dailyQuest = { date: today, list: [playPool[0], scorePool[0], scorePool[1]], done: [] };
+    // v7.41: persist the day's pools so rerollDailyMissions() re-draws fresh picks
+    state.dailyQuest = { date: today, list: [playPool[0], scorePool[0], scorePool[1]], done: [], pools: { play: playPool, score: scorePool } };
   }
   state.dailyQuest.list.forEach(q => {
     if (!q.game || gameState.id !== q.game) return; // only the specific game progresses it
@@ -1910,6 +1911,39 @@ function endGame(score, coinsEarned) {
 // legacy engines (bounce, bantumi) self-report via window.endGame — expose the funnel
 window.endGame = endGame;
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// ---- daily missions reroll (v7.41) ----
+// Retry-compulsion + coin-sink: spend 50 coins to re-pick today's 3 missions.
+// Keeps completed claims (done[]), re-draws from the persisted day pools.
+function rerollDailyMissions() {
+  const COST = 50;
+  if (!state.dailyQuest || !state.dailyQuest.date) return;
+  if (!state.dailyQuest.list || !state.dailyQuest.list.length) return;
+  if ((state.dailyQuest.done || []).length >= state.dailyQuest.list.length) { toast('All missions done — nothing to reroll!'); if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('err'); } catch (e) {} } return; }
+  if (state.coins < COST) { toast('Need ' + COST + ' coins to reroll!'); if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('err'); } catch (e) {} } return; }
+  state.coins -= COST;
+  // re-draw fresh picks from the day's pools (keeps completed claims)
+  const pools = state.dailyQuest.pools;
+  const playPool = (pools && pools.play) ? pools.play.slice() : [];
+  const scorePool = (pools && pools.score) ? pools.score.slice() : [];
+  const done = state.dailyQuest.done || [];
+  let fresh = [];
+  for (let attempt = 0; attempt < 5 && fresh.length < 3; attempt++) {
+    shuffle(playPool); shuffle(scorePool);
+    const cand = [playPool[0], scorePool[0], scorePool[1]].filter(Boolean);
+    fresh = cand.filter(q => !done.includes(q.id));
+  }
+  // absolute fallback: if somehow still short (all missions done), keep old list
+  const newList = fresh.length >= 3 ? fresh.slice(0, 3) : state.dailyQuest.list.slice();
+  state.dailyQuest.list = newList;
+  state.dailyQuest.list.forEach(q => { q.prog = 0; }); // fresh progress for the new picks
+  saveState(); updateCoinDisplay();
+  if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+  if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+  toast('🎲 MISSIONS REROLLED!');
+  const pr = document.getElementById('page-profile');
+  if (pr && pr.classList.contains('active')) renderProfile();
+}
 
 // ---- restart ----
 // B1 FIX [014-015]: full cleanup before restart — no stale state/timers carry over

@@ -1,7 +1,7 @@
 {
-  "version": "7.40.3",
+  "version": "7.41.0",
   "games": 70,
-  "build": "2026-09-13",
+  "build": "2026-09-14",
   "mastery-stars": true,
   "features": [
     "themes",
@@ -96,6 +96,7 @@
     "shop-items-real",
     "revenge-mode",
     "next-star-progress",
-    "daily-challenge-real-reward"
+    "daily-challenge-real-reward",
+    "mission-reroll"
   ]
 }

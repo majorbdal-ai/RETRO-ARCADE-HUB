@@ -1187,7 +1187,10 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <div class="widget">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <b style="font-size:13px;color:#fff">DAILY MISSIONS</b>
-          <span style="font-size:11px;color:var(--gold)">3/day</span>
+          <span style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--gold)">3/day</span>
+            <button id="rerollMissionsBtn" class="btn" style="padding:4px 10px;font-size:10px;font-weight:800;background:linear-gradient(135deg,rgba(255,215,0,.25),rgba(255,165,0,.18));border:1px solid rgba(255,215,0,.45);color:var(--gold);border-radius:8px" onclick="rerollDailyMissions()" title="Spend 50 coins to pick 3 new missions">🎲 REROLL (-50🪙)</button>
+          </span>
         </div>
         <div id="dailyQuestList" style="margin-top:8px"></div>
       </div>

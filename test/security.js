@@ -134,6 +134,14 @@ t('game-over next-star progress bar DOM exists', html.includes('overStarProg') &
 t('next-star progress computed in endGame', /NEXT-STAR PROGRESS BAR[\s\S]{0,500}const step = tgt \? tgt \* 0\.6/.test(core) && /MORE TO THE NEXT STAR/.test(core));
 t('all-stars full bar at 100%', /ALL STARS!/.test(core) && /pct = 100/.test(core));
 t('revenge button + chip in overlay', html.includes('id="revengeBtn"') && html.includes('id="hudRevenge"'));
+// 23. DAILY MISSIONS REROLL (v7.41): coin-sink + retry-compulsion — spend 50 coins
+//     to re-pick today's 3 missions. Guard: function exists, deducts 50, works on
+//     persisted pools, keeps done-claims, exposes the button.
+t('rerollDailyMissions defined in core', /function rerollDailyMissions/.test(core));
+t('reroll costs 50 coins + deducts', /rerollDailyMissions[\s\S]{0,800}const COST = 50/.test(core) && /rerollDailyMissions[\s\S]{0,1200}state\.coins -= COST/.test(core));
+t('reroll re-picks from persisted day pools', /pools: \{ play: playPool, score: scorePool \}/.test(core) && /rerollDailyMissions[\s\S]{0,900}pools\.play/.test(core));
+t('reroll keeps completed claims', /rerollDailyMissions[\s\S]{0,900}state\.dailyQuest\.done/.test(core) && /done\.includes/.test(core));
+t('reroll button present in missions widget', html.includes('id="rerollMissionsBtn"') && html.includes('rerollDailyMissions()'));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);
