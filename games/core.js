@@ -148,6 +148,22 @@ let tapBinding = null; // universal canvas tap → touches.lastTapX/Y + action (
 function bindTapTracker(canvas) {
   unbindTapTracker();
   if (!canvas) return;
+  let holdTimer = null;
+  const clearHold = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } };
+  // nonogram long-press → X-mark (toggleR/C after 300ms hold)
+  // nonogram grid: offsetX=160, offsetY=60, cellSize=30
+  const startHold = (x, y) => {
+    clearHold();
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      if (gameState.touches) {
+        gameState.touches.toggleR = Math.floor((y - 60) / 30);
+        gameState.touches.toggleC = Math.floor((x - 160) / 30);
+        gameState.touches.holdEnd = true;
+        gameState.touches.hold = true;
+      }
+    }, 300);
+  };
   const setTap = (clientX, clientY) => {
     const { x, y } = canvasXY(clientX, clientY);
     gameState.touches.lastTapX = x;
@@ -167,13 +183,23 @@ function bindTapTracker(canvas) {
     gameState.touches.my = y;
     // action pulse so engines that poll touches.action also react
     gameState.touches.action = true;
+    startHold(x, y);
     setTimeout(() => { if (gameState.touches) gameState.touches.action = false; }, 90);
+  };
+  const endTap = () => {
+    clearHold();
+    if (gameState.touches) {
+      gameState.touches.holdEnd = false;
+      gameState.touches.hold = false;
+    }
   };
   const down = (e) => { e.preventDefault(); const t = e.touches ? e.touches[0] : e; setTap(t.clientX, t.clientY); };
   const mouseDown = (e) => { e.preventDefault(); setTap(e.clientX, e.clientY); };
   canvas.addEventListener('touchstart', down, { passive: false });
+  canvas.addEventListener('touchend', endTap, { passive: false });
   canvas.addEventListener('mousedown', mouseDown, { passive: false });
-  tapBinding = { el: canvas, handlers: { down, mouseDown } };
+  canvas.addEventListener('mouseup', endTap, { passive: false });
+  tapBinding = { el: canvas, handlers: { down, mouseDown, endTap } };
 }
 function unbindTapTracker() {
   if (tapBinding) {
