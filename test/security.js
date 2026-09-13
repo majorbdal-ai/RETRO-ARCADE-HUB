@@ -108,7 +108,7 @@ t('getEquippedState bridge exposed', /window\.getEquippedState\s*=/.test(app) &&
 t('2X booster doubles score in endGame', /shopBooster\('2x'\)[\s\S]{0,300}score = Math\.floor\(score \* 2\)/.test(core));
 t('SHIELD booster auto-continues', /shopBoosterOn\('shield'\)[\s\S]{0,400}runBoosters\.shieldUsed = true/.test(core) && /launchGame\(sid\)/.test(core));
 t('SLOW MOTION delays difficulty ramp', /const rampMs = shopBoosterOn\('slow'\) \? 22000 : 15000/.test(core));
-t('runBoosters resets on fresh playGame', /function playGame[\s\S]{0,200}runBoosters = \{ x2: false/.test(core));
+t('runBoosters resets on fresh playGame', /function playGame[\s\S]{0,300}runBoosters = \{ x2: false/.test(core));
 t('booster reads equipped booster slot', /eq\[slot\] === 'boost-' \+ key/.test(core) && /window\.unequipBooster/.test(app));
 t('FX effects tint particles', /effColor\(def\)/.test(core) && /fx-rainbow/.test(core));
 t('skin recolors hit snake engine', fs.existsSync(path.join(root, 'games/snake_classic.js')) && /SHOP SKIN \(v7\.35\)/.test(fs.readFileSync(path.join(root, 'games/snake_classic.js'), 'utf8')) && /skin-dragon/.test(fs.readFileSync(path.join(root, 'games/snake_classic.js'), 'utf8')));
@@ -117,6 +117,12 @@ t('vehicle recolors hit racer engines', (() => {
   const tr = fs.readFileSync(path.join(root, 'games/traffic_racer.js'), 'utf8');
   return /veh-falcon/.test(nr) && /veh-viper/.test(tr) && /SHOP VEHICLE/.test(nr + tr);
 })());
+// 21. REVENGE MODE (v7.36): near-miss buy-in — +50% next-run score, opt-in coin spend
+t('revengeGame defined + costs 50', /function revengeGame/.test(core) && /const COST = 50/.test(core));
+t('revenge deducts coins + sets flag', /revengeGame[\s\S]{0,400}state\.coins -= COST/.test(core) && /pendingRevenge = true/.test(core));
+t('revenge boost applied before 2x booster', /pendingRevenge[\s\S]{0,300}state\.coins -= COST/.test(core) && /if \(pendingRevenge\)[\s\S]{0,200}score = Math\.floor\(score \* 1\.5\)/.test(core));
+t('revenge resets on fresh hub pick', /function playGame[\s\S]{0,200}pendingRevenge = false/.test(core));
+t('revenge button + chip in overlay', html.includes('id="revengeBtn"') && html.includes('id="hudRevenge"'));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);
