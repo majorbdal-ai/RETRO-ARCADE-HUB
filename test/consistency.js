@@ -52,7 +52,9 @@ const extraCtrl = ctrlIds.filter(i => !ids.includes(i));
 if (extraCtrl.length) { errs.push('UNUSED CONTROL LAYOUT: ' + extraCtrl.join(', ')); fail = true; }
 // B10: engine file must exist & match
 const missFiles = [];
+const IFRAME_GAMES = ['2048']; // original-app games: no canvas engine file
 for (const id of ids) {
+  if (IFRAME_GAMES.includes(id)) continue; // hosted as original app (iframe)
   const fn = fnMap[id];
   if (!fn) { errs.push('NO ENGINE FN for ' + id); fail = true; continue; }
   const file = fnToFile(fn);
@@ -62,6 +64,7 @@ if (missFiles.length) { errs.push('MISSING ENGINE FILE: ' + missFiles.join(', ')
 // B10: sw.js must pre-cache every engine file
 if (sw) {
   const missingSw = ids.filter(id => {
+    if (IFRAME_GAMES.includes(id)) return false; // iframe game — no engine file to cache (its 2048/ assets are cached by sw tier-2)
     const fn = fnMap[id];
     if (!fn) return true;
     return !sw.includes('./games/' + fnToFile(fn));

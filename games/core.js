@@ -915,6 +915,179 @@ function loadGameEngine(id, cb) {
   document.head.appendChild(s);
 }
 
+// ---- ORIGINAL 2048 (zip) iframe host — 100% original app inside ---- 
+// The 2048-master.zip app is untouched: its own index.html, main.css, fonts,
+// animated tiles, score/best boxes, messages. The hub just frames it and
+// awards coins when a run ends, reading the game's own localStorage keys.
+let _2048lastBest = 0;      // hub-side copy of the original game's best score
+let _2048started = false;   // true once the iframe engine has booted a run
+function launchOrig2048() {
+  const g = GAMES.find(x => x.id === '2048');
+  pushGameHistory();
+  if (typeof window.applyGameSkin === 'function') { try { window.applyGameSkin('2048'); } catch (e) {} }
+  go('game');
+  if (document.fullscreenEnabled && !document.fullscreenElement) {
+    try { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+  }
+  if (typeof window.showTutorialToast === 'function') { try { window.showTutorialToast(g, '2048'); } catch (e) {} }
+  document.getElementById('hudGameTitle').innerText = g.name;
+  document.getElementById('hudScore').innerText = '0';
+  document.getElementById('hudCoins').innerText = '0';
+  const hudLivesEl = document.getElementById('hudLives');
+  if (hudLivesEl) hudLivesEl.style.display = 'none';
+  const hudComboEl = document.getElementById('hudCombo');
+  if (hudComboEl) hudComboEl.style.display = 'none';
+  const hudRevengeEl = document.getElementById('hudRevenge');
+  if (hudRevengeEl) hudRevengeEl.style.display = 'none';
+  lockGameScroll(true);
+  gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  // switch the canvas host to the original app
+  const canvas = document.getElementById('gameCanvas');
+  const frame = document.getElementById('orig2048Frame');
+  if (canvas) canvas.style.display = 'none';
+  if (frame) {
+    frame.style.display = 'block';
+    // (re)load the pristine original — never mutated
+    frame.src = '2048/index.html';
+  }
+  _2048started = false;
+  _2048lastBest = 0;
+  // keep the hub HUD top score in sync with the original's live score via rAF polling
+  if (window._2048poll) { try { clearInterval(window._2048poll); } catch (e) {} }
+  window._2048poll = setInterval(() => {
+    try {
+      if (typeof frame !== 'undefined' && frame && frame.contentWindow && frame.contentWindow.localStorage) {
+        const ls = frame.contentWindow.localStorage;
+        const stateJSON = ls.getItem('gameState');
+        if (stateJSON) {
+          const st = JSON.parse(stateJSON);
+          if (st && typeof st.score === 'number') {
+            _2048started = true;
+            if (st.score !== gameState.score) {
+              gameState.score = st.score;
+              document.getElementById('hudScore').innerText = String(st.score);
+            }
+          }
+        }
+      }
+    } catch (e) {}
+  }, 500);
+  document.getElementById('gameOverOverlay').classList.remove('show');
+}
+
+// Coin bridge for the original 2048: called when the player leaves the iframe
+// (LOBBY) or on a run's game-over. Uses the ORIGINAL game's own state, so a
+// 100%-untouched zip needs zero instrumentation.
+function settleOrig2048() {
+  if (!gameState.id || gameState.id !== '2048') return;
+  if (gameState.over) return; // already settled
+  gameState.over = true;
+  gameState.running = false;
+  let score = gameState.score || 0;
+  let coins = 0;
+  try {
+    const frame = document.getElementById('orig2048Frame');
+    if (frame && frame.contentWindow && frame.contentWindow.localStorage) {
+      const ls = frame.contentWindow.localStorage;
+      const stJSON = ls.getItem('gameState');
+      if (stJSON) {
+        const st = JSON.parse(stJSON);
+        if (st && typeof st.score === 'number') score = Math.max(score, st.score);
+      }
+      const best = parseInt(ls.getItem('bestScore') || '0', 10) || 0;
+      if (best > _2048lastBest) _2048lastBest = best;
+    }
+  } catch (e) {}
+  // coins from the ORIGINAL scoring (10% of score like the hub economy)
+  coins = Math.floor(score / 10);
+  clearInterval(window._2048poll);
+  window._2048poll = null;
+  const prevBest = state.best['2048'] || 0;
+  const isNewBest = score > prevBest;
+  if (isNewBest) state.best['2048'] = score;
+  if (Math.floor(score / 10) > 0) state.coins += Math.floor(score / 10);
+  if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+  if (gameFX) { try { gameFX.deathFX(); } catch(e) {} }
+  const gc = document.getElementById('gameCanvas');
+  const frameEl = document.getElementById('orig2048Frame');
+  if (gc) gc.style.display = '';
+  if (frameEl) { try { frameEl.style.display = 'none'; } catch (e) {} }
+  document.getElementById('gameOverOverlay').classList.add('show');
+  document.getElementById('overScore').innerText = String(score);
+  document.getElementById('overCoins').innerText = String(Math.floor(score / 10));
+  document.getElementById('overBest').innerText = String(Math.max(prevBest, score));
+  // stars via the same GAME_TARGETS tiering as every other game
+  const tgt = GAME_TARGETS['2048'];
+  let stars = !tgt ? 1 : score >= tgt ? 3 : score >= tgt * 0.6 ? 2 : 1;
+  if (typeof state.stars !== 'object' || state.stars === null) state.stars = {};
+  const prevStars = state.stars['2048'] || 0;
+  if (stars > prevStars) state.stars['2048'] = stars;
+  const starEls = document.querySelectorAll('#overStars span');
+  if (starEls.length) {
+    for (let i = 0; i < 3; i++) {
+      starEls[i].style.opacity = i < stars ? '1' : '0.22';
+      starEls[i].style.filter = i < stars ? 'none' : 'grayscale(1)';
+    }
+  }
+  document.getElementById('overStarProg').style.display = stars >= 1 ? 'block' : 'none';
+  const fill = document.getElementById('overStarProgFill');
+  const label = document.getElementById('overStarProgLabel');
+  if (fill) fill.style.width = (Math.min(100, Math.floor((score / tgt) * 100)) + '%');
+  if (label) label.innerText = 'NEXT STAR: ' + (tgt && score < tgt ? tgt + ' | ' + Math.floor(score / tgt * 100) + '%' : 'MAX ★★★');
+  reviveUsed = false;
+  pendingRevenge = false;
+  gameState.coinsEarned = coins;
+  if (typeof window.saveState === 'function') { try { window.saveState(); } catch (e) {} }
+  if (typeof window.updateCoinDisplay === 'function') { try { window.updateCoinDisplay(); } catch (e) {} }
+}
+
+// restart for the original 2048 = reload the pristine iframe
+function restartOrig2048() {
+  if (!gameState.id || gameState.id !== '2048') return;
+  if (gameState.over) { gameState.over = false; }
+  clearInterval(window._2048poll); window._2048poll = null;
+  _2048lastBest = 0;
+  const gc = document.getElementById('gameCanvas');
+  const frameEl = document.getElementById('orig2048Frame');
+  try {
+    if (frameEl && frameEl.contentWindow && frameEl.contentWindow.location) {
+      frameEl.contentWindow.location.reload();
+    } else if (frameEl) { frameEl.src = '2048/index.html'; }
+  } catch (e) { if (frameEl) frameEl.src = '2048/index.html'; }
+  if (gc) gc.style.display = 'none';
+  gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  document.getElementById('hudScore').innerText = '0';
+  document.getElementById('gameOverOverlay').classList.remove('show');
+  if (window._2048poll) {} else {
+    window._2048poll = setInterval(() => {
+      try {
+        const fr = document.getElementById('orig2048Frame');
+        if (fr && fr.contentWindow && fr.contentWindow.localStorage) {
+          const ls = fr.contentWindow.localStorage;
+          const stJSON = ls.getItem('gameState');
+          if (stJSON) {
+            const st = JSON.parse(stJSON);
+            if (st && typeof st.score === 'number') {
+              _2048started = true;
+              if (st.score !== gameState.score) {
+                gameState.score = st.score;
+                document.getElementById('hudScore').innerText = String(st.score);
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }, 500);
+  }
+  document.getElementById('hudCoins').innerText = '0';
+}
+
+// original 2048 has no canvas engine — reuse hub lifecycle wrappers
+function pauseOrig2048Frame() {
+  try { const fr = document.getElementById('orig2048Frame'); if (fr && fr.contentWindow && fr.contentWindow.postMessage) {} } catch (e) {}
+}
+// ---- end ORIGINAL 2048 iframe host ----
+
 // ---- launch a game by id (lazy-loads engine for mobile perf) ----
 function launchGame(id) {
   const g = GAMES.find(x => x.id === id);
@@ -948,6 +1121,10 @@ function launchGame(id) {
   saveState();
 
   const engine = window[GAME_ENGINE[id]];
+  // ==== ORIGINAL 2048 (zip) runs as a full iframe — 100% untouched original ====
+  // Game loop, design, HTML/CSS/JS, fonts, animations: all from 2048-master.zip.
+  // Hub only hosts it + awards coins on game-over via the game's own localStorage.
+  if (id === '2048') { launchOrig2048(); return; }
   if (typeof engine === 'function') { bootGame(id, engine); return; }
   // engine not loaded yet — lazy load it (performance), show loading screen
   const gl = document.getElementById('gameLoading');
@@ -1676,6 +1853,7 @@ function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.fl
 function restartGame() {
   if (!gameState.id) return;
   const id = gameState.id;
+  if (id === '2048') { restartOrig2048(); return; }
   // full cleanup (same as exitToHub minus go('arcade'))
   unbindGameTouch();
   stopTilt();
@@ -1696,6 +1874,7 @@ function restartGame() {
 // ---- coin continue (2nd chance, arcade revive) ----
 function reviveGame() {
   if (!gameState.id || !gameState.over) return;
+  if (gameState.id === '2048') { restartOrig2048(); return; } // original has its own Try again
   if (reviveUsed) { toast('One continue per run!'); return; }
   const COST = 150;
   if (state.coins < COST) { toast('Need ' + COST + ' coins for continue!'); if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('err'); } catch (e) {} } return; }
@@ -1728,6 +1907,7 @@ function reviveGame() {
 // retry-compulsion loop the user wants — miss, spend, try again harder.
 function revengeGame() {
   if (!gameState.id || !gameState.over) return;
+  if (gameState.id === '2048') { restartOrig2048(); return; } // original keep-going handles it
   if (pendingRevenge) { toast('Revenge already charged!'); return; }
   const COST = 50;
   if (state.coins < COST) { toast('Need ' + COST + ' coins for revenge!'); return; }
@@ -1756,6 +1936,26 @@ function revengeGame() {
 
 // ---- exit to hub ----
 function exitToHub() {
+  if (gameState.id === '2048') {
+    clearInterval(window._2048poll); window._2048poll = null;
+    settleOrig2048();
+    const frameEl = document.getElementById('orig2048Frame');
+    const canvas = document.getElementById('gameCanvas');
+    if (frameEl) frameEl.style.display = 'none';
+    if (canvas) canvas.style.display = '';
+    if (frameEl && frameEl.contentWindow) { try { frameEl.contentWindow.location.replace('about:blank'); } catch (e) { frameEl.src = 'about:blank'; } }
+    // fall through to normal exit cleanup + Lobby, but skip the canvas teardown
+    if (document.fullscreenElement) { try { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    if (typeof window.applyTheme === 'function' && typeof window.globalTheme === 'string') { try { window.applyTheme(window.globalTheme, true); } catch (e) {} }
+    lockGameScroll(false);
+    gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+    const tcWrap = document.getElementById('touchControls');
+    if (tcWrap) tcWrap.classList.remove('show');
+    document.body.classList.remove('landscape-game');
+    go('arcade');
+    renderArcadeGrid('');
+    return;
+  }
   clearInterval(window._diffTimer);   // stop difficulty ramp timer on exit
   unbindGameTouch();
   stopTilt(); // B1 [010]: clean up tilt listener
@@ -1792,6 +1992,23 @@ function exitToHub() {
 // B1 FIX [008-009]: clear all input state on pause, restore on resume
 function togglePause() {
   if (!gameState.id || gameState.over) return;
+  // original 2048 iframe: pausing the original app is not supported — the
+  // overlay just sits above it (resume leaves the original untouched)
+  if (gameState.id === '2048' && !gameState.paused) {
+    gameState.paused = true;
+    document.getElementById('pauseOverlay').classList.add('show');
+    const tc = document.getElementById('touchControls');
+    gameState._tcShown = !!(tc && tc.classList.contains('show'));
+    if (tc) { tc.classList.remove('show'); }
+    return;
+  }
+  if (gameState.id === '2048' && gameState.paused) {
+    gameState.paused = false;
+    document.getElementById('pauseOverlay').classList.remove('show');
+    const tc = document.getElementById('touchControls');
+    if (tc && gameState._tcShown) { tc.classList.add('show'); }
+    return;
+  }
   if (gameState.paused) {
     gameState.paused = false;
     document.getElementById('pauseOverlay').classList.remove('show');

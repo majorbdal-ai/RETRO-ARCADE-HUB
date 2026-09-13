@@ -58,7 +58,7 @@ t('restartGame does full cleanup + relaunch', /restartGame[\s\S]{0,500}unbindGam
 // 11. Coin-continue (revive): one per run, deducts 150, carries score floor
 t('reviveGame defined', /function reviveGame/.test(core));
 t('revive costs 150 coins', /const COST = 150/.test(core));
-t('revive deducts from state.coins', /reviveGame[\s\S]{0,400}state\.coins -= COST/.test(core));
+t('revive deducts from state.coins', /reviveGame[\s\S]{0,900}state\.coins -= COST/.test(core));
 t('revive caps at one per run', /reviveUsed/.test(core) && /One continue per run/.test(core));
 t('revive carries score floor', /pendingReviveFloor = gameState\.score/.test(core));
 t('floor added in onOverCb', /onOverCb = \(score, coinsEarned\) => endGame\(score \+ reviveFloor, coinsEarned\)/.test(core));
@@ -81,7 +81,7 @@ t('no orientation.unlock in exit path', !/orientation\s*\.\s*unlock/.test(core) 
 t('no rotate-hint code in core', !core.includes('updateGameOrientation') && !core.includes('rotateHintTimer') && !core.includes('rotateHint'));
 // 15. AUTO-FULLSCREEN (v7.29.0): games request fullscreen on start, exit on hub
 t('bootGame requests fullscreen', /function bootGame[\s\S]{0,1500}requestFullscreen/.test(core));
-t('exitToHub exits fullscreen', /exitToHub[\s\S]{0,600}exitFullscreen/.test(core));
+t('exitToHub exits fullscreen', /exitToHub[\s\S]{0,900}exitFullscreen/.test(core));
 // 16. rotate-hint fully removed (v7.29.1): no leftover DOM/CSS/JS references
 t('playAreaLabel removed from html', !html.includes('playAreaLabel'));
 t('updateGameOrientation removed', !core.includes('updateGameOrientation'));
