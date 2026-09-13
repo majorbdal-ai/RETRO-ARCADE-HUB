@@ -1,7 +1,7 @@
 {
-  "version": "7.34.0",
+  "version": "7.35.0",
   "games": 70,
-  "build": "2026-09-12",
+  "build": "2026-09-13",
   "mastery-stars": true,
   "features": [
     "themes",
@@ -92,6 +92,7 @@
     "missions-scorepool-49",
     "missions-42-games",
     "dpr-sharp-canvas",
-    "png-icons-manifest-og-favicon"
+    "png-icons-manifest-og-favicon",
+    "shop-items-real"
   ]
 }

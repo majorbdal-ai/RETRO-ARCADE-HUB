@@ -181,12 +181,17 @@ function snakeClassic(canvas, ctx, onScore, onGameOver, onCoins) {
     ctx.strokeRect(OX, OY, COLS * CELL, ROWS * CELL);
     ctx.shadowBlur = 0;
 
-    // snake
+    // snake — SHOP SKIN (v7.35): equipped skin changes the palette (dragon = fire, gold = legend)
+    let snakeHeadC = '#00FFFF', snakeBodyA = '#00E5FF', snakeBodyB = '#00B3CC', snakeGlow = 14;
+    const skinId = (typeof window.equippedId === 'function') ? window.equippedId('skin') : null;
+    if (skinId === 'skin-dragon') { snakeHeadC = '#FF2D2D'; snakeBodyA = '#FF8A00'; snakeBodyB = '#B3000B'; snakeGlow = 20; }
+    else if (skinId === 'skin-gold') { snakeHeadC = '#FFE600'; snakeBodyA = '#FFC400'; snakeBodyB = '#B8860B'; snakeGlow = 18; }
+    else if (skinId === 'skin-cyber') { snakeHeadC = '#39FF88'; snakeBodyA = '#00E5FF'; snakeBodyB = '#7B2FFF'; snakeGlow = 18; }
     for (let i = snake.length - 1; i >= 0; i--) {
       const s = snake[i];
       const isHead = i === 0;
-      const col = isHead ? '#00FFFF' : (i % 2 === 0 ? '#00E5FF' : '#00B3CC');
-      cellRect(s.x, s.y, col, isHead ? 14 : 6);
+      const col = isHead ? snakeHeadC : (i % 2 === 0 ? snakeBodyA : snakeBodyB);
+      cellRect(s.x, s.y, col, isHead ? snakeGlow : 6);
       // head eyes
       if (isHead) {
         ctx.fillStyle = '#05070A';

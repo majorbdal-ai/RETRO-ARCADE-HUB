@@ -261,19 +261,35 @@ function neonRacer(canvas, ctx, onScore, onGameOver, onCoins) {
       ctx.fillRect(ex + 4, e.y + e.h - 24, e.w - 8, 12);
     }
 
-    // player
-    const glow = P.boost ? '#FFE600' : '#00FFFF';
+    // player — SHOP VEHICLE (v7.35): falcon body / viper green
+    const vehId = (typeof window.equippedId === 'function') ? window.equippedId('vehicle') : null;
+    const isFalcon = vehId === 'veh-falcon';
+    const isViper  = vehId === 'veh-viper';
+    const isPhantom = vehId === 'veh-phantom';
+    const bodyC = isViper ? '#00E676' : isPhantom ? '#B388FF' : '#00E5FF';
+    const glowC = isViper ? '#39FF88' : isPhantom ? '#C77DFF' : (P.boost ? '#FFE600' : '#00FFFF');
+    const glow = P.boost ? '#FFE600' : glowC;
     ctx.shadowBlur = P.boost ? 24 : 14;
     ctx.shadowColor = glow;
-    ctx.fillStyle = P.boost ? '#BFFF00' : '#00E5FF';
+    ctx.fillStyle = P.boost ? '#BFFF00' : bodyC;
     ctx.fillRect(P.x, P.y, P.w, P.h);
     ctx.shadowBlur = 0;
+    // falcon: swept cockpit stripe
+    if (isFalcon) {
+      ctx.fillStyle = 'rgba(255,80,80,.65)';
+      ctx.beginPath();
+      ctx.moveTo(P.x + P.w - 4, P.y + 2);
+      ctx.lineTo(P.x + 4, P.y + P.h / 2);
+      ctx.lineTo(P.x + P.w - 4, P.y + P.h - 2);
+      ctx.closePath();
+      ctx.fill();
+    }
     // windshield
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.fillRect(P.x + 4, P.y + 14, P.w - 8, 14);
     // boost flame
     if (P.boost) {
-      ctx.fillStyle = '#FF10F0';
+      ctx.fillStyle = isFalcon ? '#FF3B30' : isViper ? '#39FF88' : '#FF10F0';
       ctx.beginPath();
       ctx.moveTo(P.x + P.w/2 - 8, P.y + P.h);
       ctx.lineTo(P.x + P.w/2, P.y + P.h + 26);

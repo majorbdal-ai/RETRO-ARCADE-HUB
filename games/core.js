@@ -918,7 +918,16 @@ function makeLegacyInput() {
 }
 
 // ==== GAME FX v7.12 — screen shake, particles, death flash ====
+// v7.35: SHOP EFFECTS — equipped effect tints hub FX particles:
+// fx-fire → warm embers, fx-rainbow → random colorful, fx-stars → cool sparkle
 window.gameFX = {
+  effColor(def) {
+    const id = (typeof window.equippedId === 'function') ? window.equippedId('effect') : null;
+    if (id === 'fx-fire') return '#FF6B3D';
+    if (id === 'fx-stars') return '#A5D8FF';
+    if (id === 'fx-rainbow') return ['#FF3B6B', '#FFE600', '#39FF88', '#00FFFF', '#C77DFF'][Math.floor(Math.random() * 5)];
+    return def;
+  },
   shake(intensity = 1) {
     const wrap = document.getElementById('gameCanvasWrap');
     if (!wrap) return;
@@ -933,6 +942,7 @@ window.gameFX = {
     setTimeout(() => wrap.classList.remove('fx-shake'), dur);
   },
   burst(x, y, color, count = 8) {
+    color = this.effColor(color);
     count = Math.min(20, Math.max(0, count | 0)); // [MASTER] perf: hard cap 20 dom particles
     for (let i = 0; i < count; i++) {
       const el = document.createElement('div');
@@ -982,7 +992,7 @@ window.gameFX = {
     this.burst(cx, cy, '#ff8800', 8);
   },
   coinFX(x, y) {
-    this.burst(x || innerWidth / 2 + (Math.random() - .5) * 60, y || innerHeight / 3, '#FFD700', 6);
+    this.burst(x || innerWidth / 2 + (Math.random() - .5) * 60, y || innerHeight / 3, this.effColor('#FFD700'), 6);
     this.shake(0.3);
   }
 };
@@ -1118,9 +1128,8 @@ function bootGame(id, engine) {
   if (typeof currentGame.setInput === 'function') currentGame.setInput(gameState.touches, gameState.keys);
   currentGame.start();
 
-  // ---- v7.18 difficulty ramp: universal hook ----
-  // Every 15s of play, call engine.setDifficulty(level) if exposed (0..5).
-  // Engines that don't implement it skip silently; progressive engines speed up built-in.
+  // ---- v7.35 SLOW MOTION booster: delay the difficulty ramp (engine speed stays low longer) ----
+  const rampMs = shopBoosterOn('slow') ? 22000 : 15000;
   clearInterval(window._diffTimer);
   window._diffLevel = 0;
   window._diffTimer = setInterval(() => {
@@ -1131,7 +1140,7 @@ function bootGame(id, engine) {
       // subtle ramp feedback: haptic pulse on each level-up
       if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
     }
-  }, 15000);
+  }, rampMs);
 
   // wire keyboard
   window.addEventListener('keydown', keyDown);
@@ -1143,16 +1152,81 @@ function bootGame(id, engine) {
 }
 
 // ---- end game ---- (spring score pop + theme accent on overlay)
+// ==== SHOP BOOSTER RUNTIME (v7.35) — makes the store real ====
+// Engines read window.shopBooster('2x'|'shield'|'slow') ONCE (consumes 2x/slow),
+// shield stays armed until endGame. Boosters live per-run, never persist to storage.
+let runBoosters = { x2: false, shield: false, slow: false, shieldUsed: false };
+function getEquipped() {
+  return (typeof window.getEquippedState === 'function')
+    ? window.getEquippedState()
+    : { skin: null, vehicle: null, effect: null };
+}
+function shopBooster(key) {
+  const eq = getEquipped();
+  const slot = (key === '2x' || key === 'shield' || key === 'slow') ? 'booster' : null;
+  const armed = !!eq && !!slot && typeof eq[slot] === 'string' && eq[slot] === 'boost-' + key;
+  if (key === 'shield') return armed && !runBoosters.shieldUsed;
+  if (!armed || runBoosters[key]) return false;
+  runBoosters[key] = true;   // 2x/slow are single-consume per run
+  // consumer booster is used up: unequip it so it cannot fire again next run
+  if (typeof window.unequipBooster === 'function') { try { window.unequipBooster(); } catch (e) {} }
+  return true;
+}
+function equippedId(type) {
+  return getEquipped()[type] || null;
+}
+function consumeShield() {
+  if (!runBoosters.shieldUsed && shopBoosterOn('shield')) runBoosters.shieldUsed = true;
+}
+// persistent armed check for per-frame engines (non-consuming — safe in update loops)
+function shopBoosterOn(key) {
+  const eq = getEquipped();
+  const slot = (key === '2x' || key === 'shield' || key === 'slow') ? 'booster' : null;
+  if (!eq || !slot || typeof eq[slot] !== 'string' || eq[slot] !== 'boost-' + key) return false;
+  if (key === 'shield') return !runBoosters.shieldUsed;
+  return true; // x2/slow stay armed for the whole run
+}
+
 function endGame(score, coinsEarned) {
   // [MASTER] double-submit guard: an engine calling onGameOver twice must not double-award
   if (gameState.over) return;
   gameState.over = true;
   gameState.running = false;
+  // SHIELD booster (equipped 'boost-shield'): 1 free auto-continue per run — same
+  // flow as the coin revive but free, consuming the shield instead. No awards here;
+  // the continued run books its own score+coins at its own game-over.
+  if (shopBoosterOn('shield')) {
+    runBoosters.shieldUsed = true;
+    if (typeof window.playSfx === 'function') { try { window.playSfx('continue'); } catch (e) {} }
+    if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+    setTimeout(() => toast('🛡️ SHIELD SAVED YOU!'), 250);
+    pendingReviveFloor = Math.max(0, Math.floor(Number(score) || 0)); // carry the run's score
+    const sid = gameState.id;
+    unbindGameTouch();
+    stopTilt();
+    lockGameScroll(false);
+    if (currentGame) { try { currentGame.destroy(); } catch (e) {} }
+    currentGame = null;
+    currentEngine = null;
+    gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+    clearDPRResize();
+    window.removeEventListener('keydown', keyDown);
+    window.removeEventListener('keyup', keyUp);
+    stopTouchKeySync();
+    document.getElementById('gameOverOverlay').classList.remove('show');
+    launchGame(sid);
+    return; // shield consumed — skip all normal game-over processing
+  }
   clearInterval(window._diffTimer);   // stop difficulty ramp on game end
   stopTilt(); // B1 [010]: clean up tilt on game over
   // [P1 fix] sanitize score — NaN/Infinity/negative/string must never reach storage [046-050]
   score = Math.max(0, Math.floor(Number(score) || 0));
   coinsEarned = Math.max(0, Math.floor(Number(coinsEarned) || 0));
+  // 2X SCORE booster (equipped 'boost-2x'): double the score that endGame books
+  if (shopBooster('2x')) {
+    score = Math.floor(score * 2);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+  }
   gameState.score = score;
   gameState.coinsEarned = coinsEarned || 0;
   if (currentGame) { try { currentGame.pause(); } catch (e) {} }
@@ -2019,5 +2093,6 @@ function initCRT() {
 function playGame(id, e) {
   if (e) e.stopPropagation();
   reviveUsed = false;   // fresh pick from hub — a new continue is available
+  runBoosters = { x2: false, shield: false, slow: false, shieldUsed: false }; // v7.35: fresh per-run boosters
   launchGame(id);
 }

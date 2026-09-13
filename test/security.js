@@ -38,7 +38,7 @@ t('bindGameTouch handles mouseleave', (core.match(/mouseleave/g) || []).length >
 // 6. Tilt cleanup: stopTilt exists + called on exit/end
 t('stopTilt() defined', /function stopTilt/.test(core));
 t('stopTilt called in exitToHub', /exitToHub[\s\S]{0,400}stopTilt\(\)/.test(core));
-t('stopTilt called in endGame', /function endGame[\s\S]{0,300}stopTilt\(\)/.test(core));
+t('stopTilt called in endGame', /function endGame[\s\S]{0,1100}stopTilt\(\)/.test(core));
 // 7. Back button: pause first, exit on double
 const popstate = core.slice(core.indexOf("popstate"), core.indexOf("function pushGameHistory"));
 t('back-button: pause-first + double-back exit', /togglePause\(\)/.test(popstate) && /backPressedAt/.test(popstate) && /exitToHub\(\)/.test(popstate));
@@ -101,6 +101,22 @@ t('mastery stars storage key in app state', app.includes("stars: store.get('rah_
 t('mastery stars persisted in saveState', /store\.set\('rah_stars', state\.stars/.test(app));
 t('endGame writes max stars', /MASTERY STARS[\s\S]{0,400}state\.stars\[gameState\.id\]/.test(core) && /earnedStars > prev/.test(core));
 t('cards render real stars (no fake hash)', !app.includes('Math.random()*4') && app.includes('starRow(g.id)'));
+// 20. SHOP IS REAL (v7.35): every equipped category must actually change gameplay
+//     — boosters wired into core runtime, skins/vehicles recolors in engines,
+//     effects tint FX particles. Static guard so a future edit can't un-wire them.
+t('getEquippedState bridge exposed', /window\.getEquippedState\s*=/.test(app) && /state\.equipped/.test(app));
+t('2X booster doubles score in endGame', /shopBooster\('2x'\)[\s\S]{0,300}score = Math\.floor\(score \* 2\)/.test(core));
+t('SHIELD booster auto-continues', /shopBoosterOn\('shield'\)[\s\S]{0,400}runBoosters\.shieldUsed = true/.test(core) && /launchGame\(sid\)/.test(core));
+t('SLOW MOTION delays difficulty ramp', /const rampMs = shopBoosterOn\('slow'\) \? 22000 : 15000/.test(core));
+t('runBoosters resets on fresh playGame', /function playGame[\s\S]{0,200}runBoosters = \{ x2: false/.test(core));
+t('booster reads equipped booster slot', /eq\[slot\] === 'boost-' \+ key/.test(core) && /window\.unequipBooster/.test(app));
+t('FX effects tint particles', /effColor\(def\)/.test(core) && /fx-rainbow/.test(core));
+t('skin recolors hit snake engine', fs.existsSync(path.join(root, 'games/snake_classic.js')) && /SHOP SKIN \(v7\.35\)/.test(fs.readFileSync(path.join(root, 'games/snake_classic.js'), 'utf8')) && /skin-dragon/.test(fs.readFileSync(path.join(root, 'games/snake_classic.js'), 'utf8')));
+t('vehicle recolors hit racer engines', (() => {
+  const nr = fs.readFileSync(path.join(root, 'games/neon_racer.js'), 'utf8');
+  const tr = fs.readFileSync(path.join(root, 'games/traffic_racer.js'), 'utf8');
+  return /veh-falcon/.test(nr) && /veh-viper/.test(tr) && /SHOP VEHICLE/.test(nr + tr);
+})());
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);

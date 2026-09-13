@@ -50,7 +50,7 @@ let state = {
   profile: store.get(K.profile, { username: 'BIMAN_USER_92', level: 1, wins: 0, avatar: '👤', xp: 0 }),
   scores: store.get(K.scores, {}),
   inventory: store.get(K.inventory, []),
-  equipped: store.get(K.equipped, { skin: null, vehicle: null, effect: null, theme: 'neon' }),
+  equipped: store.get(K.equipped, { skin: null, vehicle: null, effect: null, booster: null, theme: 'neon' }),
   daily: store.get(K.daily, {}),
   stats: store.get(K.stats, { gamesPlayed: 0, totalScore: 0, bestCombo: 0 }),
   dailyBonus: store.get('rh_dailyBonus', null),
@@ -82,6 +82,15 @@ if (state.best && typeof state.best === 'object') {
     if (typeof v !== 'number' || !isFinite(v) || v < 0) delete state.best[k];
   }
 }
+
+// v7.35: read-only bridge so games/core.js can see equipped shop items
+// (state is module-scoped; engines must not mutate it)
+window.getEquippedState = () => (state.equipped ? {
+  skin: state.equipped.skin || null,
+  vehicle: state.equipped.vehicle || null,
+  effect: state.equipped.effect || null,
+  booster: state.equipped.booster || null
+} : { skin: null, vehicle: null, effect: null, booster: null });
 
 function saveState() {
   store.set(K.coins, state.coins);
@@ -1090,6 +1099,20 @@ function equipItem(id, type) {
   saveState(); renderShop(); renderProfile(); renderThemes();
   toast('Equipped! ⚡');
 }
+// v7.35: boosters are single-use per run — equipping one UNEQUIPS the slot (they
+// take effect from the equipped 'booster' slot at the next launch), but a booster
+// user must be able to switch between the three by re-equipping.
+function equipBooster(id) {
+  equipItem(id, 'booster');
+}
+// v7.35: called after a consumer booster fires — clears the equipped booster slot
+// so the next run doesn't re-consume the same booster.
+window.unequipBooster = () => {
+  if (state.equipped && state.equipped.booster) {
+    state.equipped.booster = null;
+    saveState();
+  }
+};
 
 /* ==================== LEADERBOARD ==================== */
 const BOTS = [

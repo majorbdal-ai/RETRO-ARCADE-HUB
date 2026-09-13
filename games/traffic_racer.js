@@ -135,19 +135,24 @@ function trafficRacer(canvas, ctx, onScore, onGameOver, onCoins) {
       ctx.shadowBlur = 0;
     }
 
-    // Player car
+    // Player car — SHOP VEHICLE (v7.35): viper green / phantom purple / falcon red
+    const vehId = (typeof window.equippedId === 'function') ? window.equippedId('vehicle') : null;
+    let pBody = '#001133', pStroke = '#00ffff', pWin = '#003355';
+    if (vehId === 'veh-viper') { pBody = '#002b14'; pStroke = '#39FF88'; pWin = '#004d26'; }
+    else if (vehId === 'veh-phantom') { pBody = '#17002b'; pStroke = '#C77DFF'; pWin = '#2a004d'; }
+    else if (vehId === 'veh-falcon') { pBody = '#2b0000'; pStroke = '#FF5A4E'; pWin = '#4d0e00'; }
     ctx.shadowBlur = 15;
-    ctx.shadowColor = '#00ffff';
-    ctx.fillStyle = '#001133';
+    ctx.shadowColor = pStroke;
+    ctx.fillStyle = pBody;
     ctx.fillRect(playerX - playerW / 2, playerY - playerH / 2, playerW, playerH);
-    ctx.strokeStyle = '#00ffff';
+    ctx.strokeStyle = pStroke;
     ctx.lineWidth = 2;
     ctx.strokeRect(playerX - playerW / 2, playerY - playerH / 2, playerW, playerH);
     // Windshield
-    ctx.fillStyle = '#003355';
+    ctx.fillStyle = pWin;
     ctx.fillRect(playerX - playerW / 2 + 6, playerY - playerH / 2 + 12, playerW - 12, 18);
     // Wheels
-    ctx.fillStyle = '#00ffff';
+    ctx.fillStyle = pStroke;
     ctx.fillRect(playerX - playerW / 2 - 3, playerY - 20, 6, 12);
     ctx.fillRect(playerX + playerW / 2 - 3, playerY - 20, 6, 12);
     ctx.fillRect(playerX - playerW / 2 - 3, playerY + 10, 6, 12);
