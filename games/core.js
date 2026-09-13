@@ -944,7 +944,9 @@ function launchOrig2048() {
   // switch the canvas host to the original app
   const canvas = document.getElementById('gameCanvas');
   const frame = document.getElementById('orig2048Frame');
+  const stage = document.getElementById('orig2048Stage');
   if (canvas) canvas.style.display = 'none';
+  if (stage) stage.style.display = 'flex';
   if (frame) {
     frame.style.display = 'block';
     // (re)load the pristine original — never mutated
@@ -1005,13 +1007,30 @@ function settleOrig2048() {
   const prevBest = state.best['2048'] || 0;
   const isNewBest = score > prevBest;
   if (isNewBest) state.best['2048'] = score;
+  // TODAY'S CHALLENGE (v7.39): the original 2048 settles here (not via
+  // endGame), so the once-per-day beat-your-best bonus is paid out here too.
+  const challId2048 = (typeof window.liveChallenge === 'function') ? (window.liveChallenge() || null) : null;
+  if (challId2048 === '2048' && isNewBest && score > 0) {
+    const challKey = 'rah_chall_' + new Date().toDateString();
+    try {
+      if (localStorage.getItem(challKey) !== 'done') {
+        localStorage.setItem(challKey, 'done');
+        state.coins += 40;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+        if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+        setTimeout(() => toast('🏆 CHALLENGE BONUS: +40 🪙'), 900);
+      }
+    } catch (e) {}
+  }
   if (Math.floor(score / 10) > 0) state.coins += Math.floor(score / 10);
   if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
   if (gameFX) { try { gameFX.deathFX(); } catch(e) {} }
   const gc = document.getElementById('gameCanvas');
   const frameEl = document.getElementById('orig2048Frame');
+  const stageEl = document.getElementById('orig2048Stage');
   if (gc) gc.style.display = '';
   if (frameEl) { try { frameEl.style.display = 'none'; } catch (e) {} }
+  if (stageEl) stageEl.style.display = 'none';
   document.getElementById('gameOverOverlay').classList.add('show');
   document.getElementById('overScore').innerText = String(score);
   document.getElementById('overCoins').innerText = String(Math.floor(score / 10));
@@ -1055,6 +1074,8 @@ function restartOrig2048() {
     } else if (frameEl) { frameEl.src = '2048/index.html'; }
   } catch (e) { if (frameEl) frameEl.src = '2048/index.html'; }
   if (gc) gc.style.display = 'none';
+  const stg = document.getElementById('orig2048Stage');
+  if (stg) stg.style.display = 'flex';
   gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('gameOverOverlay').classList.remove('show');
@@ -1477,6 +1498,11 @@ function endGame(score, coinsEarned) {
   // [P1 fix] sanitize score — NaN/Infinity/negative/string must never reach storage [046-050]
   score = Math.max(0, Math.floor(Number(score) || 0));
   coinsEarned = Math.max(0, Math.floor(Number(coinsEarned) || 0));
+  // TODAY'S CHALLENGE id (v7.39): resolved once per run so the bonus pays only
+  // when the banner's game is the one actually played. Offline-safe: the app
+  // side liveChallenge() falls back to a deterministic daily pick when
+  // live_state.json is unreachable.
+  const challId = (typeof window.liveChallenge === 'function') ? (window.liveChallenge() || null) : null;
   // REVENGE MODE (v7.36): +50% score boost bought at the previous near-miss
   // game-over. Applied BEFORE the 2x booster so a vengeful boosted run stacks
   // predictably (score ×1.5 ×2 = ×3 total).
@@ -1554,6 +1580,25 @@ function endGame(score, coinsEarned) {
   // coins = score * 10% (spec)
   const scoreCoins = Math.floor(score * 0.1);
   state.coins += scoreCoins;
+
+  // ==== TODAY'S CHALLENGE (v7.39) — the home banner promises "+bonus coins";
+  // now it ACTUALLY pays: beat your best on the daily challenge game for a
+  // flat +40 🪙 bonus, once per day (localStorage gate). Retry-compulsion:
+  // the player knows a real reward waits on one more (better) run.
+  let challBonus = 0;
+  if (challId && challId === gameState.id && isNewBest && score > 0) {
+    const challKey = 'rah_chall_' + new Date().toDateString();
+    try {
+      if (localStorage.getItem(challKey) !== 'done') {
+        localStorage.setItem(challKey, 'done');
+        challBonus = 40;
+        state.coins += challBonus;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+        if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+        setTimeout(() => toast('🏆 CHALLENGE BONUS: +' + challBonus + ' 🪙'), 900);
+      }
+    } catch (e) {}
+  }
 
   // ==== PROGRESSION (v6.6) ====
   // XP: score/100 base + new-best bonus + game-completed bonus
@@ -1941,8 +1986,10 @@ function exitToHub() {
     settleOrig2048();
     const frameEl = document.getElementById('orig2048Frame');
     const canvas = document.getElementById('gameCanvas');
+    const stageEl = document.getElementById('orig2048Stage');
     if (frameEl) frameEl.style.display = 'none';
     if (canvas) canvas.style.display = '';
+    if (stageEl) stageEl.style.display = 'none';
     if (frameEl && frameEl.contentWindow) { try { frameEl.contentWindow.location.replace('about:blank'); } catch (e) { frameEl.src = 'about:blank'; } }
     // fall through to normal exit cleanup + Lobby, but skip the canvas teardown
     if (document.fullscreenElement) { try { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }

@@ -29,6 +29,12 @@ const endGame = core.slice(core.indexOf('function endGame'), core.indexOf('funct
 const coinAdds = (endGame.match(/state\.coins \+=/g) || []).length;
 t('endGame awards coins in <12 locations (no triple-add bug)', coinAdds >= 2 && coinAdds < 12);
 t('window.endGame exposed for legacy engines (bounce/bantumi self-report)', /window\.endGame\s*=\s*endGame/.test(core));
+// 4c. TODAY'S CHALLENGE (v7.39): banner promise is backed by a real payout —
+//     challenge bonus must gate on the banner game + new best + once/day
+t('challenge payout exists in endGame (v7.39)', /CHALLENGE BONUS/.test(endGame) && /challBonus = 40/.test(endGame));
+t('challenge bonus is once-per-day gated', /rah_chall_/.test(endGame) && /localStorage\.getItem\(challKey\) !== 'done'/.test(endGame));
+t('challenge bonus only on new best of the challenge game', /challId && challId === gameState\.id && isNewBest/.test(endGame));
+t('window.liveChallenge exported for core payout', /window\.liveChallenge = liveChallenge/.test(app));
 // 4b. combo payoff TDZ guard: scoreCoins must be declared before comboBonus uses it (v7.27 fix)
 const comboPay = core.slice(core.indexOf('const comboMult = getComboMultiplier'), core.indexOf('state.stats.gamesPlayed'));
 t('combo payoff: scoreCoins declared before comboBonus (no TDZ crash)', comboPay.indexOf('const scoreCoins') !== -1 && comboPay.indexOf('const scoreCoins') < comboPay.indexOf('comboBonus'));

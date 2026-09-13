@@ -284,8 +284,25 @@ function liveFeatured() {
   return null;
 }
 function liveDeal() { return (LIVE && LIVE.deal && LIVE.deal.item) ? LIVE.deal : null; }
-function liveChallenge() { return (LIVE && LIVE.challenge) ? LIVE.challenge : null; }
+// TODAY'S CHALLENGE (v7.39): returns the daily challenge game id. Falls back
+// to a deterministic server-free pick (mirror of the cron pool — seeded by day
+// index exactly like rotate_daily.js) so offline / live_state.json-down still
+// has a real, stable daily challenge. The bonus payout in core.js reads THIS
+// same function, so banner and reward can never disagree.
+const CHALL_FALLBACK_POOL = [
+  'neon-racer', 'cyber-shooter', 'pixel-dungeon', 'neon-snake', 'brick-breaker',
+  'tetris-blitz', 'flappy-neon', 'pac-runner', 'space-invaders', 'fruit-slash',
+  'water-sort', '2048', 'pinball', 'crossy-neon', 'math-dash', 'ladder-climb',
+  'trash-sorter', 'cricket-sixer', 'bowling-strike', 'helix-drop'
+];
+function liveChallenge() {
+  if (LIVE && LIVE.challenge) return LIVE.challenge;
+  // deterministic: same game all day, rotates daily (rot = whole-day index)
+  const dayIdx = Math.floor(Date.now() / 86400000);
+  return CHALL_FALLBACK_POOL[dayIdx % CHALL_FALLBACK_POOL.length];
+}
 function liveBotBoost() { return (LIVE && Array.isArray(LIVE.botBoost)) ? LIVE.botBoost : null; }
+window.liveChallenge = liveChallenge; // core.js reads the SAME source for the bonus
 
 /* ==================== NAVIGATION ==================== */
 const PAGES = ['home', 'arcade', 'shop', 'board', 'profile', 'store', 'themes', 'game'];
@@ -766,12 +783,17 @@ function renderHome() {
   let challHtml = '';
   if (challId) {
     const cg = GAMES.find(g => g.id === challId);
-    if (cg) challHtml = `
+    if (cg) {
+      // v7.39: the banner shows the REAL reward (best +40🪙) — the payout is
+      // now wired in core.js endGame, so the promise is honest.
+      const challBest = (state && state.best && state.best[challId]) || 0;
+      challHtml = `
       <div class="deal-banner" style="display:flex;align-items:center;gap:10px;justify-content:center;cursor:pointer;margin:6px 0 14px" onclick="playGame('${cg.id}')">
         <span style="font-size:18px">🏆</span>
-        <span>TODAY'S CHALLENGE: <b>${cg.name}</b> — beat your best &amp; earn bonus coins!</span>
+        <span>TODAY'S CHALLENGE: <b>${cg.name}</b> — beat <b>${challBest.toLocaleString()}</b> for <b>+40 🪙</b>!</span>
         <span style="font-size:13px">▶</span>
       </div>`;
+    }
   }
   const featGrid = document.getElementById('featuredCarousel') || document.getElementById('featuredGrid');
   if (featGrid) {

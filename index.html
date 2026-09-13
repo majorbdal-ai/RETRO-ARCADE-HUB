@@ -326,6 +326,25 @@ body{
   background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%);
   background-image:repeating-linear-gradient(to bottom,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 2px,transparent 4px);}
 #gameCanvas{width:100%;height:100%;object-fit:contain;background:#000;touch-action:none}
+/* ===== ORIGINAL 2048 (zip) frame — hub neon presentation, zip untouched ===== */
+#orig2048Stage{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(ellipse at 50% 20%,rgba(57,255,136,.14) 0%,transparent 55%),
+    radial-gradient(ellipse at 50% 90%,rgba(0,229,255,.12) 0%,transparent 55%),
+    repeating-linear-gradient(to bottom,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 2px,transparent 5px),
+    linear-gradient(160deg,#070a14 0%,#0b1020 50%,#05070d 100%);
+  z-index:4;pointer-events:none;
+}
+#orig2048Stage::before{content:'2048';position:absolute;top:8px;right:14px;font-family:'Orbitron',monospace;font-weight:900;font-size:15px;letter-spacing:4px;color:rgba(57,255,136,.35);text-shadow:0 0 18px rgba(57,255,136,.5);z-index:6}
+#orig2048Stage::after{content:'▲ SWIPE TO MOVE';position:absolute;bottom:10px;left:14px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:rgba(0,229,255,.4);text-shadow:0 0 12px rgba(0,229,255,.5);z-index:6}
+#orig2048Frame{
+  display:none;position:relative;z-index:5;width:min(92vw,560px);height:min(92vw,560px);max-height:calc(100vh - 148px);
+  border:1px solid rgba(57,255,136,.45);border-radius:14px;background:#faf8ef;
+  box-shadow:0 0 22px rgba(57,255,136,.35),0 0 60px rgba(0,229,255,.18),inset 0 0 30px rgba(0,0,0,.4);
+  pointer-events:auto;margin:auto;object-fit:contain;
+}
+body.game-active #orig2048Stage{position:fixed;inset:0;width:100%;height:100%;z-index:55;border-radius:0}
 /* Tutorial toast — shows how to play for ~3s at game start (v7.31) */
 #tutorialToast{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);z-index:60;background:rgba(8,10,24,.94);border:1px solid rgba(57,255,136,.45);color:#fff;font-size:13px;font-weight:700;text-align:center;padding:10px 18px;border-radius:12px;max-width:86%;box-shadow:0 6px 24px rgba(0,0,0,.55);pointer-events:none;opacity:0;transition:opacity .35s ease,transform .35s ease}
 #tutorialToast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
@@ -942,7 +961,9 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <button class="hud-btn pause-btn" onclick="togglePause()" title="Pause"><i class="fa-solid fa-pause"></i></button>
     </div>
     <div id="gameCanvasWrap">
-      <iframe id="orig2048Frame" src="2048/index.html" allow="fullscreen" style="display:none;width:100%;height:100%;border:0;background:#faf8ef;z-index:5"></iframe>
+      <div id="orig2048Stage">
+        <iframe id="orig2048Frame" src="2048/index.html" allow="fullscreen" style="width:100%;height:100%;border:0;background:#faf8ef"></iframe>
+      </div>
       <canvas id="gameCanvas" width="800" height="450"></canvas>
       <div id="tutorialToast" class="tutorial-toast"></div>
       <div id="gameOverOverlay">
