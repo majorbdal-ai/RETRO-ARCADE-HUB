@@ -933,26 +933,10 @@ function resetSearch() {
 /* ==================== SHOP ==================== */
 let currentShopTab = 'skins';
 const SHOP_ITEMS = {
-  skins: [
-    { id: 'skin-dragon', name: 'DRAGON SKIN', ico: '🐉', price: 500, desc: 'Fiery dragon look for your runs' },
-    { id: 'skin-cyber',  name: 'NEON PHANTOM', ico: '👻', price: 800, desc: 'Phantom glow for every game' },
-    { id: 'skin-gold',   name: 'GOLD LEGEND', ico: '🏆', price: 1500, desc: 'Pure gold — for kings only' }
-  ],
-  vehicles: [
-    { id: 'veh-falcon', name: 'FALCON X', ico: '🏎️', price: 900, desc: 'Sleek falcon body kit' },
-    { id: 'veh-viper',  name: 'VIPER GT', ico: '🐍', price: 1200, desc: 'Venom-green viper body' },
-    { id: 'veh-phantom', name: 'PHANTOM CYCLE', ico: '🏍️', price: 700, desc: 'Black edition cycle' }
-  ],
-  effects: [
-    { id: 'fx-fire',   name: 'FIRE TRAIL', ico: '🔥', price: 400, desc: 'Explosions leave fire trails' },
-    { id: 'fx-rainbow', name: 'RAINBOW', ico: '🌈', price: 650, desc: 'Neon rainbow score pops' },
-    { id: 'fx-stars',  name: 'STARBURST', ico: '✨', price: 300, desc: 'Sparks on every hit' }
-  ],
-  boosters: [
-    { id: 'boost-2x',    name: '2X SCORE', ico: '⚡', price: 200, desc: 'Double score for 1 game' },
-    { id: 'boost-shield',name: 'SHIELD', ico: '🛡️', price: 150, desc: '1 free crash per game' },
-    { id: 'boost-slow',  name: 'SLOW MOTION', ico: '⏳', price: 100, desc: 'Enemies move slower 1 game' }
-  ]
+  skins: [],
+  vehicles: [],
+  effects: [],
+  boosters: []
 };
 function renderShop(tab = 'skins') {
   currentShopTab = tab;
@@ -995,6 +979,10 @@ function renderShop(tab = 'skins') {
   else if (sort === 'price-desc') items.sort((a,b) => b.price - a.price);
   else if (sort === 'name') items.sort((a,b) => a.name.localeCompare(b.name));
   
+  if (!items.length) {
+    document.getElementById('shopItems').innerHTML = '<div style="text-align:center;padding:48px 16px;color:var(--sub);font-size:var(--font-sm)"><div style="font-size:var(--font-2xl);margin-bottom:12px">🛒</div>Shop is empty — nothing to buy right now.</div>';
+    return;
+  }
   document.getElementById('shopItems').innerHTML = items.map(it => {
     const owned = state.inventory.includes(it.id);
     const equipped = state.equipped[ownerType] === it.id;
