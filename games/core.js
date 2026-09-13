@@ -156,6 +156,15 @@ function bindTapTracker(canvas) {
     // sudoku, ludo-king, soccer-penalty) get the same coordinates
     gameState.touches.x = x;
     gameState.touches.y = y;
+    // engines reading their own tap-props: nonogram/sudoku read clickX/clickY,
+    // lazer-maze reads pointerX/pointerY+pointerJustTap, duck-hunt reads mx/my
+    gameState.touches.clickX = x;
+    gameState.touches.clickY = y;
+    gameState.touches.pointerX = x;
+    gameState.touches.pointerY = y;
+    gameState.touches.pointerJustTap = true;
+    gameState.touches.mx = x;
+    gameState.touches.my = y;
     // action pulse so engines that poll touches.action also react
     gameState.touches.action = true;
     setTimeout(() => { if (gameState.touches) gameState.touches.action = false; }, 90);
