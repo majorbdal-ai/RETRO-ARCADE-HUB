@@ -193,7 +193,78 @@ async function syncScore(gameId, score) {
 }
 
 /* ==================== 70 GAMES ==================== */
-const GAMES = [];
+const GAMES = [
+  { id: 'neon-racer',    name: 'NEON RACER',    icon: '🏎️', color: '#00FFFF', desc: 'Dodge traffic, collect coins, nitro boost', featured: true, type: 'racer', cat: 'Racing', controls: 'tilt-steer' },
+  { id: 'cyber-shooter',    name: 'CYBER SHOOTER',    icon: '🚀', color: '#FF10F0', desc: 'Blast alien armadas, combo kills, 3 lives', featured: true, type: 'shooter', cat: 'Action', controls: 'joystick-auto' },
+  { id: 'pixel-dungeon',    name: 'PIXEL DUNGEON',    icon: '🗡️', color: '#FFE600', desc: 'Descend, dodge traps, find key, open chest', featured: true, type: 'dungeon', cat: 'Adventure', controls: 'joystick-btn' },
+  { id: 'light-cycle',    name: 'LIGHT CYCLE',    icon: '🏍️', color: '#39FF88', desc: 'Tron-style grid duel — don\'t hit walls', featured: true, type: 'cycle', cat: 'Action', controls: 'swipe4' },
+  { id: 'neon-snake',    name: 'NEON SNAKE',    icon: '🐍', color: '#22D3EE', desc: 'Glowing classic, speed up each food', featured: false, type: 'snake', cat: 'Arcade', controls: 'swipe4' },
+  { id: 'brick-breaker',    name: 'BRICK BREAKER',    icon: '🧱', color: '#F59E0B', desc: 'Paddle-ball, clear all bricks, power-ups', featured: false, type: 'breaker', cat: 'Arcade', controls: 'drag-paddle' },
+  { id: 'tetris-blitz',    name: 'TETRIS BLITZ',    icon: '🧩', color: '#A855F7', desc: 'Fast Tetris, line clear, hold piece', featured: false, type: 'tetris', cat: 'Puzzle', controls: 'swipe-move-tap-rotate' },
+  { id: 'flappy-neon',    name: 'FLAPPY NEON',    icon: '🐦', color: '#D946EF', desc: 'Flap through neon pipes, avoid crash', featured: false, type: 'flappy', cat: 'Arcade', controls: 'tap-flap' },
+  { id: 'pac-runner',    name: 'PAC-RUNNER',    icon: '🟡', color: '#FBBF24', desc: 'Eat coins, avoid ghosts, power pellets', featured: false, type: 'pac', cat: 'Arcade', controls: 'swipe4' },
+  { id: 'space-invaders',    name: 'SPACE INVADERS',    icon: '👾', color: '#F97316', desc: 'Clear alien waves, auto-shoot, shields', featured: false, type: 'invaders', cat: 'Arcade', controls: 'drag-move' },
+  { id: 'tank-battle',    name: 'TANK BATTLE',    icon: '🪖', color: '#84CC16', desc: 'Dual-stick tank duel — move + turret aim', featured: true, type: 'tank', cat: 'Action', controls: 'dual-joystick' },
+  { id: 'airstrike',    name: 'AIR STRIKE',    icon: '💣', color: '#EAB308', desc: 'Bomber run — hold to aim, release to drop', featured: false, type: 'bomber', cat: 'Action', controls: 'hold-aim-release' },
+  { id: 'water-sort',    name: 'WATER SORT',    icon: '🧪', color: '#38BDF8', desc: 'Color match puzzle, pour bottles', featured: false, type: 'watersort', cat: 'Puzzle', controls: 'tap-to-pour' },
+  { id: 'triple-sort',    name: 'TRIPLE SORT',    icon: '📦', color: '#22D3EE', desc: 'Goods puzzle, match 3 on shelf', featured: false, type: 'triplesort', cat: 'Puzzle', controls: 'tap-to-move' },
+  { id: 'fruit-slash',    name: 'FRUIT SLASH',    icon: '🍎', color: '#F87171', desc: 'Fruit Ninja style, swipe to slash', featured: false, type: 'fruitslash', cat: 'Arcade', controls: 'swipe-any' },
+  { id: 'fruit-merge',    name: 'FRUIT MERGE',    icon: '🍇', color: '#A3E635', desc: 'Drop fruits, merge same into bigger', featured: false, type: 'fruitmerge', cat: 'Puzzle', controls: 'drag-drop' },
+  { id: 'bubble-shooter',    name: 'BUBBLE SHOOTER',    icon: '🫧', color: '#60A5FA', desc: 'Match 3 bubbles, clear the board', featured: true, type: 'bubble', cat: 'Puzzle', controls: 'drag-aim-release' },
+  { id: 'piano-tiles',    name: 'PIANO TILES',    icon: '🎹', color: '#C084FC', desc: 'Tap black tiles, don\'t miss', featured: false, type: 'piano', cat: 'Arcade', controls: 'multi-tap' },
+  { id: 'ludo-king',    name: 'LUDO KING',    icon: '🎲', color: '#F59E0B', desc: '2-4 player, pass & play, vs bot', featured: false, type: 'ludo', cat: 'Board', controls: 'tap-roll-tap-piece' },
+  { id: 'carrom-pool',    name: 'CARROM POOL',    icon: '🎯', color: '#EAB308', desc: 'Striker drag & shoot, queen cover', featured: false, type: 'carrom', cat: 'Board', controls: 'drag-aim-release' },
+  { id: '2048',    name: '2048',    icon: '🔢', color: '#84CC16', desc: 'Swipe merge, reach 2048', featured: false, type: '2048', cat: 'Arcade', controls: 'swipe4' },
+  { id: 'hill-climb',    name: 'HILL CLIMB',    icon: '🚙', color: '#F97316', desc: 'Gas/brake, collect fuel, upgrade shop', featured: false, type: 'hillclimb', cat: 'Racing', controls: 'hold-gas-brake' },
+  { id: 'temple-run',    name: 'TEMPLE RUN',    icon: '🏃', color: '#EF4444', desc: 'Endless runner, swipe jump/slide/turn', featured: false, type: 'templerun', cat: 'Action', controls: 'swipe4' },
+  { id: 'candy-crush',    name: 'CANDY CRUSH',    icon: '🍬', color: '#EC4899', desc: '3-match blast, line/color bombs', featured: false, type: 'candy', cat: 'Arcade', controls: 'drag-swap' },
+  { id: 'snake-classic',    name: 'SNAKE CLASSIC',    icon: '🐍', color: '#22C55E', desc: 'Nokia 1100 style, keypad + swipe', featured: false, type: 'snakeclassic', cat: 'Arcade', controls: 'dpad+swipe' },
+  { id: 'duck-hunt',    name: 'DUCK HUNT',    icon: '🦆', color: '#FBBF24', desc: 'Tap the ducks before they fly away', featured: false, type: 'duckhunt', cat: 'Arcade', controls: 'tap-target' },
+  { id: 'neon-dash',    name: 'NEON DASH',    icon: '⚡', color: '#22D3EE', desc: 'Geometry-Dash style, hold to jump', featured: true, type: 'dash', cat: 'Skill', controls: 'tap-hold-jump' },
+  { id: 'color-switch',    name: 'COLOR SWITCH',    icon: '🎨', color: '#F472B6', desc: 'Match the ball color, one-tap switch', featured: false, type: 'colorswitch', cat: 'Arcade', controls: 'tap-switch' },
+  { id: 'neon-jumper',    name: 'NEON JUMPER',    icon: '🦘', color: '#4ADE80', desc: 'Doodle-Jump style, hold L/R to bounce', featured: false, type: 'jumper', cat: 'Arcade', controls: 'hold-lr' },
+  { id: 'stack-drop',    name: 'STACK DROP',    icon: '🧱', color: '#F59E0B', desc: 'Tap to drop blocks, build the tower', featured: false, type: 'stack', cat: 'Arcade', controls: 'tap-drop' },
+  { id: 'helix-drop',    name: 'HELIX DROP',    icon: '🌀', color: '#38BDF8', desc: 'Swipe to rotate, hold to fall', featured: false, type: 'helix', cat: 'Arcade', controls: 'swipe-rotate-tap' },
+  { id: 'traffic-racer',    name: 'TRAFFIC RACER',    icon: '🏁', color: '#F97316', desc: 'Lane-steer endless highway racer', featured: false, type: 'traffic', cat: 'Racing', controls: 'tap-steer' },
+  { id: 'dino-run',    name: 'DINO RUN',    icon: '🦖', color: '#A3E635', desc: 'Chrome dino — jump & duck the cacti', featured: false, type: 'dino', cat: 'Action', controls: 'tap-jump-drag-duck' },
+  { id: 'sling-birds',    name: 'SLING BIRDS',    icon: '🐦', color: '#FB923C', desc: 'Angry-Birds style slingshot mayhem', featured: true, type: 'sling', cat: 'Skill', controls: 'slingshot-drag' },
+  { id: 'space-miner',    name: 'SPACE MINER',    icon: '⛏️', color: '#FFD700', desc: 'Mine asteroids, upgrade ship, defeat bosses', featured: true, type: 'miner', cat: 'Action', controls: 'move-mine' },
+  { id: 'neon-slam',    name: 'NEON SLAM',    icon: '🏓', color: '#00FFFF', desc: 'Breakout with powerups, combos, endless levels', featured: true, type: 'slam', cat: 'Action', controls: 'drag-paddle' },
+  { id: 'neon-tower',    name: 'NEON TOWER',    icon: '🏗️', color: '#7B61FF', desc: 'Stack the tower — precision timing', featured: true, type: 'tower', cat: 'Puzzle', controls: 'tap-drop' },
+  { id: 'cosmic-dash',    name: 'COSMIC DASH',    icon: '🚀', color: '#00FFFF', desc: 'Gravity-flip space runner with portals', featured: true, type: 'dash', cat: 'Action', controls: 'tap-thrust' },
+  { id: 'lazer-maze',    name: 'LAZER MAZE',    icon: '🔦', color: '#FF3B6B', desc: 'Rotate mirrors to guide the laser home', featured: true, type: 'lazer', cat: 'Puzzle', controls: 'tap-mirror' },
+  { id: 'time-rush',    name: 'TIME RUSH',    icon: '⏪', color: '#7B61FF', desc: 'Jump, dodge, and rewind time when you crash', featured: true, type: 'rewind', cat: 'Skill', controls: 'tap-jump-hold-rewind' },
+  { id: 'pong',    name: 'NEON PONG',    icon: '🏓', color: '#00FFFF', desc: 'Classic pong vs AI — drag paddle', featured: false, type: 'pong', cat: 'Sports', controls: 'drag-paddle' },
+  { id: 'table-tennis',    name: 'TABLE TENNIS',    icon: '🏓', color: '#FF10F0', desc: 'Drag paddle rally, timing smashes', featured: false, type: 'pingpong', cat: 'Sports', controls: 'drag-paddle' },
+  { id: 'bowling-strike',    name: 'BOWLING STRIKE',    icon: '🎳', color: '#60A5FA', desc: 'Swipe to bowl — power & curve', featured: false, type: 'bowling', cat: 'Sports', controls: 'swipe-bowl' },
+  { id: 'cricket-sixer',    name: 'CRICKET SIXER',    icon: '🏏', color: '#FBBF24', desc: 'Timing tap — smash every ball for six', featured: true, type: 'cricket', cat: 'Sports', controls: 'timing-tap' },
+  { id: 'hoop-dunk',    name: 'HOOP DUNK',    icon: '🏀', color: '#FB923C', desc: 'Drag-aim the basketball into the hoop', featured: false, type: 'basket', cat: 'Sports', controls: 'drag-aim-release' },
+  { id: 'archery-master',    name: 'ARCHERY MASTER',    icon: '🏹', color: '#4ADE80', desc: 'Drag-aim with wind — hit the bullseye', featured: false, type: 'archery', cat: 'Skill', controls: 'drag-aim-wind' },
+  { id: 'soccer-penalty',    name: 'PENALTY KICK',    icon: '⚽', color: '#22C55E', desc: 'Drag-aim & power the penalty kick', featured: false, type: 'soccer', cat: 'Sports', controls: 'drag-aim-power' },
+  { id: 'athletics-sprint',    name: 'SPRINT KING',    icon: '🏃', color: '#F59E0B', desc: 'Tap-tap-tap to sprint, time the start', featured: false, type: 'sprint', cat: 'Sports', controls: 'rapid-tap' },
+  { id: 'flow-free',    name: 'FLOW FREE',    icon: '🔗', color: '#22D3EE', desc: 'Connect matching dots, fill the grid', featured: false, type: 'flow', cat: 'Puzzle', controls: 'drag-path' },
+  { id: 'word-search',    name: 'WORD SEARCH',    icon: '🔤', color: '#F472B6', desc: 'Drag over letters to find words', featured: false, type: 'wordsearch', cat: 'Puzzle', controls: 'drag-path' },
+  { id: 'memory-match',    name: 'MEMORY MATCH',    icon: '🃏', color: '#C084FC', desc: 'Flip cards, match pairs', featured: false, type: 'memory', cat: 'Puzzle', controls: 'tap-flip' },
+  { id: 'mine-sweeper',    name: 'MINE SWEEPER',    icon: '💣', color: '#F97316', desc: 'Reveal cells, flag the mines', featured: false, type: 'minesweeper', cat: 'Puzzle', controls: 'tap+longpress' },
+  { id: 'sudoku',    name: 'SUDOKU',    icon: '🧮', color: '#38BDF8', desc: 'Classic sudoku — place 1-9', featured: false, type: 'sudoku', cat: 'Puzzle', controls: 'tap-cell-number' },
+  { id: 'mastermind',    name: 'MASTERMIND',    icon: '🧠', color: '#FF10F0', desc: 'Crack the color code in 10 tries', featured: false, type: 'mastermind', cat: 'Puzzle', controls: 'tap-colors' },
+  { id: 'simon-says',    name: 'SIMON SAYS',    icon: '🔴', color: '#F87171', desc: 'Repeat the light sequence', featured: false, type: 'simon', cat: 'Puzzle', controls: 'tap-sequencing' },
+  { id: 'tic-tac-toe',    name: 'TIC TAC TOE',    icon: '⭕', color: '#00FFFF', desc: 'Classic 3-in-a-row vs bot', featured: false, type: 'tictactoe', cat: 'Puzzle', controls: 'tap-cell' },
+  { id: 'connect-four',    name: 'CONNECT FOUR',    icon: '🟡', color: '#FBBF24', desc: 'Drop discs, 4-in-a-row vs bot', featured: false, type: 'connect4', cat: 'Puzzle', controls: 'tap-column' },
+  { id: 'checkers',    name: 'CHECKERS',    icon: '♟️', color: '#4ADE80', desc: 'Jump the pieces, capture all', featured: false, type: 'checkers', cat: 'Puzzle', controls: 'tap-piece-move' },
+  { id: 'slide-puzzle',    name: 'SLIDE PUZZLE',    icon: '🧩', color: '#A855F7', desc: '15-puzzle — slide tiles in order', featured: false, type: 'slide', cat: 'Puzzle', controls: 'tap-adjacent' },
+  { id: 'nonogram',    name: 'NONOGRAM',    icon: '🎲', color: '#60A5FA', desc: 'Picross — fill cells by the clues', featured: false, type: 'nonogram', cat: 'Puzzle', controls: 'tap-fill-longpress' },
+  { id: 'lucky-spin',    name: 'LUCKY SPIN',    icon: '🎡', color: '#FF10F0', desc: 'Spin the wheel — win coins & prizes', featured: false, type: 'spin', cat: 'Casino', controls: 'tap-spin' },
+  { id: 'pinball',       name: 'NEON PINBALL',   icon: '🎰', color: '#F97316', desc: 'Classic pinball — flippers, bumpers, combos', featured: false, type: 'pinball', cat: 'Retro', controls: 'flipper-dual' },
+  { id: 'crossy-neon',   name: 'CROSSY NEON',    icon: '🐸', color: '#4ADE80', desc: 'Cross the road — dodge cars, logs & water', featured: false, type: 'crossy', cat: 'Retro', controls: 'swipe4' },
+  { id: 'trash-sorter',  name: 'TRASH SORTER',   icon: '🗑️', color: '#38BDF8', desc: 'Sort waste into the right recycle bin', featured: false, type: 'trash', cat: 'Retro', controls: 'tap-3bin' },
+  { id: 'ladder-climb',  name: 'LADDER CLIMB',   icon: '⛰️', color: '#F59E0B', desc: 'Tap to grab holds, climb the mountain', featured: false, type: 'climb', cat: 'Retro', controls: 'tap-grab' },
+  { id: 'math-dash',     name: 'MATH DASH',      icon: '🧮', color: '#22D3EE', desc: 'Solve fast math under the timer', featured: false, type: 'math', cat: 'Retro', controls: 'tap-4' },
+  { id: 'bounce',        name: 'BOUNCE',         icon: '🔴', color: '#FF3B3B', desc: 'Nokia classic — red ball, break all bricks', featured: true, type: 'bounce', cat: 'Retro', controls: 'dpad+swipe' },
+  { id: 'space-impact',  name: 'SPACE IMPACT',   icon: '👾', color: '#00FF44', desc: 'Nokia side-scrolling shooter — waves + bosses', featured: true, type: 'impact', cat: 'Retro', controls: 'dpad+btn-fire' },
+  { id: 'bantumi',       name: 'BANTUMI',        icon: '🪨', color: '#D4A574', desc: 'Nokia Mancala — sow seeds, capture stones', featured: false, type: 'bantumi', cat: 'Board', controls: 'tap-pit' },
+  { id: 'reversi',       name: 'REVERSI',        icon: '⚫', color: '#4ADE80', desc: 'Nokia Othello — flip discs, outsmart AI', featured: false, type: 'reversi', cat: 'Board', controls: 'tap-cell' }
+];
 
 
 /* ==================== LIVE STATE (auto-rotated 4x/day by GitHub Actions) ==================== */
@@ -218,7 +289,12 @@ function liveDeal() { return (LIVE && LIVE.deal && LIVE.deal.item) ? LIVE.deal :
 // index exactly like rotate_daily.js) so offline / live_state.json-down still
 // has a real, stable daily challenge. The bonus payout in core.js reads THIS
 // same function, so banner and reward can never disagree.
-const CHALL_FALLBACK_POOL = [];
+const CHALL_FALLBACK_POOL = [
+  'neon-racer', 'cyber-shooter', 'pixel-dungeon', 'neon-snake', 'brick-breaker',
+  'tetris-blitz', 'flappy-neon', 'pac-runner', 'space-invaders', 'fruit-slash',
+  'water-sort', '2048', 'pinball', 'crossy-neon', 'math-dash', 'ladder-climb',
+  'trash-sorter', 'cricket-sixer', 'bowling-strike', 'helix-drop'
+];
 function liveChallenge() {
   if (LIVE && LIVE.challenge) return LIVE.challenge;
   // deterministic: same game all day, rotates daily (rot = whole-day index)
@@ -229,7 +305,7 @@ function liveBotBoost() { return (LIVE && Array.isArray(LIVE.botBoost)) ? LIVE.b
 window.liveChallenge = liveChallenge; // core.js reads the SAME source for the bonus
 
 /* ==================== NAVIGATION ==================== */
-const PAGES = ['home', 'arcade', 'board', 'profile', 'game'];
+const PAGES = ['home', 'arcade', 'shop', 'board', 'profile', 'store', 'themes', 'game'];
 function go(page) {
   // animate current page out smoothly, then switch (premium feel)
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -257,12 +333,19 @@ function go(page) {
   }
   if (page === 'home') renderHome();
   else if (page === 'arcade') renderArcadeGrid('');
+  else if (page === 'shop') renderShop();
   else if (page === 'board') renderBoard('weekly');
   else if (page === 'profile') renderProfile();
+  else if (page === 'store') renderCoinStore();
+  else if (page === 'themes') renderThemes();
   updateCoinDisplay();
 }
 function navInit() {
   document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', () => go(n.dataset.page)));
+  document.querySelectorAll('#shopTabs .tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('#shopTabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active'); renderShop(t.dataset.tab);
+  }));
   document.querySelectorAll('#boardTabs .tab').forEach(t => t.addEventListener('click', () => {
     document.querySelectorAll('#boardTabs .tab').forEach(x => x.classList.remove('active'));
     t.classList.add('active'); renderBoard(t.dataset.range);
@@ -285,6 +368,12 @@ function navInit() {
   // NEW UI: Arcade sort/filter
   const arcadeSort = document.getElementById('arcadeSort');
   if (arcadeSort) arcadeSort.addEventListener('change', () => renderArcadeGrid());
+  
+  // NEW UI: Shop filter/sort
+  const shopFilter = document.getElementById('shopFilter');
+  const shopSort = document.getElementById('shopSort');
+  if (shopFilter) shopFilter.addEventListener('change', () => renderShop(currentShopTab || 'skins'));
+  if (shopSort) shopSort.addEventListener('change', () => renderShop(currentShopTab || 'skins'));
 }
 function updateCoinDisplay() {
   const c = document.getElementById('coinDisplay');
@@ -918,6 +1007,135 @@ function resetSearch() {
 }
 
 /* ==================== SHOP ==================== */
+let currentShopTab = 'skins';
+const SHOP_ITEMS = {
+  skins: [
+    { id: 'skin-dragon', name: 'DRAGON SKIN', ico: '🐉', price: 500, desc: 'Snake turns into a fire dragon' },
+    { id: 'skin-cyber',  name: 'NEON PHANTOM', ico: '👻', price: 800, desc: 'Phantom glow for every game' },
+    { id: 'skin-gold',   name: 'GOLD LEGEND', ico: '🏆', price: 1500, desc: 'Pure gold — for kings only' }
+  ],
+  vehicles: [
+    { id: 'veh-falcon', name: 'FALCON X', ico: '🏎️', price: 900, desc: 'Racer: sleek falcon body' },
+    { id: 'veh-viper',  name: 'VIPER GT', ico: '🐍', price: 1200, desc: 'Racer: venom-green viper' },
+    { id: 'veh-phantom', name: 'PHANTOM CYCLE', ico: '🏍️', price: 700, desc: 'Light cycle black edition' }
+  ],
+  effects: [
+    { id: 'fx-fire',   name: 'FIRE TRAIL', ico: '🔥', price: 400, desc: 'Explosions leave fire trails' },
+    { id: 'fx-rainbow', name: 'RAINBOW', ico: '🌈', price: 650, desc: 'Neon rainbow score pops' },
+    { id: 'fx-stars',  name: 'STARBURST', ico: '✨', price: 300, desc: 'Sparks on every hit' }
+  ],
+  boosters: [
+    { id: 'boost-2x',    name: '2X SCORE', ico: '⚡', price: 200, desc: 'Double score for 1 game' },
+    { id: 'boost-shield',name: 'SHIELD', ico: '🛡️', price: 150, desc: '1 free crash per game' },
+    { id: 'boost-slow',  name: 'SLOW MOTION', ico: '⏳', price: 100, desc: 'Enemies move slower 1 game' }
+  ]
+};
+function renderShop(tab = 'skins') {
+  currentShopTab = tab;
+  
+  // update tab active states
+  document.querySelectorAll('#shopTabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  
+  // live daily deal banner (rotates 4x/day)
+  const deal = liveDeal();
+  const dealEl = document.getElementById('liveDealBanner');
+  const dealText = document.getElementById('dealText');
+  if (dealEl && dealText) {
+    if (deal && tab === 'skins') {
+      dealEl.style.display = 'flex';
+      dealText.innerHTML = `${deal.name} — <b>${deal.pct}% OFF</b> — FIRST BUY TODAY!`;
+    } else {
+      dealEl.style.display = 'none';
+    }
+  }
+  
+  // update shop coin display
+  const shopCoin = document.getElementById('shopCoinDisplay');
+  if (shopCoin) shopCoin.innerText = state.coins.toLocaleString();
+  
+  // filter/sort values
+  const filter = (document.getElementById('shopFilter') || {}).value || 'all';
+  const sort = (document.getElementById('shopSort') || {}).value || 'price-asc';
+  
+  const ownerType = tab === 'skins' ? 'skin' : tab === 'vehicles' ? 'vehicle' : tab === 'effects' ? 'effect' : 'booster';
+  
+  let items = SHOP_ITEMS[tab] || [];
+  
+  // filter
+  if (filter === 'owned') items = items.filter(it => state.inventory.includes(it.id));
+  else if (filter === 'equipped') items = items.filter(it => state.equipped[ownerType] === it.id);
+  else if (filter === 'unowned') items = items.filter(it => !state.inventory.includes(it.id));
+  
+  // sort
+  if (sort === 'price-asc') items.sort((a,b) => a.price - b.price);
+  else if (sort === 'price-desc') items.sort((a,b) => b.price - a.price);
+  else if (sort === 'name') items.sort((a,b) => a.name.localeCompare(b.name));
+  
+  document.getElementById('shopItems').innerHTML = items.map(it => {
+    const owned = state.inventory.includes(it.id);
+    const equipped = state.equipped[ownerType] === it.id;
+    return `
+    <div class="shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}">
+      <div class="item-icon" style="color:${it.price > 1000 ? 'var(--yellow)' : 'var(--cyan)'}">${it.ico}</div>
+      <div class="item-name">${it.name}</div>
+      <div class="item-desc">${it.desc}</div>
+      <div class="item-price">
+        ${equipped 
+          ? `<span class="price-tag">EQUIPPED ✓</span>`
+          : owned 
+            ? `<button class="btn btn-small btn-ghost" onclick="equipItem('${it.id}','${ownerType}')">EQUIP</button>`
+            : `<button class="btn btn-small btn-yellow" onclick="buyItem('${it.id}','${ownerType}',${it.price})"><i class="fa-solid fa-coins"></i> ${it.price.toLocaleString()}</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+  
+  // update live deal banner text
+  if (document.getElementById('dealText')) {
+    const deal2 = liveDeal();
+    if (deal2 && deal2.item) {
+      const dealItem = SHOP_ITEMS.skins.find(s => s.id === deal2.item);
+      if (dealItem) document.getElementById('dealText').innerHTML = `${dealItem.name} — <b>${deal2.pct}% OFF</b> — FIRST BUY TODAY!`;
+    }
+  }
+}
+function buyItem(id, type, price) {
+  if (state.inventory.includes(id)) { toast('Already owned'); return; }
+  // B3 FIX [063]: authoritatively resolve the price from SHOP_ITEMS — never trust the caller-supplied price
+  const realPrice = (() => {
+    for (const cat in SHOP_ITEMS) {
+      const it = SHOP_ITEMS[cat].find(x => x.id === id);
+      if (it) return it.price;
+    }
+    return null;
+  })();
+  const cost = (typeof realPrice === 'number') ? realPrice : (price || 0);
+  if (state.coins < cost) { toast('Not enough coins — play games!'); return; }
+  state.coins -= cost;
+  state.inventory.push(id);
+  saveState(); updateCoinDisplay(); renderShop();
+  toast('Purchased! 🛒');
+}
+function equipItem(id, type) {
+  state.equipped[type] = id;
+  saveState(); renderShop(); renderProfile(); renderThemes();
+  toast('Equipped! ⚡');
+}
+// v7.35: boosters are single-use per run — equipping one UNEQUIPS the slot (they
+// take effect from the equipped 'booster' slot at the next launch), but a booster
+// user must be able to switch between the three by re-equipping.
+function equipBooster(id) {
+  equipItem(id, 'booster');
+}
+// v7.35: called after a consumer booster fires — clears the equipped booster slot
+// so the next run doesn't re-consume the same booster.
+window.unequipBooster = () => {
+  if (state.equipped && state.equipped.booster) {
+    state.equipped.booster = null;
+    saveState();
+  }
+};
+
 /* ==================== LEADERBOARD ==================== */
 const BOTS = [
   { name: 'ZX_PULSE', score: 842190, avatar: '⚡' },
@@ -1064,6 +1282,8 @@ function renderProfile() {
     { id: 'win1000', ico: '📿', name: 'MARATHON MAN' },
     { id: 'score100k',ico:'🌋', name: 'LIFETIME 100K' },
     { id: 'score1m', ico: '🪐', name: 'LIFETIME 1M' },
+    { id: 'thirty',  ico: '🧩', name: 'CATALOG PRO' },
+    { id: 'all70',   ico: '🎖️', name: 'FULL CATALOG' },
     { id: 'rich5k',  ico: '💸', name: 'TYCOON' },
     { id: 'rich50k', ico: '🏦', name: 'COIN VAULT' },
     { id: 'revive25',ico: '🐍', name: 'NO RETREAT' }
@@ -1109,9 +1329,58 @@ function renderProfile() {
 }
 
 /* ==================== COIN STORE ==================== */
+const COIN_PACKS = [
+  { coins: 500, price: 2.99, tag: null },
+  { coins: 1200, price: 5.99, tag: 'POPULAR' },
+  { coins: 2500, price: 9.99, tag: null },
+  { coins: 5000, price: 17.99, tag: 'BEST VALUE' }
+];
+function renderCoinStore() {
+  document.getElementById('coinPacks').innerHTML = COIN_PACKS.map(p => `
+    <div class="card pack-card">
+      ${p.tag ? `<span class="badge">${p.tag}</span>` : ''}
+      <div class="coins">${p.coins.toLocaleString()}</div>
+      <div style="font-size:11px;color:var(--sub)">COINS</div>
+      <div class="price">$${p.price.toFixed(2)}</div>
+      <button class="btn btn-primary" style="width:100%;padding:10px;opacity:.75" onclick="toast('Coin purchase — coming soon with the app release')"><i class="fa-solid fa-lock"></i> COMING SOON</button>
+    </div>`).join('');
+}
+
 /* Per-game skin mapping — each game gets its own palette (skin-by-game).
    Map game type/category → theme id. Individual games can be overridden below. */
-const GAME_SKIN = { _default: 'neon' };
+const GAME_SKIN = {
+  // Action neon
+  'neon-racer': 'neon', 'cyber-shooter': 'neon2', 'pixel-dungeon': 'void',
+  'light-cycle': 'neon', 'neon-snake': 'neon', 'tank-battle': 'matrix',
+  'airstrike': 'sunset', 'neon-dash': 'neon', 'traffic-racer': 'sunset',
+  'dino-run': 'sunset', 'sling-birds': 'void', 'space-miner': 'royal', 'neon-slam': 'neon', 'neon-tower': 'royal', 'cosmic-dash': 'void', 'lazer-maze': 'matrix', 'time-rush': 'sunset', 'hill-climb': 'sunset',
+  'temple-run': 'void', 'helix-drop': 'matrix',
+  // Arcade vibrant
+  'flappy-neon': 'neon', 'pac-runner': 'void', 'space-invaders': 'matrix',
+  'brick-breaker': 'neon2', 'tetris-blitz': 'neon2',
+  'fruit-slash': 'sunset', 'piano-tiles': 'void', 'candy-crush': 'sunset',
+  'snake-classic': 'matrix', 'duck-hunt': 'void', 'color-switch': 'neon2',
+  'neon-jumper': 'neon', 'stack-drop': 'neon', 'lucky-spin': 'royal',
+  '2048': 'void',
+  // Puzzle / brain
+  'water-sort': 'neon2', 'triple-sort': 'neon2', 'fruit-merge': 'sunset',
+  'bubble-shooter': 'neon2', 'flow-free': 'neon', 'word-search': 'sunset',
+  'memory-match': 'neon2', 'mine-sweeper': 'matrix', 'sudoku': 'void',
+  'mastermind': 'neon', 'simon-says': 'sunset', 'tic-tac-toe': 'void',
+  'connect-four': 'sunset', 'checkers': 'royal', 'slide-puzzle': 'neon2',
+  'nonogram': 'void',
+  // Sports
+  'pong': 'neon', 'table-tennis': 'neon2', 'bowling-strike': 'void',
+  'cricket-sixer': 'royal', 'hoop-dunk': 'sunset', 'archery-master': 'matrix',
+  'soccer-penalty': 'neon', 'athletics-sprint': 'sunset',
+  // Retro / classic
+  'pinball': 'neon', 'crossy-neon': 'void', 'trash-sorter': 'matrix',
+  'ladder-climb': 'sunset', 'math-dash': 'neon2',
+  // Board
+  'ludo-king': 'royal', 'carrom-pool': 'sunset',
+  // default
+  '_default': 'neon'
+};
 /* Apply a game's skin palette while playing (skin-by-game). Falls back to global. */
 function applyGameSkin(gameId) {
   const themeId = GAME_SKIN[gameId] || GAME_SKIN._default || 'neon';
@@ -1140,7 +1409,7 @@ const THEMES = [
     accent:'#A78BFA', accent2:'#C084FC', glass:'rgba(255,255,255,.05)',
     glassBorder:'rgba(167,139,250,.35)', panel:'#050508', sub:'#9CA3AF',
     bgGridSize:'44px 44px' } },
-  { id: 'sunset', name: 'RETRO SUNSET', ico: '🌇', desc: 'Orange/purple retro vibe', price: 0, palette: {
+  { id: 'sunset', name: 'RETRO SUNSET', ico: '🌇', desc: 'Orange/purple retro vibe', price: 400, palette: {
     bg:'#0B0608', glow1:'rgba(255,107,53,.09)', glow2:'rgba(255,0,128,.07)',
     grid:'rgba(255,107,53,.05)', gridv:'rgba(255,0,128,.05)',
     cyan:'#FFB347', cyan2:'#ff8c00', pink:'#FF6B6B', pink2:'#FF2E63',
@@ -1148,7 +1417,7 @@ const THEMES = [
     accent:'#FFB347', accent2:'#FF6B6B', glass:'rgba(255,255,255,.06)',
     glassBorder:'rgba(255,107,53,.35)', panel:'#12090C', sub:'#B08968',
     bgGridSize:'44px 44px' } },
-  { id: 'matrix', name: 'MATRIX GREEN', ico: '💚', desc: 'Green rain terminal look', price: 0, palette: {
+  { id: 'matrix', name: 'MATRIX GREEN', ico: '💚', desc: 'Green rain terminal look', price: 600, palette: {
     bg:'#020804', glow1:'rgba(34,255,136,.08)', glow2:'rgba(0,255,100,.05)',
     grid:'rgba(34,255,136,.05)', gridv:'rgba(0,255,100,.04)',
     cyan:'#22FF88', cyan2:'#00CC66', pink:'#00FFAA', pink2:'#00B366',
@@ -1156,7 +1425,7 @@ const THEMES = [
     accent:'#22FF88', accent2:'#00FFAA', glass:'rgba(255,255,255,.06)',
     glassBorder:'rgba(34,255,136,.4)', panel:'#02130A', sub:'#86D9AC',
     bgGridSize:'0 0' } },
-  { id: 'royal',  name: 'GOLD ROYAL',  ico: '👑', desc: 'Gold & black luxury',      price: 0, palette: {
+  { id: 'royal',  name: 'GOLD ROYAL',  ico: '👑', desc: 'Gold & black luxury',      price: 1000, palette: {
     bg:'#070600', glow1:'rgba(255,215,0,.09)', glow2:'rgba(128,0,128,.06)',
     grid:'rgba(255,215,0,.05)', gridv:'rgba(128,0,128,.04)',
     cyan:'#FFD700', cyan2:'#FFB300', pink:'#E6B800', pink2:'#B8860B',
@@ -1164,7 +1433,7 @@ const THEMES = [
     accent:'#FFD700', accent2:'#E6B800', glass:'rgba(255,255,255,.06)',
     glassBorder:'rgba(255,215,0,.4)', panel:'#0E0B00', sub:'#C4A870',
     bgGridSize:'44px 44px' } },
-  { id: 'neon2',  name: 'NEON VOID',   ico: '🌌', desc: 'Deep purple-blue neon',     price: 0, palette: {
+  { id: 'neon2',  name: 'NEON VOID',   ico: '🌌', desc: 'Deep purple-blue neon',     price: 200, palette: {
     bg:'#030510', glow1:'rgba(99,102,241,.1)', glow2:'rgba(0,255,255,.06)',
     grid:'rgba(99,102,241,.06)', gridv:'rgba(0,255,255,.05)',
     cyan:'#38BDF8', cyan2:'#0EA5E9', pink:'#818CF8', pink2:'#6366F1',
@@ -1398,6 +1667,39 @@ addEventListener('pointerdown', (e) => themeTouchRipple(e.clientX, e.clientY), {
 
 function stopThemeCanvas() { if (themeBgRaf) { cancelAnimationFrame(themeBgRaf); themeBgRaf = null; } }
 
+function renderThemes() {
+  document.getElementById('themeList').innerHTML = THEMES.map(t => {
+    const owned = t.price === 0 || state.inventory.includes('theme-' + t.id);
+    const active = state.equipped.theme === t.id;
+    return `
+    <div class="card shop-item">
+      <div class="s-ico" style="border-color:${active ? t.palette.accent : 'rgba(255,255,255,.15)'};box-shadow:${active ? '0 0 16px ' + t.palette.accent : 'none'}">${t.ico}</div>
+      <div class="s-info">
+        <h4>${t.name}</h4>
+        <p>${t.desc}</p>
+      </div>
+      <div>
+        ${active ? '<button class="btn btn-ghost" style="padding:8px 12px;font-size:11px">ACTIVE ✓</button>'
+          : owned ? `<button class="btn btn-primary" style="padding:8px 12px;font-size:11px" onclick="applyTheme('${t.id}')">APPLY</button>`
+          : `<button class="btn btn-yellow" style="padding:8px 12px;font-size:11px" onclick="buyTheme('${t.id}',${t.price})"><i class="fa-solid fa-coins"></i>${t.price}</button>`}
+      </div>
+    </div>`;
+  }).join('');
+  applyTheme(state.equipped.theme, true);
+}
+function buyTheme(id, price) {
+  // B3 FIX [063]: authoritative price from THEMES + no duplicate purchase
+  if (state.inventory.includes('theme-' + id)) { toast('Already owned'); return; }
+  const t = THEMES.find(x => x.id === id);
+  const cost = t ? (t.price || 0) : (price || 0);
+  if (cost === 0) { toast('This theme is free'); return; }
+  if (state.coins < cost) { toast('Not enough coins'); return; }
+  state.coins -= cost;
+  state.inventory.push('theme-' + id);
+  state.equipped.theme = id;
+  saveState(); updateCoinDisplay(); renderThemes(); renderShop();
+  toast('Theme applied! 🌆');
+}
 /* Apply a full theme palette to CSS variables (6 themes + per-game skins) */
 function applyTheme(id, silent) {
   // resolve: exact theme, or a game id → its palette, else default neon

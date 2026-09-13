@@ -8,7 +8,78 @@
 // Game files define top-level functions (neonRacer, cyberShooter, ...)
 // that become globals. Map game id -> engine function name, resolve
 // lazily so script load order never matters.
-const GAME_ENGINE = { }; // empty hub — no canvas engines (original zip games run standalone)
+const GAME_ENGINE = {
+  'neon-racer':     'neonRacer',
+  'cyber-shooter':  'cyberShooter',
+  'pixel-dungeon':  'pixelDungeon',
+  'light-cycle':    'lightCycle',
+  'neon-snake':     'neonSnake',
+  'brick-breaker':  'brickBreaker',
+  'tetris-blitz':   'tetrisBlitz',
+  'flappy-neon':    'flappyNeon',
+  'pac-runner':     'pacRunner',
+  'space-invaders': 'spaceInvaders',
+  'water-sort':     'waterSort',
+  'triple-sort':    'tripleSort',
+  'fruit-slash':    'fruitSlash',
+  'ludo-king':      'ludoKing',
+  'carrom-pool':    'carromPool',
+  '2048':           'game2048',
+  'hill-climb':     'hillClimb',
+  'temple-run':     'templeRun',
+  'candy-crush':    'candyCrush',
+  'snake-classic':  'snakeClassic',
+  'tank-battle':          'tankBattle',
+  'airstrike':          'airStrike',
+  'fruit-merge':          'fruitMerge',
+  'bubble-shooter':          'bubbleShooter',
+  'piano-tiles':          'pianoTiles',
+  'duck-hunt':          'duckHunt',
+  'neon-dash':          'neonDash',
+  'color-switch':          'colorSwitch',
+  'neon-jumper':          'neonJumper',
+  'stack-drop':          'stackDrop',
+  'helix-drop':          'helixDrop',
+  'traffic-racer':          'trafficRacer',
+  'dino-run':          'dinoRun',
+  'sling-birds':          'slingBirds',
+  'space-miner':          'spaceMiner',
+  'neon-slam':          'neonSlam',
+  'neon-tower':          'neonTower',
+  'cosmic-dash':          'cosmicDash',
+  'lazer-maze':          'lazerMaze',
+  'time-rush':          'timeRush',
+  'pong':          'pong',
+  'table-tennis':          'tableTennis',
+  'bowling-strike':          'bowlingStrike',
+  'cricket-sixer':          'cricketSixer',
+  'hoop-dunk':          'hoopDunk',
+  'archery-master':          'archeryMaster',
+  'soccer-penalty':          'soccerPenalty',
+  'athletics-sprint':          'athleticsSprint',
+  'flow-free':          'flowFree',
+  'word-search':          'wordSearch',
+  'memory-match':          'memoryMatch',
+  'mine-sweeper':          'mineSweeper',
+  'sudoku':          'sudoku',
+  'mastermind':          'mastermind',
+  'simon-says':          'simonSays',
+  'tic-tac-toe':          'ticTacToe',
+  'connect-four':          'connectFour',
+  'checkers':          'checkers',
+  'slide-puzzle':          'slidePuzzle',
+  'nonogram':          'nonogram',
+  'lucky-spin':          'luckySpin',
+  'pinball':          'pinBall',
+  'crossy-neon':          'crossyNeon',
+  'trash-sorter':          'trashSorter',
+  'ladder-climb':          'ladderClimb',
+  'math-dash':          'mathDash',
+  'bounce':             'bounce',
+  'space-impact':       'spaceImpact',
+  'bantumi':            'bantumi',
+  'reversi':            'reversi',
+};
 
 // true when the game's engine file is available (all 70 are; lazy-loaded on launch)
 function engineReady(id) {
@@ -25,8 +96,27 @@ let pendingReviveFloor = 0;        // score floor carried into the revived run
 // 70 games — per-game star/retry/mission targets (single source of truth)
 // 70 games — per-game star/retry/mission targets
 // 1★ = play & score something · 2★ = 60% · 3★ = beat target (realistic per-game goals)
-const GAME_TARGETS = { }; // no games — no per-game targets
-// per-game touch/pointer binding (gesture-driven engines use canvas swipes)
+const GAME_TARGETS = {
+  'neon-racer': 800, 'cyber-shooter': 150, 'pixel-dungeon': 12, 'light-cycle': 600,
+  'neon-snake': 120, 'brick-breaker': 300, 'tetris-blitz': 12, 'flappy-neon': 50,
+  'pac-runner': 150, 'space-invaders': 40, 'tank-battle': 15, 'airstrike': 300,
+  'water-sort': 8, 'triple-sort': 25, 'fruit-slash': 40, 'fruit-merge': 32,
+  'bubble-shooter': 20, 'piano-tiles': 100, 'ludo-king': 1, 'carrom-pool': 5,
+  '2048': 512, 'hill-climb': 300, 'temple-run': 500, 'candy-crush': 60,
+  'snake-classic': 100, 'duck-hunt': 12, 'neon-dash': 100, 'color-switch': 30,
+  'neon-jumper': 150, 'stack-drop': 500, 'helix-drop': 200, 'traffic-racer': 700,
+  'dino-run': 300, 'sling-birds': 9, 'space-miner': 1000, 'neon-slam': 500,
+  'neon-tower': 1000, 'cosmic-dash': 80, 'lazer-maze': 6, 'time-rush': 60,
+  'pong': 15, 'table-tennis': 20, 'bowling-strike': 100, 'cricket-sixer': 100,
+  'hoop-dunk': 100, 'archery-master': 90, 'soccer-penalty': 15, 'athletics-sprint': 100,
+  'flow-free': 8, 'word-search': 6, 'memory-match': 8, 'mine-sweeper': 8,
+  'sudoku': 1, 'mastermind': 5, 'simon-says': 10, 'tic-tac-toe': 1,
+  'connect-four': 1, 'checkers': 10, 'slide-puzzle': 30, 'nonogram': 8,
+  'lucky-spin': 100, 'pinball': 7, 'crossy-neon': 25, 'trash-sorter': 12,
+  'ladder-climb': 300, 'math-dash': 10, 'bounce': 250, 'space-impact': 600,
+  'bantumi': 24, 'reversi': 2
+};
+// per-game touch/pointer binding (carrom, temple, snake-classic use canvas swipes)
 let canvasSwipe = { startX: 0, startY: 0, started: false };
 let swipeBinding = null; // { el, handlers } or null
 
@@ -36,7 +126,7 @@ const CTRL_BTN_LABELS = {
   drift:  { icon: 'wind',        text: 'DRIFT' }
 };
 
-// ---- per-game canvas touch binding (gesture-driven engines) ----
+// ---- per-game canvas touch binding (carrom / temple-run / snake-classic) ----
 // Game engines exposing pointerDown/pointerMove/pointerUp or swipe/onSwipe
 // get their touch events wired to the canvas automatically.
 // B1: canvas CSS → logical coordinate scaling + pointerId multi-touch tracking + touchcancel.
@@ -47,10 +137,10 @@ function clearDPRResize() {
     window.__dprResize = null;
   }
 }
-let tapBinding = null; // universal canvas tap → touches.lastTapX/Y + action (tap-board engines)
+let tapBinding = null; // universal canvas tap → touches.lastTapX/Y + action (fix: memory-match/checkers)
 
 // Universal canvas tap tracker:
-// Engines that run on BOARD TAPS (tap-cell engines)
+// Engines that run on BOARD TAPS (memory-match, checkers, nonogram, sudoku,
 // ludo, mine-sweeper, water-sort, …) read touches.lastTapX/lastTapY + touches.action.
 // core.js previously NEVER set those for button-controlled games, so those games
 // were unplayable (tap did nothing). This binds on the canvas for EVERY game and
@@ -60,8 +150,8 @@ function bindTapTracker(canvas) {
   if (!canvas) return;
   let holdTimer = null;
   const clearHold = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } };
-  // long-press → X-mark toggle (300ms hold on grid cells)
-  // grid: offsetX=160, offsetY=60, cellSize=30
+  // nonogram long-press → X-mark (toggleR/C after 300ms hold)
+  // nonogram grid: offsetX=160, offsetY=60, cellSize=30
   const startHold = (x, y) => {
     clearHold();
     holdTimer = setTimeout(() => {
@@ -78,12 +168,12 @@ function bindTapTracker(canvas) {
     const { x, y } = canvasXY(clientX, clientY);
     gameState.touches.lastTapX = x;
     gameState.touches.lastTapY = y;
-    // engines that read touches.x/touches.y for tap position (tap-grid
-    // engines using pointer-readback get the same coordinates
+    // engines that read touches.x/touches.y for tap position (nonogram,
+    // sudoku, ludo-king, soccer-penalty) get the same coordinates
     gameState.touches.x = x;
     gameState.touches.y = y;
-    // engines reading their own tap-props read clickX/clickY,
-    // engines read pointerX/pointerY+pointerJustTap or mx/my from touches
+    // engines reading their own tap-props: nonogram/sudoku read clickX/clickY,
+    // lazer-maze reads pointerX/pointerY+pointerJustTap, duck-hunt reads mx/my
     gameState.touches.clickX = x;
     gameState.touches.clickY = y;
     gameState.touches.pointerX = x;
@@ -152,7 +242,7 @@ function bindGameTouch(engine) {
   // v7.31: BUTTON-CONTROLLED games do NOT bind canvas touch/swipe at all —
   // the user controls them purely with the on-screen buttons (dpad/joystick/
   // TAP/etc). Only screen-gesture games (canvas/swipe/swipe-zone/drag types)
-  // dual-mode engines (tilt + swipe) get canvas
+  // and the two dual-mode games (neon-racer tilt, tetris swipe) get canvas
   // touch binding here. Layout type lives in CONTROL_LAYOUT.
   const layout = (typeof CONTROL_LAYOUT !== 'undefined' && CONTROL_LAYOUT[gameState.id]) || null;
   const cType = layout ? layout.type : null;
@@ -164,10 +254,10 @@ function bindGameTouch(engine) {
   }
   // track active pointers per pointerId (multi-touch safe)
   const pointers = new Map();
-  // pointer-drag style engines use the pointer canvas branch
+  // pointer-drag style (carrom, sling-birds, hoop-dunk, duck-hunt, word-search)
   if (typeof engine.pointerDown === 'function') {
-    // engines read touches.pointerDown/touches.action/touches.mx/my for
-    // crosshair + fire; drag-aim engines read touches.pointerDown.
+    // duck-hunt reads touches.pointerDown/touches.action/touches.mx/my for
+    // crosshair + fire; carrom reads touches.pointerDown for drag-aim.
     // All pointer-drag engines need the coordinates mirrored into touches
     // so their update loops (which poll touches.*, not the x/y args) react.
     const mirrorTouches = (x, y) => {
@@ -191,29 +281,29 @@ function bindGameTouch(engine) {
     swipeBinding = { el: canvas, type: 'pointer', handlers: { down, move, up } };
     return;
   }
-  // generic swipe fallback → touches
+  // generic swipe fallback → touches (snake, light-cycle, 2048, invaders, pac-runner, etc.)
   if (typeof engine.swipe !== 'function' && typeof engine.onSwipe !== 'function' && typeof engine.pointerDown !== 'function') {
     let swipeDirTimer = null;
     let activePointer = null;
     // v7.42: canvas press feeds coords + down for drag-aim games, but ONLY an
-    // action pulse for hold-to-act canvas engines
-    // swipe+action engines (swipe direction + tap action)
-    // swipe+action engines must NOT get a canvas action pulse — it would falsely
+    // action pulse for the hold-to-act canvas games (archery/bowling/soccer/
+    // duck-hunt). swipe+action games (neon-dash, mastermind, connect-four,
+    // trash-sorter) must NOT get a canvas action pulse — it would falsely
     // trigger their ACTION (jump/confirm/drop) on every touchstart.
     const layoutG = (typeof CONTROL_LAYOUT !== 'undefined' && CONTROL_LAYOUT[gameState.id]) || {};
     const cTypeG = layoutG.type || '';
     // v7.42: drag/hold canvas games need coords + down + action fed from canvas
-    // touches (hold/pull engines were UNPLAYABLE on
+    // touches (archery/bowling/soccer/duck-hunt/sling/hoop were UNPLAYABLE on
     // mobile — nothing set touches.action/down for canvas layouts). Swipe-type
-    // pure-swipe engines keep the swipe path —
+    // games (dino-run, temple-run, traffic-racer) keep the pure swipe path —
     // a global touches.down would falsely slide dino / steer on touchstart.
     const feedCoords = cTypeG === 'canvas';
     // Hold/tap-fire games that poll touches.action directly from canvas:
-    // hold-pull engines (pull to aim, hold to wind, tap to fire at
-    // crosshair, hold aim + release drop) read
+    // archery (hold pull), bowling (hold to wind), duck-hunt (tap fire at
+    // crosshair), fruit-merge (hold aim, release drop). soccer-penalty reads
     // only touches.down + x/y (feedCoords covers it); air_strike uses the
     // HOLD ACTION button (buttons.action).
-    const holdAction = feedCoords && (gameState.id && window.GAME_ENGINE && window.GAME_ENGINE[gameState.id] && (window.GAME_ENGINE[gameState.id].gesture || '').includes('hold'));
+    const holdAction = feedCoords && ['archery-master','bowling-strike','duck-hunt','fruit-merge'].indexOf(gameState.id) !== -1;
     const clearDir = () => { gameState.touches.left = gameState.touches.right = gameState.touches.up = gameState.touches.down = false; };
     const start = (e) => {
       const t = e.touches ? e.touches[0] : e;
@@ -224,7 +314,7 @@ function bindGameTouch(engine) {
         gameState.touches.down = true;
         gameState.touches.x = x; gameState.touches.y = y;
         gameState.touches.mouseX = x; gameState.touches.mouseY = y;
-        gameState.touches.mx = x; gameState.touches.my = y; // crosshair engines
+        gameState.touches.mx = x; gameState.touches.my = y; // duck-hunt crosshair
         gameState.touches.mouseDown = true;
         if (holdAction) gameState.touches.action = true;
       }
@@ -241,12 +331,12 @@ function bindGameTouch(engine) {
           if (Math.abs(dx) > Math.abs(dy)) { gameState.touches.left = dx < 0; gameState.touches.right = dx > 0; }
           else { gameState.touches.up = dy < 0; gameState.touches.down = dy > 0; }
         }
-        // keep feeding live drag coords + down state (drag-aim engines)
+        // keep feeding live drag coords + down state (soccer/archery aim)
         if (feedCoords) {
           const { x, y } = canvasXY(t.clientX, t.clientY);
           gameState.touches.x = x; gameState.touches.y = y;
           gameState.touches.mouseX = x; gameState.touches.mouseY = y;
-          gameState.touches.mx = x; gameState.touches.my = y; // crosshair engines
+          gameState.touches.mx = x; gameState.touches.my = y; // duck-hunt crosshair
           gameState.touches.down = true;
           if (holdAction) gameState.touches.action = true;
         }
@@ -285,7 +375,7 @@ function bindGameTouch(engine) {
     swipeBinding = { el: canvas, type: 'swipe', handlers: { start, move, end } };
     return;
   }
-  // swipe-style engines feed coords
+  // swipe style (temple-run / snake-classic)
   if (typeof engine.swipe === 'function' || typeof engine.onSwipe === 'function') {
     const cb = typeof engine.swipe === 'function' ? engine.swipe : engine.onSwipe;
     let activePointer = null;
@@ -352,7 +442,7 @@ function unbindGameTouch() {
     swipeBinding = null;
   }
 }
-// keyboard for arrow-driven engines (arrows already global; route to engine too)
+// keyboard for snake-classic (arrows already global; route to engine too)
 function routeKeyToEngine(e) {
   if (currentGame && typeof currentGame.onKey === 'function') {
     currentGame.onKey(e.code);
@@ -639,11 +729,11 @@ function drawControls(gameId) {
 
   const type = layout.type || 'tap';
   // Canvas-based games: most draw their own aiming; but games that poll
-  // touches.action (hold-to-pull arcade engines need
-  // an on-screen hold button on mobile when the engine asks — the
+  // touches.action (hold-to-pull arcade: archery, bowling, soccer, sling,
+  // airstrike, hoop-dunk) need an on-screen hold button on mobile — the
   // canvas swipe path alone never sets touches.action (v7.42 P1 fix).
   if (type === 'canvas') {
-    const holdGames = []; // empty hub — HOLD button list populated when games return
+    const holdGames = ['archery-master', 'bowling-strike', 'soccer-penalty', 'sling-birds', 'airstrike', 'hoop-dunk', 'fruit-merge', 'bubble-shooter'];
     if (holdGames.indexOf(gameId) !== -1) {
       html += `<div class="ctrl-spacer"></div>`;
       html += `<div class="ctrl-group"><button class="ctrl-btn ctrl-btn-action" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)" style="min-width:120px;padding:14px 22px;font-size:13px;border-radius:16px;background:linear-gradient(135deg,#ff3355,#ff8800);color:#fff;font-weight:900;box-shadow:0 4px 0 #a01020"><i class="fa-solid fa-hand-pointer"></i> HOLD&nbsp;·&nbsp;RELEASE</button></div>`;
@@ -651,7 +741,7 @@ function drawControls(gameId) {
       html += `<div class="ctrl-spacer"></div>`;
     }
   }
-  // Swipe + rotate button (swipe-move + tap-rotate engines)
+  // Swipe + rotate button (tetris: swipe move + tap rotate)
   else if (type === 'swipe+drag') {
     html += `<div class="ctrl-group"><button class="ctrl-btn" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-rotate"></i>ROTATE</button></div>`;
   }
@@ -668,7 +758,7 @@ function drawControls(gameId) {
     html += `<div class="joystick" id="joystick"><div class="knob" id="jKnob"></div></div>`;
     html += `<div class="ctrl-group"><button class="ctrl-btn" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)"><i class="fa-solid fa-hand-fist"></i>ATTACK</button></div>`;
   }
-  // Dual joystick (move + aim axes)
+  // Dual joystick (tank battle)
   else if (type === 'dual') {
     html += `<div class="joystick" id="joyL"><div class="knob" id="jKnobL"></div></div>`;
     html += `<div class="joystick" id="joyR"><div class="knob" id="jKnobR"></div></div>`;
@@ -715,7 +805,7 @@ function drawControls(gameId) {
   else if (type === 'swipe-zone') {
     html += `<div class="ctrl-swipe-zone" id="swipeZone"><i class="fa-solid fa-arrows-up-down-left-right"></i><span>SWIPE</span></div>`;
   }
-  // Swipe + ACTION button (swipe-to-move + tap-to-act engines)
+  // Swipe + ACTION button (mastermind/connect-four/neon-dash/trash-sorter:
   // directional swipe + confirm/drop/jump action button)
   else if (type === 'swipe+action') {
     html += `<div class="ctrl-swipe-zone" id="swipeZone"><i class="fa-solid fa-arrows-up-down-left-right"></i><span>SWIPE</span></div>`;
@@ -757,7 +847,7 @@ function drawControls(gameId) {
       <button class="ctrl-btn ctrl-drift" id="btn_drift" ontouchstart="pressed('drift',true,event)" ontouchend="pressed('drift',false,event)" ontouchcancel="pressed('drift',false,event)" onmousedown="pressed('drift',true,event)" onmouseup="pressed('drift',false,event)" onmouseleave="pressed('drift',false,event)"><i class="fa-solid fa-wind"></i>DRIFT</button>
     </div>`;
   }
-  // Touch-split (left gas / right brake)
+  // Touch-split (hill-climb: left gas / right brake)
   else if (type === 'touch') {
     html += `<div class="ctrl-touch-left" id="touchLeft" ontouchstart="pressed('gas',true,event)" ontouchend="pressed('gas',false,event)" ontouchcancel="pressed('gas',false,event)" onmousedown="pressed('gas',true,event)" onmouseup="pressed('gas',false,event)" onmouseleave="pressed('gas',false,event)"><i class="fa-solid fa-gas-pump"></i><span>GAS</span></div>`;
     html += `<div class="ctrl-touch-right" id="touchRight" ontouchstart="pressed('brake',true,event)" ontouchend="pressed('brake',false,event)" ontouchcancel="pressed('brake',false,event)" onmousedown="pressed('brake',true,event)" onmouseup="pressed('brake',false,event)" onmouseleave="pressed('brake',false,event)"><i class="fa-solid fa-brake-warning"></i><span>BRAKE</span></div>`;
@@ -879,14 +969,226 @@ function loadGameEngine(id, cb) {
   if (!fn) { cb(null); return; }
   if (typeof window[fn] === 'function') { cb(window[fn]); return; }
   const fname = fn.replace(/([A-Z])/g, m => '_' + m.toLowerCase()).replace(/^_/, '');
-  const file =
-    (fname === 'pin_ball' ? 'games/pin_ball.js' : 'games/' + fname + '.js');
+  const file = fn === 'game2048' ? 'games/game2048.js'
+    : (fname === 'pin_ball' ? 'games/pin_ball.js' : 'games/' + fname + '.js');
   const s = document.createElement('script');
   s.src = file;
   s.onload = () => cb(window[fn] || null);
   s.onerror = () => cb(null);
   document.head.appendChild(s);
 }
+
+// ---- ORIGINAL 2048 (zip) iframe host — 100% original app inside ---- 
+// The 2048-master.zip app is untouched: its own index.html, main.css, fonts,
+// animated tiles, score/best boxes, messages. The hub just frames it and
+// awards coins when a run ends, reading the game's own localStorage keys.
+let _2048lastBest = 0;      // hub-side copy of the original game's best score
+let _2048started = false;   // true once the iframe engine has booted a run
+function launchOrig2048() {
+  const g = GAMES.find(x => x.id === '2048');
+  pushGameHistory();
+  if (typeof window.applyGameSkin === 'function') { try { window.applyGameSkin('2048'); } catch (e) {} }
+  go('game');
+  if (document.fullscreenEnabled && !document.fullscreenElement) {
+    try { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+  }
+  if (typeof window.showTutorialToast === 'function') { try { window.showTutorialToast(g, '2048'); } catch (e) {} }
+  document.getElementById('hudGameTitle').innerText = g.name;
+  document.getElementById('hudScore').innerText = '0';
+  document.getElementById('hudCoins').innerText = '0';
+  const hudLivesEl = document.getElementById('hudLives');
+  if (hudLivesEl) hudLivesEl.style.display = 'none';
+  const hudComboEl = document.getElementById('hudCombo');
+  if (hudComboEl) hudComboEl.style.display = 'none';
+  const hudRevengeEl = document.getElementById('hudRevenge');
+  if (hudRevengeEl) hudRevengeEl.style.display = 'none';
+  lockGameScroll(true);
+  gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  document.body.classList.add('game-2048');
+  // switch the canvas host to the original app
+  const canvas = document.getElementById('gameCanvas');
+  const frame = document.getElementById('orig2048Frame');
+  const stage = document.getElementById('orig2048Stage');
+  if (canvas) canvas.style.display = 'none';
+  if (stage) stage.style.display = 'flex';
+  if (frame) {
+    frame.style.display = 'block';
+    // (re)load the pristine original — never mutated
+    frame.src = '2048/index.html';
+  }
+  _2048started = false;
+  _2048lastBest = 0;
+  // keep the hub HUD top score in sync with the original's live score via rAF polling
+  if (window._2048poll) { try { clearInterval(window._2048poll); } catch (e) {} }
+  window._2048poll = setInterval(() => {
+    try {
+      if (typeof frame !== 'undefined' && frame && frame.contentWindow && frame.contentWindow.localStorage) {
+        const ls = frame.contentWindow.localStorage;
+        const coinsEl = document.getElementById('origLocalCoins');
+        if (coinsEl) {
+          const cur = parseInt(coinsEl.innerText || '0', 10) || 0;
+          const live = Math.max(cur, Math.floor(gameState.score / 10));
+          coinsEl.innerText = String(live);
+        }
+        const hubScore = document.querySelector('.orig2048-stats .score-container');
+        if (hubScore) hubScore.innerText = String(gameState.score);
+        const stateJSON = ls.getItem('gameState');
+        if (stateJSON) {
+          const st = JSON.parse(stateJSON);
+          if (st && typeof st.score === 'number') {
+            _2048started = true;
+            if (st.score !== gameState.score) {
+              gameState.score = st.score;
+              document.getElementById('hudScore').innerText = String(st.score);
+              const liveEl = document.getElementById('origLocalCoins');
+              if (liveEl) liveEl.innerText = String(Math.floor(st.score / 10));
+            }
+          }
+        }
+      }
+    } catch (e) {}
+  }, 500);
+  document.getElementById('gameOverOverlay').classList.remove('show');
+}
+
+// Coin bridge for the original 2048: called when the player leaves the iframe
+// (LOBBY) or on a run's game-over. Uses the ORIGINAL game's own state, so a
+// 100%-untouched zip needs zero instrumentation.
+function settleOrig2048() {
+  if (!gameState.id || gameState.id !== '2048') return;
+  if (gameState.over) return; // already settled
+  gameState.over = true;
+  gameState.running = false;
+  let score = gameState.score || 0;
+  let coins = 0;
+  try {
+    const frame = document.getElementById('orig2048Frame');
+    if (frame && frame.contentWindow && frame.contentWindow.localStorage) {
+      const ls = frame.contentWindow.localStorage;
+      const stJSON = ls.getItem('gameState');
+      if (stJSON) {
+        const st = JSON.parse(stJSON);
+        if (st && typeof st.score === 'number') score = Math.max(score, st.score);
+      }
+      const best = parseInt(ls.getItem('bestScore') || '0', 10) || 0;
+      if (best > _2048lastBest) _2048lastBest = best;
+      const hubBest = document.querySelector('.orig2048-stats .best-container');
+      if (hubBest) hubBest.innerText = String(Math.max(gameState.score, best));
+    }
+  } catch (e) {}
+  // coins from the ORIGINAL scoring (10% of score like the hub economy)
+  coins = Math.floor(score / 10);
+  clearInterval(window._2048poll);
+  window._2048poll = null;
+  const prevBest = state.best['2048'] || 0;
+  const isNewBest = score > prevBest;
+  if (isNewBest) state.best['2048'] = score;
+  // TODAY'S CHALLENGE (v7.39): the original 2048 settles here (not via
+  // endGame), so the once-per-day beat-your-best bonus is paid out here too.
+  const challId2048 = (typeof window.liveChallenge === 'function') ? (window.liveChallenge() || null) : null;
+  if (challId2048 === '2048' && isNewBest && score > 0) {
+    const challKey = 'rah_chall_' + new Date().toDateString();
+    try {
+      if (localStorage.getItem(challKey) !== 'done') {
+        localStorage.setItem(challKey, 'done');
+        state.coins += 40;
+        if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+        if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+        setTimeout(() => toast('🏆 CHALLENGE BONUS: +40 🪙'), 900);
+      }
+    } catch (e) {}
+  }
+  if (Math.floor(score / 10) > 0) state.coins += Math.floor(score / 10);
+  if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+  if (gameFX) { try { gameFX.deathFX(); } catch(e) {} }
+  const gc = document.getElementById('gameCanvas');
+  const frameEl = document.getElementById('orig2048Frame');
+  const stageEl = document.getElementById('orig2048Stage');
+  if (gc) gc.style.display = '';
+  if (frameEl) { try { frameEl.style.display = 'none'; } catch (e) {} }
+  if (stageEl) stageEl.style.display = 'none';
+  document.body.classList.remove('game-2048');
+  document.getElementById('gameOverOverlay').classList.add('show');
+  document.getElementById('overScore').innerText = String(score);
+  document.getElementById('overCoins').innerText = String(Math.floor(score / 10));
+  document.getElementById('overBest').innerText = String(Math.max(prevBest, score));
+  // stars via the same GAME_TARGETS tiering as every other game
+  const tgt = GAME_TARGETS['2048'];
+  let stars = !tgt ? 1 : score >= tgt ? 3 : score >= tgt * 0.6 ? 2 : 1;
+  if (typeof state.stars !== 'object' || state.stars === null) state.stars = {};
+  const prevStars = state.stars['2048'] || 0;
+  if (stars > prevStars) state.stars['2048'] = stars;
+  const starEls = document.querySelectorAll('#overStars span');
+  if (starEls.length) {
+    for (let i = 0; i < 3; i++) {
+      starEls[i].style.opacity = i < stars ? '1' : '0.22';
+      starEls[i].style.filter = i < stars ? 'none' : 'grayscale(1)';
+    }
+  }
+  document.getElementById('overStarProg').style.display = stars >= 1 ? 'block' : 'none';
+  const fill = document.getElementById('overStarProgFill');
+  const label = document.getElementById('overStarProgLabel');
+  if (fill) fill.style.width = (Math.min(100, Math.floor((score / tgt) * 100)) + '%');
+  if (label) label.innerText = 'NEXT STAR: ' + (tgt && score < tgt ? tgt + ' | ' + Math.floor(score / tgt * 100) + '%' : 'MAX ★★★');
+  reviveUsed = false;
+  pendingRevenge = false;
+  gameState.coinsEarned = coins;
+  if (typeof window.saveState === 'function') { try { window.saveState(); } catch (e) {} }
+  if (typeof window.updateCoinDisplay === 'function') { try { window.updateCoinDisplay(); } catch (e) {} }
+}
+
+// restart for the original 2048 = reload the pristine iframe
+function restartOrig2048() {
+  if (!gameState.id || gameState.id !== '2048') return;
+  if (gameState.over) { gameState.over = false; }
+  clearInterval(window._2048poll); window._2048poll = null;
+  _2048lastBest = 0;
+  const gc = document.getElementById('gameCanvas');
+  const frameEl = document.getElementById('orig2048Frame');
+  try {
+    if (frameEl && frameEl.contentWindow && frameEl.contentWindow.location) {
+      frameEl.contentWindow.location.reload();
+    } else if (frameEl) { frameEl.src = '2048/index.html'; }
+  } catch (e) { if (frameEl) frameEl.src = '2048/index.html'; }
+  if (gc) gc.style.display = 'none';
+  const stg = document.getElementById('orig2048Stage');
+  if (stg) stg.style.display = 'flex';
+  gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  document.getElementById('hudScore').innerText = '0';
+  document.getElementById('gameOverOverlay').classList.remove('show');
+  const rCoins = document.getElementById('origLocalCoins');
+  if (rCoins) rCoins.innerText = '0';
+  if (window._2048poll) {} else {
+    window._2048poll = setInterval(() => {
+      try {
+        const fr = document.getElementById('orig2048Frame');
+        if (fr && fr.contentWindow && fr.contentWindow.localStorage) {
+          const ls = fr.contentWindow.localStorage;
+          const stJSON = ls.getItem('gameState');
+          if (stJSON) {
+            const st = JSON.parse(stJSON);
+            if (st && typeof st.score === 'number') {
+              _2048started = true;
+              if (st.score !== gameState.score) {
+                gameState.score = st.score;
+                document.getElementById('hudScore').innerText = String(st.score);
+                const cEl = document.getElementById('origLocalCoins');
+                if (cEl) cEl.innerText = String(Math.floor(st.score / 10));
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }, 500);
+  }
+  document.getElementById('hudCoins').innerText = '0';
+}
+
+// original 2048 has no canvas engine — reuse hub lifecycle wrappers
+function pauseOrig2048Frame() {
+  try { const fr = document.getElementById('orig2048Frame'); if (fr && fr.contentWindow && fr.contentWindow.postMessage) {} } catch (e) {}
+}
+// ---- end ORIGINAL 2048 iframe host ----
 
 // ---- launch a game by id (lazy-loads engine for mobile perf) ----
 function launchGame(id) {
@@ -921,8 +1223,10 @@ function launchGame(id) {
   saveState();
 
   const engine = window[GAME_ENGINE[id]];
+  // ==== ORIGINAL 2048 (zip) runs as a full iframe — 100% untouched original ====
+  // Game loop, design, HTML/CSS/JS, fonts, animations: all from 2048-master.zip.
   // Hub only hosts it + awards coins on game-over via the game's own localStorage.
-  /* no iframe games */
+  if (id === '2048') { launchOrig2048(); return; }
   if (typeof engine === 'function') { bootGame(id, engine); return; }
   // engine not loaded yet — lazy load it (performance), show loading screen
   const gl = document.getElementById('gameLoading');
@@ -935,7 +1239,7 @@ function launchGame(id) {
 }
 
 // legacy engine input adapter: exposes pressed()/down() from gameState touches+keys,
-// plus touches/keys objects, plus x/y pointer coords
+// plus touches/keys objects (bounce style), plus x/y pointer coords
 function makeLegacyInput() {
   const KEYMAP = {
     enter: 'Enter', ' ': ' ', space: ' ', up: 'ArrowUp', down: 'ArrowDown',
@@ -1170,7 +1474,7 @@ function bootGame(id, engine) {
     if (cType === 'tilt' || cType === 'gyro') { try { initTilt(); } catch(e) {} }
   }
 
-  // bind canvas touch (all canvas-driven engines)
+  // bind canvas touch (carrom/temple/snake-classic + all canvas-driven)
   bindGameTouch(currentGame);
 
   // hide game over overlay
@@ -1411,6 +1715,8 @@ function endGame(score, coinsEarned) {
     { id: 'win1000', ico: '📿', name: 'Marathon Man',       test: () => state.stats.gamesPlayed >= 1000 },
     { id: 'score100k',ico: '🌋', name: 'Lifetime 100K',     test: () => (state.stats.totalScore || 0) >= 100000 },
     { id: 'score1m', ico: '🪐', name: 'Lifetime 1M',        test: () => (state.stats.totalScore || 0) >= 1000000 },
+    { id: 'thirty',  ico: '🧩', name: 'Catalog Pro',        test: () => Object.keys(state.best).length >= 30 },
+    { id: 'all70',   ico: '🎖️', name: 'Full Catalog',       test: () => Object.keys(state.best).length >= 70 },
     { id: 'rich5k',  ico: '💸', name: 'Tycoon',             test: () => state.coins >= 5000 },
     { id: 'rich50k', ico: '🏦', name: 'Coin Vault',         test: () => state.coins >= 50000 },
     { id: 'revive25',ico: '🐍', name: 'No Retreat',         test: () => (state.stats.revivesUsed || 0) >= 25 }
@@ -1429,11 +1735,105 @@ function endGame(score, coinsEarned) {
   if (!state.dailyQuest.date || state.dailyQuest.date !== today) {
     // new day: pick 3 game-specific missions (1 play + 2 score, known-score games)
     const playPool = [
-      { id: 'mp-play',     ico: '🎮', game: '',       desc: 'Play any game once',        target: 1, reward: 40, prog: 0 }
+      { id: 'mp-tetris',   ico: '🧱', game: 'tetris-blitz',   desc: 'Play Tetris once',        target: 1, reward: 40, prog: 0 },
+      { id: 'mp-sudoku',   ico: '🧩', game: 'sudoku',         desc: 'Play Sudoku once',        target: 1, reward: 45, prog: 0 },
+      { id: 'mp-pinball',  ico: '🪩', game: 'pinball',  desc: 'Play Pinball once',       target: 1, reward: 40, prog: 0 },
+      { id: 'mp-mines',    ico: '💣', game: 'mine-sweeper',   desc: 'Play Minesweeper once',   target: 1, reward: 45, prog: 0 },
+      { id: 'mp-2048',     ico: '🔢', game: '2048',           desc: 'Play 2048 once',          target: 1, reward: 40, prog: 0 },
+      { id: 'mp-ludo',     ico: '🎲', game: 'ludo-king',      desc: 'Play Ludo once',          target: 1, reward: 45, prog: 0 },
+      { id: 'mp-flappy',   ico: '🐤', game: 'flappy-neon',    desc: 'Play Flappy once',        target: 1, reward: 40, prog: 0 },
+      { id: 'mp-temple',   ico: '🗿', game: 'temple-run',     desc: 'Play Temple Run once',    target: 1, reward: 45, prog: 0 },
+      { id: 'mp-invaders', ico: '👾', game: 'space-invaders', desc: 'Play Invaders once',      target: 1, reward: 40, prog: 0 },
+      { id: 'mp-stack',    ico: '🧱', game: 'stack-drop',     desc: 'Play Stack once',         target: 1, reward: 40, prog: 0 },
+      // ==== PLAY POOL v7.27b (17 remaining games) ====
+      { id: 'mp-dungeon',  ico: '🕳️', game: 'pixel-dungeon', desc: 'Play Dungeon once',      target: 1, reward: 40, prog: 0 },
+      { id: 'mp-piano',    ico: '🎹', game: 'piano-tiles',   desc: 'Play Piano once',         target: 1, reward: 40, prog: 0 },
+      { id: 'mp-sling',    ico: '🪃', game: 'sling-birds',   desc: 'Play Sling once',         target: 1, reward: 40, prog: 0 },
+      { id: 'mp-cosmic',   ico: '🌌', game: 'cosmic-dash',   desc: 'Play Cosmic once',        target: 1, reward: 40, prog: 0 },
+      { id: 'mp-lazer',    ico: '🔦', game: 'lazer-maze',    desc: 'Play Lazer Maze once',    target: 1, reward: 40, prog: 0 },
+      { id: 'mp-timerush', ico: '⏱️', game: 'time-rush',     desc: 'Play Time Rush once',     target: 1, reward: 40, prog: 0 },
+      { id: 'mp-pingpong', ico: '🏓', game: 'table-tennis',  desc: 'Play Table Tennis once',  target: 1, reward: 40, prog: 0 },
+      { id: 'mp-flow',     ico: '🔗', game: 'flow-free',     desc: 'Play Flow once',          target: 1, reward: 40, prog: 0 },
+      { id: 'mp-ttt',      ico: '⭕', game: 'tic-tac-toe',   desc: 'Play Tic-Tac-Toe once',   target: 1, reward: 40, prog: 0 },
+      { id: 'mp-cfour',    ico: '🟡', game: 'connect-four',  desc: 'Play Connect Four once',  target: 1, reward: 40, prog: 0 },
+      { id: 'mp-nonogram', ico: '🎨', game: 'nonogram',      desc: 'Play Nonogram once',      target: 1, reward: 40, prog: 0 },
+      { id: 'mp-spin',     ico: '🎰', game: 'lucky-spin',    desc: 'Play Lucky Spin once',    target: 1, reward: 40, prog: 0 },
+      { id: 'mp-trash',    ico: '🗑️', game: 'trash-sorter', desc: 'Play Trash Sorter once',  target: 1, reward: 40, prog: 0 },
+      { id: 'mp-ladder',   ico: '🪜', game: 'ladder-climb',  desc: 'Play Ladder once',        target: 1, reward: 40, prog: 0 },
+      { id: 'mp-math',     ico: '➗', game: 'math-dash',     desc: 'Play Math Dash once',     target: 1, reward: 40, prog: 0 },
+      { id: 'mp-bantumi',  ico: '🏺', game: 'bantumi',       desc: 'Play Bantumi once',       target: 1, reward: 40, prog: 0 },
+      { id: 'mp-reversi',  ico: '⬛', game: 'reversi',       desc: 'Play Reversi once',       target: 1, reward: 40, prog: 0 }
     ];
     const scorePool = [
-      { id: 'ms-1k',       ico: '💎', game: '', desc: 'Score 1,000 in one run',  target: 1000, reward: 65, prog: 0 },
-      { id: 'ms-5k',       ico: '💎', game: '', desc: 'Score 5,000 in one run',  target: 5000, reward: 75, prog: 0 }
+      { id: 'ms-flappy50',  ico: '🐤', game: 'flappy-neon',    desc: 'Flappy: score 50',       target: 50,  reward: 60, prog: 0 },
+      { id: 'ms-snake100',  ico: '🐍', game: 'snake-classic',  desc: 'Snake: eat 100',         target: 100, reward: 60, prog: 0 },
+      { id: 'ms-dino300',   ico: '🦖', game: 'dino-run',       desc: 'Dino: run 300m',         target: 300, reward: 60, prog: 0 },
+      { id: 'ms-pinball7',  ico: '🪩', game: 'pinball',  desc: 'Pinball: 7 pts',         target: 7,   reward: 55, prog: 0 },
+      { id: 'ms-break60',   ico: '🧨', game: 'brick-breaker',  desc: 'Breakout: 60 pts',       target: 60,  reward: 55, prog: 0 },
+      { id: 'ms-invaders20',ico: '👾', game: 'space-invaders', desc: 'Invaders: 20 kills',     target: 20,  reward: 60, prog: 0 },
+      { id: 'ms-pac30',     ico: '👻', game: 'pac-runner',     desc: 'Pac: eat 30 dots',       target: 30,  reward: 60, prog: 0 },
+      // ==== EXPANDED COVERAGE v7.14 (every category has a score mission) ====
+      { id: 'ms-cycle600',  ico: '🏍️', game: 'light-cycle',    desc: 'Light Cycle: 600 travel', target: 600, reward: 65, prog: 0 },
+      { id: 'ms-helix200',  ico: '🌀', game: 'helix-drop',     desc: 'Helix: drop 200m',        target: 200, reward: 65, prog: 0 },
+      { id: 'ms-snake120',  ico: '🐍', game: 'neon-snake',     desc: 'Neon Snake: 120 pts',     target: 120, reward: 65, prog: 0 },
+      { id: 'ms-shooter150',ico: '🚀', game: 'cyber-shooter',  desc: 'Shooter: 150 pts',        target: 150, reward: 65, prog: 0 },
+      { id: 'ms-racer800',  ico: '🏎️', game: 'neon-racer',     desc: 'Racer: 800 pts',          target: 800, reward: 65, prog: 0 },
+      { id: 'ms-temple500', ico: '🗿', game: 'temple-run',     desc: 'Temple: run 500m',        target: 500, reward: 70, prog: 0 },
+      { id: 'ms-jumper150', ico: '🦘', game: 'neon-jumper',    desc: 'Jumper: 150 pts',         target: 150, reward: 65, prog: 0 },
+      { id: 'ms-switch30',  ico: '🎯', game: 'color-switch',   desc: 'Color Switch: 30',        target: 30,  reward: 60, prog: 0 },
+      { id: 'ms-crossy25',  ico: '🐔', game: 'crossy-neon',    desc: 'Crossy: 25 roads',        target: 25,  reward: 60, prog: 0 },
+      { id: 'ms-tetris12',  ico: '🧱', game: 'tetris-blitz',   desc: 'Tetris: 12 lines',        target: 12,  reward: 65, prog: 0 },
+      { id: 'ms-miner1000', ico: '🪨', game: 'space-miner',    desc: 'Miner: 1000 ore',         target: 1000,reward: 70, prog: 0 },
+      // ==== SCORE POOL v7.27 (31 more: every category now has a score mission) ====
+      { id: 'ms-duck8',     ico: '🦆', game: 'duck-hunt',      desc: 'Duck Hunt: 8 ducks',      target: 8,   reward: 55, prog: 0 },
+      { id: 'ms-pong8',     ico: '🏓', game: 'pong',           desc: 'Pong: 8 points',          target: 8,   reward: 55, prog: 0 },
+      { id: 'ms-cricket60', ico: '🏏', game: 'cricket-sixer',  desc: 'Cricket: 60 runs',        target: 60,  reward: 60, prog: 0 },
+      { id: 'ms-bowling60', ico: '🎳', game: 'bowling-strike', desc: 'Bowling: 60 pts',         target: 60,  reward: 60, prog: 0 },
+      { id: 'ms-hoop50',    ico: '🏀', game: 'hoop-dunk',      desc: 'Hoop: 50 pts',            target: 50,  reward: 60, prog: 0 },
+      { id: 'ms-archery60', ico: '🏹', game: 'archery-master', desc: 'Archery: 60 pts',         target: 60,  reward: 60, prog: 0 },
+      { id: 'ms-soccer10',  ico: '⚽', game: 'soccer-penalty', desc: 'Soccer: 10 goals',        target: 10,  reward: 60, prog: 0 },
+      { id: 'ms-sprint70',  ico: '🏃', game: 'athletics-sprint', desc: 'Sprint: 70m',          target: 70,  reward: 60, prog: 0 },
+      { id: 'ms-tank8',     ico: '🪖', game: 'tank-battle',    desc: 'Tank: 8 kills',           target: 8,   reward: 60, prog: 0 },
+      { id: 'ms-air200',    ico: '✈️', game: 'airstrike',      desc: 'Airstrike: 200 pts',      target: 200, reward: 60, prog: 0 },
+      { id: 'ms-tower600',  ico: '🗼', game: 'neon-tower',     desc: 'Neon Tower: 600',         target: 600, reward: 65, prog: 0 },
+      { id: 'ms-stack300',  ico: '🧱', game: 'stack-drop',     desc: 'Stack: 300 pts',          target: 300, reward: 60, prog: 0 },
+      { id: 'ms-dash60',    ico: '⚡', game: 'neon-dash',      desc: 'Neon Dash: 60',           target: 60,  reward: 60, prog: 0 },
+      { id: 'ms-slam300',   ico: '💥', game: 'neon-slam',      desc: 'Neon Slam: 300',          target: 300, reward: 60, prog: 0 },
+      { id: 'ms-bubble15',  ico: '🫧', game: 'bubble-shooter', desc: 'Bubble: 15 pops',         target: 15,  reward: 55, prog: 0 },
+      { id: 'ms-sort20',    ico: '🗂️', game: 'triple-sort',    desc: 'Triple Sort: 20',         target: 20,  reward: 55, prog: 0 },
+      { id: 'ms-water6',    ico: '🧪', game: 'water-sort',     desc: 'Water Sort: 6 levels',    target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-simon7',    ico: '🎹', game: 'simon-says',     desc: 'Simon: 7 rounds',         target: 7,   reward: 55, prog: 0 },
+      { id: 'ms-words4',    ico: '📖', game: 'word-search',    desc: 'Word Search: 4 words',    target: 4,   reward: 55, prog: 0 },
+      { id: 'ms-memory6',   ico: '🃏', game: 'memory-match',   desc: 'Memory: 6 pairs',         target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-master4',   ico: '🎯', game: 'mastermind',     desc: 'Mastermind: 4 codes',     target: 4,   reward: 55, prog: 0 },
+      { id: 'ms-slide20',   ico: '🧩', game: 'slide-puzzle',   desc: 'Slide: 20 moves',         target: 20,  reward: 55, prog: 0 },
+      { id: 'ms-checkers6', ico: '♟️', game: 'checkers',       desc: 'Checkers: 6 captures',    target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-candy40',   ico: '🍬', game: 'candy-crush',    desc: 'Candy: 40 matches',       target: 40,  reward: 60, prog: 0 },
+      { id: 'ms-fruit20',   ico: '🍉', game: 'fruit-merge',    desc: 'Fruit Merge: 20',         target: 20,  reward: 60, prog: 0 },
+      { id: 'ms-slash25',   ico: '🔪', game: 'fruit-slash',    desc: 'Fruit Slash: 25',         target: 25,  reward: 55, prog: 0 },
+      { id: 'ms-traffic400',ico: '🚗', game: 'traffic-racer',  desc: 'Traffic: 400 pts',        target: 400, reward: 65, prog: 0 },
+      { id: 'ms-hill150',   ico: '⛰️', game: 'hill-climb',     desc: 'Hill Climb: 150m',        target: 150, reward: 60, prog: 0 },
+      { id: 'ms-bounce150', ico: '🏀', game: 'bounce',         desc: 'Bounce: 150 pts',         target: 150, reward: 60, prog: 0 },
+      { id: 'ms-impact300', ico: '🚀', game: 'space-impact',   desc: 'Space Impact: 300',       target: 300, reward: 65, prog: 0 },
+      { id: 'ms-carrom3',   ico: '🎱', game: 'carrom-pool',    desc: 'Carrom: 3 coins',         target: 3,   reward: 55, prog: 0 },
+      // ==== SCORE POOL v7.27b (17 remaining games get score missions) ====
+      { id: 'ms-dungeon8',  ico: '🕳️', game: 'pixel-dungeon',  desc: 'Dungeon: reach depth 8',  target: 8,   reward: 60, prog: 0 },
+      { id: 'ms-piano50',   ico: '🎹', game: 'piano-tiles',    desc: 'Piano: 50 tiles',         target: 50,  reward: 55, prog: 0 },
+      { id: 'ms-sling6',    ico: '🪃', game: 'sling-birds',    desc: 'Sling: 6 birds',          target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-cosmic40',  ico: '🌌', game: 'cosmic-dash',    desc: 'Cosmic: 40 pts',          target: 40,  reward: 55, prog: 0 },
+      { id: 'ms-lazer4',    ico: '🔦', game: 'lazer-maze',     desc: 'Lazer: 4 levels',         target: 4,   reward: 55, prog: 0 },
+      { id: 'ms-time30',    ico: '⏱️', game: 'time-rush',      desc: 'Time Rush: 30 pts',       target: 30,  reward: 55, prog: 0 },
+      { id: 'ms-pingpong12',ico: '🏓', game: 'table-tennis',   desc: 'Table Tennis: 12 pts',    target: 12,  reward: 55, prog: 0 },
+      { id: 'ms-flow4',     ico: '🔗', game: 'flow-free',      desc: 'Flow: 4 puzzles',         target: 4,   reward: 55, prog: 0 },
+      { id: 'ms-ttt1',      ico: '⭕', game: 'tic-tac-toe',    desc: 'Tic-Tac-Toe: win 1',      target: 1,   reward: 50, prog: 0 },
+      { id: 'ms-cfour1',    ico: '🟡', game: 'connect-four',   desc: 'Connect Four: win 1',     target: 1,   reward: 50, prog: 0 },
+      { id: 'ms-nonogram5', ico: '🎨', game: 'nonogram',       desc: 'Nonogram: 5 puzzles',     target: 5,   reward: 55, prog: 0 },
+      { id: 'ms-spin60',    ico: '🎰', game: 'lucky-spin',     desc: 'Lucky Spin: 60 pts',      target: 60,  reward: 55, prog: 0 },
+      { id: 'ms-trash8',    ico: '🗑️', game: 'trash-sorter',  desc: 'Trash: 8 items',          target: 8,   reward: 55, prog: 0 },
+      { id: 'ms-ladder150', ico: '🪜', game: 'ladder-climb',   desc: 'Ladder: 150m',            target: 150, reward: 60, prog: 0 },
+      { id: 'ms-math6',     ico: '➗', game: 'math-dash',      desc: 'Math: 6 correct',         target: 6,   reward: 55, prog: 0 },
+      { id: 'ms-bantumi16', ico: '🏺', game: 'bantumi',        desc: 'Bantumi: 16 seeds',       target: 16,  reward: 55, prog: 0 },
+      { id: 'ms-reversi1',  ico: '⬛', game: 'reversi',        desc: 'Reversi: win 1',          target: 1,   reward: 50, prog: 0 }
     ];
     shuffle(playPool); shuffle(scorePool);
     // v7.41: persist the day's pools so rerollDailyMissions() re-draws fresh picks
@@ -1571,7 +1971,7 @@ function endGame(score, coinsEarned) {
     if (nv) revengeBtn.innerText = '🔥 REVENGE ×1.5 (50 🪙)';
   }
 }
-// legacy engines self-report via window.endGame — expose the funnel
+// legacy engines (bounce, bantumi) self-report via window.endGame — expose the funnel
 window.endGame = endGame;
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
@@ -1613,6 +2013,7 @@ function rerollDailyMissions() {
 function restartGame() {
   if (!gameState.id) return;
   const id = gameState.id;
+  if (id === '2048') { restartOrig2048(); return; }
   // full cleanup (same as exitToHub minus go('arcade'))
   unbindGameTouch();
   stopTilt();
@@ -1633,6 +2034,7 @@ function restartGame() {
 // ---- coin continue (2nd chance, arcade revive) ----
 function reviveGame() {
   if (!gameState.id || !gameState.over) return;
+  if (gameState.id === '2048') { restartOrig2048(); return; } // original has its own Try again
   if (reviveUsed) { toast('One continue per run!'); return; }
   const COST = 150;
   if (state.coins < COST) { toast('Need ' + COST + ' coins for continue!'); if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('err'); } catch (e) {} } return; }
@@ -1665,6 +2067,7 @@ function reviveGame() {
 // retry-compulsion loop the user wants — miss, spend, try again harder.
 function revengeGame() {
   if (!gameState.id || !gameState.over) return;
+  if (gameState.id === '2048') { restartOrig2048(); return; } // original keep-going handles it
   if (pendingRevenge) { toast('Revenge already charged!'); return; }
   const COST = 50;
   if (state.coins < COST) { toast('Need ' + COST + ' coins for revenge!'); return; }
@@ -1692,8 +2095,30 @@ function revengeGame() {
 }
 
 // ---- exit to hub ----
-// ---- exit to hub ----
 function exitToHub() {
+  if (gameState.id === '2048') {
+    clearInterval(window._2048poll); window._2048poll = null;
+    settleOrig2048();
+    const frameEl = document.getElementById('orig2048Frame');
+    const canvas = document.getElementById('gameCanvas');
+    const stageEl = document.getElementById('orig2048Stage');
+    if (frameEl) frameEl.style.display = 'none';
+    if (canvas) canvas.style.display = '';
+    if (stageEl) stageEl.style.display = 'none';
+    document.body.classList.remove('game-2048');
+    if (frameEl && frameEl.contentWindow) { try { frameEl.contentWindow.location.replace('about:blank'); } catch (e) { frameEl.src = 'about:blank'; } }
+    // fall through to normal exit cleanup + Lobby, but skip the canvas teardown
+    if (document.fullscreenElement) { try { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    if (typeof window.applyTheme === 'function' && typeof window.globalTheme === 'string') { try { window.applyTheme(window.globalTheme, true); } catch (e) {} }
+    lockGameScroll(false);
+    gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+    const tcWrap = document.getElementById('touchControls');
+    if (tcWrap) tcWrap.classList.remove('show');
+    document.body.classList.remove('landscape-game');
+    go('arcade');
+    renderArcadeGrid('');
+    return;
+  }
   clearInterval(window._diffTimer);   // stop difficulty ramp timer on exit
   unbindGameTouch();
   stopTilt(); // B1 [010]: clean up tilt listener
@@ -1730,6 +2155,23 @@ function exitToHub() {
 // B1 FIX [008-009]: clear all input state on pause, restore on resume
 function togglePause() {
   if (!gameState.id || gameState.over) return;
+  // original 2048 iframe: pausing the original app is not supported — the
+  // overlay just sits above it (resume leaves the original untouched)
+  if (gameState.id === '2048' && !gameState.paused) {
+    gameState.paused = true;
+    document.getElementById('pauseOverlay').classList.add('show');
+    const tc = document.getElementById('touchControls');
+    gameState._tcShown = !!(tc && tc.classList.contains('show'));
+    if (tc) { tc.classList.remove('show'); }
+    return;
+  }
+  if (gameState.id === '2048' && gameState.paused) {
+    gameState.paused = false;
+    document.getElementById('pauseOverlay').classList.remove('show');
+    const tc = document.getElementById('touchControls');
+    if (tc && gameState._tcShown) { tc.classList.add('show'); }
+    return;
+  }
   if (gameState.paused) {
     gameState.paused = false;
     document.getElementById('pauseOverlay').classList.remove('show');
@@ -2007,7 +2449,7 @@ function generateShareCard() {
 
   ctx.font = "11px 'Arial', sans-serif";
   ctx.fillStyle = '#555555';
-  ctx.fillText('ARCADE HUB · XP · achievements · free to play', W/2, 375);
+  ctx.fillText('70 games · XP · achievements · free to play', W/2, 375);
 
   return cvs;
 }
@@ -2066,7 +2508,7 @@ function copyScoreText() {
     const t = GAME_TARGETS[gameState.id];
     return t ? (score >= t ? 3 : score >= t * 0.6 ? 2 : 1) : 1;
   })());
-  const text = `🎮 ${game.name}: ${score.toLocaleString()} ${stars}\nRETRO ARCADE HUB`;
+  const text = `🎮 ${game.name}: ${score.toLocaleString()} ${stars}\nRETRO ARCADE HUB — 70 free games!`;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => toast('Score copied! 📋')).catch(() => toast('Could not copy'));
   } else {

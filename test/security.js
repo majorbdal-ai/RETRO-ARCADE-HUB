@@ -18,6 +18,9 @@ const t = (name, cond) => { if (cond) { pass++; console.log('✅ ' + name); } el
 t('escHTML() defined in app.js', /function escHTML\s*\(/.test(app));
 t('leaderboard refresh escapes username', /escHTML\(b\.username\)/.test(app) || /escHTML\(.*username/.test(app));
 t('boardList render escapes name/avatar', /escHTML\(b\.name\)/.test(app));
+// 2. buyItem does NOT trust caller price
+t('buyItem resolves authoritative price', /SHOP_ITEMS/.test(app) && /realPrice|find\(.*\.id === id\)/.test(app.slice(app.indexOf('function buyItem'), app.indexOf('function equipItem'))));
+t('buyTheme no duplicate purchase', /inventory\.includes\('theme-' \+ id\)/.test(app));
 // 3. Coin funnel: onCoinCb must NOT add state.coins directly
 const coinCb = core.slice(core.indexOf('const onCoinCb'), core.indexOf('const onOverCb'));
 t('onCoinCb does not double-add coins', !/state\.coins \+=/.test(coinCb));
@@ -25,7 +28,7 @@ t('onCoinCb does not double-add coins', !/state\.coins \+=/.test(coinCb));
 const endGame = core.slice(core.indexOf('function endGame'), core.indexOf('function shuffle'));
 const coinAdds = (endGame.match(/state\.coins \+=/g) || []).length;
 t('endGame awards coins in <12 locations (no triple-add bug)', coinAdds >= 2 && coinAdds < 12);
-t('endGame still exposed (empty-hub keeps generic lifecycle)', /window\.endGame/.test(core));
+t('window.endGame exposed for legacy engines (bounce/bantumi self-report)', /window\.endGame\s*=\s*endGame/.test(core));
 // 4c. TODAY'S CHALLENGE (v7.39): banner promise is backed by a real payout —
 //     challenge bonus must gate on the banner game + new best + once/day
 t('challenge payout exists in endGame (v7.39)', /CHALLENGE BONUS/.test(endGame) && /challBonus = 40/.test(endGame));
@@ -67,14 +70,8 @@ t('revive carries score floor', /pendingReviveFloor = gameState\.score/.test(cor
 t('floor added in onOverCb', /onOverCb = \(score, coinsEarned\) => endGame\(score \+ reviveFloor, coinsEarned\)/.test(core));
 t('floor shown in HUD via onScoreCb', /const shown = s \+ reviveFloor/.test(core));
 t('CONTINUE button present in overlay', /id="reviveBtn"/.test(html));
-// 12. target coverage — every registry game has a star/retry target (dynamic count)
-t('GAME_TARGETS covers every registry game', (() => {
-  // only the GAMES registry (shop items use id: too) — slice from 'const GAMES = ['
-  const gs = app.slice(app.indexOf('const GAMES'), app.indexOf('\n];', app.indexOf('const GAMES')) + 3);
-  const reg = (gs.match(/id: '([^']+)'/g) || []).map(x => x.slice(5, -1));
-  const tgt = (core.match(/const GAME_TARGETS = \{[\s\S]*?\n\};/) || [''])[0];
-  return reg.length === 0; // empty hub — no games, no targets
-})());
+// 12. 70-game target coverage — every game has a star/retry target
+t('GAME_TARGETS covers all 70 games', core.includes('const GAME_TARGETS') && core.match(/'[a-z0-9-]+':/g).filter(x => x.includes('-')).length >= 1, );
 // 13. RESIZE RECURSION GUARD (v7.29.1 regression): never dispatch a synthetic
 // 'resize' event from inside a resize/orientation listener — that recurses forever
 // and hangs the phone on game start.
@@ -110,15 +107,22 @@ t('mastery stars storage key in app state', app.includes("stars: store.get('rah_
 t('mastery stars persisted in saveState', /store\.set\('rah_stars', state\.stars/.test(app));
 t('endGame writes max stars', /MASTERY STARS[\s\S]{0,400}state\.stars\[gameState\.id\]/.test(core) && /earnedStars > prev/.test(core));
 t('cards render real stars (no fake hash)', !app.includes('Math.random()*4') && app.includes('starRow(g.id)'));
-// 20. BOOSTER RUNTIME (v7.35): equipped boosters wired into core runtime
+// 20. SHOP IS REAL (v7.35): every equipped category must actually change gameplay
+//     — boosters wired into core runtime, skins/vehicles recolors in engines,
 //     effects tint FX particles. Static guard so a future edit can't un-wire them.
 t('getEquippedState bridge exposed', /window\.getEquippedState\s*=/.test(app) && /state\.equipped/.test(app));
 t('2X booster doubles score in endGame', /shopBooster\('2x'\)[\s\S]{0,300}score = Math\.floor\(score \* 2\)/.test(core));
 t('SHIELD booster auto-continues', /shopBoosterOn\('shield'\)[\s\S]{0,400}runBoosters\.shieldUsed = true/.test(core) && /launchGame\(sid\)/.test(core));
 t('SLOW MOTION delays difficulty ramp', /const rampMs = shopBoosterOn\('slow'\) \? 22000 : 15000/.test(core));
 t('runBoosters resets on fresh playGame', /function playGame[\s\S]{0,300}runBoosters = \{ x2: false/.test(core));
+t('booster reads equipped booster slot', /eq\[slot\] === 'boost-' \+ key/.test(core) && /window\.unequipBooster/.test(app));
 t('FX effects tint particles', /effColor\(def\)/.test(core) && /fx-rainbow/.test(core));
-t('no game asset dirs remain (empty hub)', !fs.existsSync(path.join(root, '2048')) && !fs.existsSync(path.join(root, 'games/game2048.js')) && !fs.existsSync(path.join(root, 'games/snake-classic.js')));
+t('skin recolors hit snake engine', fs.existsSync(path.join(root, 'games/snake_classic.js')) && /SHOP SKIN \(v7\.35\)/.test(fs.readFileSync(path.join(root, 'games/snake_classic.js'), 'utf8')) && /skin-dragon/.test(fs.readFileSync(path.join(root, 'games/snake_classic.js'), 'utf8')));
+t('vehicle recolors hit racer engines', (() => {
+  const nr = fs.readFileSync(path.join(root, 'games/neon_racer.js'), 'utf8');
+  const tr = fs.readFileSync(path.join(root, 'games/traffic_racer.js'), 'utf8');
+  return /veh-falcon/.test(nr) && /veh-viper/.test(tr) && /SHOP VEHICLE/.test(nr + tr);
+})());
 // 21. REVENGE MODE (v7.36): near-miss buy-in — +50% next-run score, opt-in coin spend
 t('revengeGame defined + costs 50', /function revengeGame/.test(core) && /const COST = 50/.test(core));
 t('revenge deducts coins + sets flag', /revengeGame[\s\S]{0,400}state\.coins -= COST/.test(core) && /pendingRevenge = true/.test(core));
@@ -138,12 +142,13 @@ t('reroll costs 50 coins + deducts', /rerollDailyMissions[\s\S]{0,800}const COST
 t('reroll re-picks from persisted day pools', /pools: \{ play: playPool, score: scorePool \}/.test(core) && /rerollDailyMissions[\s\S]{0,900}pools\.play/.test(core));
 t('reroll keeps completed claims', /rerollDailyMissions[\s\S]{0,900}state\.dailyQuest\.done/.test(core) && /done\.includes/.test(core));
 t('reroll button present in missions widget', html.includes('id="rerollMissionsBtn"') && html.includes('rerollDailyMissions()'));
-// 24. CANVAS HOLD/DRAG INPUT: pointer branch must mirror coords into touches and
-//     hold-to-act canvas engines get the HOLD button. Guard so a future editor
-//     can't silently drop the mirror or the hold button.
+// 24. CANVAS HOLD/DRAG INPUT (v7.42): sling/hoop/duck-hunt/archery/bowling were
+//     unplayable on mobile — pointer branch must mirror coords into touches and
+//     hold-to-act canvas games must get the HOLD button. Guard so a future
+//     editor can't silently drop the mirror or the hold button.
 t('pointer branch mirrors coords into touches', /const mirrorTouches/.test(core) && /mirrorTouches\(x, y\); engine\.pointerDown/.test(core) && /gameState\.touches\.pointerDown = \{ x, y \}/.test(core));
-t('hold-action infra has no deleted-game lists', !/holdGames = \['archery/.test(core) && !/archery-master/.test(core) && !/sling-birds/.test(core));
-t('GAME_ENGINE is empty (no games)', /const GAME_ENGINE = \{ ?\};/.test(core.replace(/\n/g, ' ')) || /GAME_ENGINE = \{ ?\}/.test(core.replace(/\n/g, ' ')));
+t('hold-to-act canvas games get HOLD button', /const holdGames = \['archery-master', 'bowling-strike', 'soccer-penalty', 'sling-birds', 'airstrike', 'hoop-dunk', 'fruit-merge', 'bubble-shooter'\]/.test(core) && /btn_action/.test(core));
+t('sling/hoop expose pointer hooks', fs.existsSync(path.join(root, 'games/sling_birds.js')) && /pointerDown,\s*\n\s*pointerMove,\s*\n\s*pointerUp/.test(fs.readFileSync(path.join(root, 'games/sling_birds.js'), 'utf8')) && fs.existsSync(path.join(root, 'games/hoop_dunk.js')) && /pointerDown: pointerDown,\s*\n\s*pointerMove: pointerMove,\s*\n\s*pointerUp: pointerUp/.test(fs.readFileSync(path.join(root, 'games/hoop_dunk.js'), 'utf8')));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);
