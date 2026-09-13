@@ -1,28 +1,28 @@
 {
-  "rot": 19,
-  "updated": "2026-09-13T11:02:17.399Z",
+  "rot": 20,
+  "updated": "2026-09-13T15:33:21.330Z",
   "featured": [
-    "cyber-shooter",
     "pixel-dungeon",
     "light-cycle",
     "tank-battle",
     "bubble-shooter",
-    "neon-dash"
+    "neon-dash",
+    "sling-birds"
   ],
   "deal": {
-    "item": "fx-rainbow",
-    "name": "RAINBOW",
-    "pct": 30
+    "item": "fx-stars",
+    "name": "STARBURST",
+    "pct": 10
   },
-  "challenge": "helix-drop",
+  "challenge": "neon-racer",
   "botBoost": [
-    1.83,
-    1.06,
-    1.29,
-    1.42,
-    1.65,
-    1.88,
-    1.01,
-    1.24
+    1,
+    1.23,
+    1.46,
+    1.69,
+    1.82,
+    1.05,
+    1.28,
+    1.41
   ]
 }
