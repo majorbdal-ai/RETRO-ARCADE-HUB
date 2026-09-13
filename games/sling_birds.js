@@ -63,6 +63,46 @@ let diffMul = 1;  // v7.20 difficulty ramp
     }
   }
 
+  // Sling-birds drag input (v7.42 P1 fix): the game had dragging/aimPos
+  // state and launch physics but NO input path — unplayable on every
+  // platform. core.bindGameTouch wires these pointer hooks for canvas games:
+  // drag DOWN-BACK from the sling seat (150,300), release to launch.
+  function pointerDown(x, y) {
+    if (over || state !== 'aim' || birdsLeft <= 0) return;
+    dragging = true;
+    aimPos = { x: x, y: y };
+  }
+  function pointerMove(x, y) {
+    if (!dragging) return;
+    // limit pull distance (slingshot)
+    const dx = x - dragStart.x;
+    const dy = y - dragStart.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > maxPull) {
+      const a = Math.atan2(dy, dx);
+      aimPos = { x: dragStart.x + Math.cos(a) * maxPull, y: dragStart.y + Math.sin(a) * maxPull };
+    } else {
+      aimPos = { x: x, y: y };
+    }
+  }
+  function pointerUp() {
+    if (!dragging) return;
+    dragging = false;
+    if (aimPos) {
+      const dx = dragStart.x - aimPos.x;
+      const dy = dragStart.y - aimPos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      aimPos = null;
+      if (dist > 15) {
+        // slingshot: launch opposite to pull, scaled
+        const power = Math.min(dist / maxPull, 1) * 900;
+        const angle = Math.atan2(-dy, -dx);
+        launchBird(Math.cos(angle) * power, Math.sin(angle) * power);
+        if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+      }
+    }
+  }
+
   function launchBird(vx, vy) {
     if (birdsLeft <= 0 || state !== 'aim') return;
     birdsLeft--;
@@ -235,6 +275,19 @@ let diffMul = 1;  // v7.20 difficulty ramp
         ctx.setLineDash([]);
         ctx.shadowBlur = 0;
       }
+    } else if (state === 'aim' && !dragging && birdsLeft > 0 && !over) {
+      // v7.42: idle pull hint (pulsing) so players know to drag
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 300);
+      ctx.save();
+      ctx.globalAlpha = 0.5 + 0.4 * pulse;
+      ctx.fillStyle = '#ff0088';
+      ctx.shadowColor = '#ff0088';
+      ctx.shadowBlur = 10;
+      ctx.font = 'bold 15px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('◀ DRAG BACK · RELEASE TO LAUNCH', W / 2, H - 16);
+      ctx.textAlign = 'left';
+      ctx.restore();
     }
 
     ctx.fillStyle = '#00ffff';
@@ -312,6 +365,9 @@ let diffMul = 1;  // v7.20 difficulty ramp
     pause,
     resume,
     destroy,
+    pointerDown,
+    pointerMove,
+    pointerUp,
     setInput: (t, k) => { touches = t; keys = k; },
     setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };

@@ -126,6 +126,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
 
     // Aim line
     if (aiming && !ballInFlight) {
+      ctx.save();
       ctx.shadowBlur = 8;
       ctx.shadowColor = '#00ffff';
       ctx.strokeStyle = '#00ffff';
@@ -139,7 +140,13 @@ let diffMul = 1;  // v7.20 difficulty ramp
       ctx.lineTo(ballX + Math.cos(angle) * power * 15, ballY + Math.sin(angle) * power * 15);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.shadowBlur = 0;
+      // v7.42: drag-feedback hint (only while pulling back)
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 13px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(power < 2 ? '◀ DRAG BACK TO AIM' : (power < 8 ? 'PULL MORE POWER...' : 'RELEASE TO SHOOT!'), ballX + 60, ballY + 40);
+      ctx.textAlign = 'left';
+      ctx.restore();
     }
 
     // Player position indicator
@@ -231,6 +238,15 @@ let diffMul = 1;  // v7.20 difficulty ramp
       }
       if (typeof window.playSfx === 'function') { try { window.playSfx(swish ? 'win2' : 'pop'); } catch (e) {} }
       if (swish && navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+      // v7.42: score burst particles in screen space (juice)
+      if (typeof gameFX !== 'undefined' && typeof window.gameFX === 'object') {
+        try {
+          const r = canvas.getBoundingClientRect();
+          window.gameFX.burst(r.left + ballX * r.width / canvas.width,
+                              r.top + ballY * r.height / canvas.height,
+                              swish ? '#00ffff' : '#ffdd00', swish ? 14 : 8);
+        } catch (e) {}
+      }
       return true;
     }
     return false;
@@ -321,6 +337,35 @@ let diffMul = 1;  // v7.20 difficulty ramp
     }
   }
 
+  // Hoop-dunk drag-aim input (v7.42): core.bindGameTouch wires pointerDown/
+  // pointerMove/pointerUp for canvas-type games. Drag BACK/LEFT from the ball
+  // to aim (slingshot), release to shoot. Without these, the game has no
+  // launch path at all — it was unplayable on every platform.
+  function pointerDown(x, y) {
+    if (over || ballInFlight || shooting || ballsLeft <= 0) return;
+    aiming = true;
+    aimStartX = x; aimStartY = y;
+    mouseX = x; mouseY = y;
+    mouseDown = true;
+  }
+  function pointerMove(x, y) {
+    if (!aiming) return;
+    mouseX = x; mouseY = y;
+  }
+  function pointerUp() {
+    if (!aiming) return;
+    aiming = false;
+    mouseDown = false;
+    const dx = aimStartX - mouseX;
+    const dy = aimStartY - mouseY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 6) return; // tap = no shot (avoid accidental throws)
+    const power = Math.min(dist / 3, 25);
+    const angle = Math.atan2(aimStartY - mouseY, aimStartX - mouseX);
+    shoot(power, angle);
+    if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
+  }
+
   function shoot(power, angle) {
     if (ballInFlight || shooting || over || ballsLeft <= 0) return;
     ballInFlight = true;
@@ -365,6 +410,9 @@ let diffMul = 1;  // v7.20 difficulty ramp
     pause: pause,
     resume: resume,
     destroy: destroy,
+    pointerDown: pointerDown,
+    pointerMove: pointerMove,
+    pointerUp: pointerUp,
     setInput: function(t, k) { touches = t || {}; keys = k || {}; },
     setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
   };

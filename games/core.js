@@ -254,11 +254,22 @@ function bindGameTouch(engine) {
   }
   // track active pointers per pointerId (multi-touch safe)
   const pointers = new Map();
-  // pointer-drag style (carrom)
+  // pointer-drag style (carrom, sling-birds, hoop-dunk, duck-hunt, word-search)
   if (typeof engine.pointerDown === 'function') {
-    const down = (e) => { e.preventDefault(); const { x, y } = canvasXY(e.clientX, e.clientY); engine.pointerDown(x, y); };
-    const move = (e) => { e.preventDefault(); const { x, y } = canvasXY(e.clientX, e.clientY); engine.pointerMove(x, y); };
-    const up = (e) => { e.preventDefault(); engine.pointerUp(); };
+    // duck-hunt reads touches.pointerDown/touches.action/touches.mx/my for
+    // crosshair + fire; carrom reads touches.pointerDown for drag-aim.
+    // All pointer-drag engines need the coordinates mirrored into touches
+    // so their update loops (which poll touches.*, not the x/y args) react.
+    const mirrorTouches = (x, y) => {
+      if (!gameState.touches) return;
+      gameState.touches.pointerDown = { x, y };
+      gameState.touches.x = x; gameState.touches.y = y;
+      gameState.touches.mx = x; gameState.touches.my = y;
+      gameState.touches.pointerX = x; gameState.touches.pointerY = y;
+    };
+    const down = (e) => { e.preventDefault(); const { x, y } = canvasXY(e.clientX, e.clientY); mirrorTouches(x, y); engine.pointerDown(x, y); };
+    const move = (e) => { e.preventDefault(); const { x, y } = canvasXY(e.clientX, e.clientY); mirrorTouches(x, y); engine.pointerMove(x, y); };
+    const up = (e) => { e.preventDefault(); if (gameState.touches) { gameState.touches.pointerDown = null; gameState.touches.mx = undefined; gameState.touches.my = undefined; } engine.pointerUp(); };
     canvas.addEventListener('touchstart', down, { passive: false });
     canvas.addEventListener('touchmove', move, { passive: false });
     canvas.addEventListener('touchend', up, { passive: false });
@@ -274,11 +285,39 @@ function bindGameTouch(engine) {
   if (typeof engine.swipe !== 'function' && typeof engine.onSwipe !== 'function' && typeof engine.pointerDown !== 'function') {
     let swipeDirTimer = null;
     let activePointer = null;
+    // v7.42: canvas press feeds coords + down for drag-aim games, but ONLY an
+    // action pulse for the hold-to-act canvas games (archery/bowling/soccer/
+    // duck-hunt). swipe+action games (neon-dash, mastermind, connect-four,
+    // trash-sorter) must NOT get a canvas action pulse — it would falsely
+    // trigger their ACTION (jump/confirm/drop) on every touchstart.
+    const layoutG = (typeof CONTROL_LAYOUT !== 'undefined' && CONTROL_LAYOUT[gameState.id]) || {};
+    const cTypeG = layoutG.type || '';
+    // v7.42: drag/hold canvas games need coords + down + action fed from canvas
+    // touches (archery/bowling/soccer/duck-hunt/sling/hoop were UNPLAYABLE on
+    // mobile — nothing set touches.action/down for canvas layouts). Swipe-type
+    // games (dino-run, temple-run, traffic-racer) keep the pure swipe path —
+    // a global touches.down would falsely slide dino / steer on touchstart.
+    const feedCoords = cTypeG === 'canvas';
+    // Hold/tap-fire games that poll touches.action directly from canvas:
+    // archery (hold pull), bowling (hold to wind), duck-hunt (tap fire at
+    // crosshair), fruit-merge (hold aim, release drop). soccer-penalty reads
+    // only touches.down + x/y (feedCoords covers it); air_strike uses the
+    // HOLD ACTION button (buttons.action).
+    const holdAction = feedCoords && ['archery-master','bowling-strike','duck-hunt','fruit-merge'].indexOf(gameState.id) !== -1;
     const clearDir = () => { gameState.touches.left = gameState.touches.right = gameState.touches.up = gameState.touches.down = false; };
     const start = (e) => {
       const t = e.touches ? e.touches[0] : e;
       if (e.touches) activePointer = e.touches[0].identifier;
       canvasSwipe.startX = t.clientX; canvasSwipe.startY = t.clientY; canvasSwipe.started = true;
+      if (feedCoords) {
+        const { x, y } = canvasXY(t.clientX, t.clientY);
+        gameState.touches.down = true;
+        gameState.touches.x = x; gameState.touches.y = y;
+        gameState.touches.mouseX = x; gameState.touches.mouseY = y;
+        gameState.touches.mx = x; gameState.touches.my = y; // duck-hunt crosshair
+        gameState.touches.mouseDown = true;
+        if (holdAction) gameState.touches.action = true;
+      }
       if (e.preventDefault) e.preventDefault();
     };
     const move = (e) => {
@@ -291,6 +330,15 @@ function bindGameTouch(engine) {
         if (Math.hypot(dx, dy) > 20) {
           if (Math.abs(dx) > Math.abs(dy)) { gameState.touches.left = dx < 0; gameState.touches.right = dx > 0; }
           else { gameState.touches.up = dy < 0; gameState.touches.down = dy > 0; }
+        }
+        // keep feeding live drag coords + down state (soccer/archery aim)
+        if (feedCoords) {
+          const { x, y } = canvasXY(t.clientX, t.clientY);
+          gameState.touches.x = x; gameState.touches.y = y;
+          gameState.touches.mouseX = x; gameState.touches.mouseY = y;
+          gameState.touches.mx = x; gameState.touches.my = y; // duck-hunt crosshair
+          gameState.touches.down = true;
+          if (holdAction) gameState.touches.action = true;
         }
       }
       if (e.preventDefault) e.preventDefault();
@@ -307,6 +355,12 @@ function bindGameTouch(engine) {
         else { gameState.touches.up = dy < 0; gameState.touches.down = dy > 0; }
         clearTimeout(swipeDirTimer);
         swipeDirTimer = setTimeout(clearDir, 180); // B1: 300→180ms — tighter, still bridges touch→key
+      }
+      // v7.42: release → action/down off so hold-to-act engines fire on release
+      if (feedCoords) {
+        gameState.touches.down = false;
+        gameState.touches.mouseDown = false;
+        if (holdAction) gameState.touches.action = false;
       }
       if (e.preventDefault) e.preventDefault();
     };
@@ -674,9 +728,18 @@ function drawControls(gameId) {
   html += `<div class="ctrl-hint">${layout.hint || 'TAP'}</div>`;
 
   const type = layout.type || 'tap';
-  // Canvas-based / no virtual buttons (game handles its own canvas touch)
+  // Canvas-based games: most draw their own aiming; but games that poll
+  // touches.action (hold-to-pull arcade: archery, bowling, soccer, sling,
+  // airstrike, hoop-dunk) need an on-screen hold button on mobile — the
+  // canvas swipe path alone never sets touches.action (v7.42 P1 fix).
   if (type === 'canvas') {
-    html += `<div class="ctrl-spacer"></div>`;
+    const holdGames = ['archery-master', 'bowling-strike', 'soccer-penalty', 'sling-birds', 'airstrike', 'hoop-dunk', 'fruit-merge', 'bubble-shooter'];
+    if (holdGames.indexOf(gameId) !== -1) {
+      html += `<div class="ctrl-spacer"></div>`;
+      html += `<div class="ctrl-group"><button class="ctrl-btn ctrl-btn-action" id="btn_action" ontouchstart="pressed('action',true,event)" ontouchend="pressed('action',false,event)" ontouchcancel="pressed('action',false,event)" onmousedown="pressed('action',true,event)" onmouseup="pressed('action',false,event)" onmouseleave="pressed('action',false,event)" style="min-width:120px;padding:14px 22px;font-size:13px;border-radius:16px;background:linear-gradient(135deg,#ff3355,#ff8800);color:#fff;font-weight:900;box-shadow:0 4px 0 #a01020"><i class="fa-solid fa-hand-pointer"></i> HOLD&nbsp;·&nbsp;RELEASE</button></div>`;
+    } else {
+      html += `<div class="ctrl-spacer"></div>`;
+    }
   }
   // Swipe + rotate button (tetris: swipe move + tap rotate)
   else if (type === 'swipe+drag') {
