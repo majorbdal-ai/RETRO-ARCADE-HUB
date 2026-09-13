@@ -18,9 +18,6 @@ const t = (name, cond) => { if (cond) { pass++; console.log('✅ ' + name); } el
 t('escHTML() defined in app.js', /function escHTML\s*\(/.test(app));
 t('leaderboard refresh escapes username', /escHTML\(b\.username\)/.test(app) || /escHTML\(.*username/.test(app));
 t('boardList render escapes name/avatar', /escHTML\(b\.name\)/.test(app));
-// 2. buyItem does NOT trust caller price
-t('buyItem resolves authoritative price', /SHOP_ITEMS/.test(app) && /realPrice|find\(.*\.id === id\)/.test(app.slice(app.indexOf('function buyItem'), app.indexOf('function equipItem'))));
-t('buyTheme no duplicate purchase', /inventory\.includes\('theme-' \+ id\)/.test(app));
 // 3. Coin funnel: onCoinCb must NOT add state.coins directly
 const coinCb = core.slice(core.indexOf('const onCoinCb'), core.indexOf('const onOverCb'));
 t('onCoinCb does not double-add coins', !/state\.coins \+=/.test(coinCb));
@@ -113,15 +110,13 @@ t('mastery stars storage key in app state', app.includes("stars: store.get('rah_
 t('mastery stars persisted in saveState', /store\.set\('rah_stars', state\.stars/.test(app));
 t('endGame writes max stars', /MASTERY STARS[\s\S]{0,400}state\.stars\[gameState\.id\]/.test(core) && /earnedStars > prev/.test(core));
 t('cards render real stars (no fake hash)', !app.includes('Math.random()*4') && app.includes('starRow(g.id)'));
-// 20. SHOP IS REAL (v7.35): every equipped category must actually change gameplay
-//     — boosters wired into core runtime, skins/vehicles recolors in engines,
+// 20. BOOSTER RUNTIME (v7.35): equipped boosters wired into core runtime
 //     effects tint FX particles. Static guard so a future edit can't un-wire them.
 t('getEquippedState bridge exposed', /window\.getEquippedState\s*=/.test(app) && /state\.equipped/.test(app));
 t('2X booster doubles score in endGame', /shopBooster\('2x'\)[\s\S]{0,300}score = Math\.floor\(score \* 2\)/.test(core));
 t('SHIELD booster auto-continues', /shopBoosterOn\('shield'\)[\s\S]{0,400}runBoosters\.shieldUsed = true/.test(core) && /launchGame\(sid\)/.test(core));
 t('SLOW MOTION delays difficulty ramp', /const rampMs = shopBoosterOn\('slow'\) \? 22000 : 15000/.test(core));
 t('runBoosters resets on fresh playGame', /function playGame[\s\S]{0,300}runBoosters = \{ x2: false/.test(core));
-t('booster reads equipped booster slot', /eq\[slot\] === 'boost-' \+ key/.test(core) && /window\.unequipBooster/.test(app));
 t('FX effects tint particles', /effColor\(def\)/.test(core) && /fx-rainbow/.test(core));
 t('no game asset dirs remain (empty hub)', !fs.existsSync(path.join(root, '2048')) && !fs.existsSync(path.join(root, 'games/game2048.js')) && !fs.existsSync(path.join(root, 'games/snake-classic.js')));
 // 21. REVENGE MODE (v7.36): near-miss buy-in — +50% next-run score, opt-in coin spend

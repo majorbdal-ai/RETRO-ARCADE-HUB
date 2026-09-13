@@ -229,7 +229,7 @@ function liveBotBoost() { return (LIVE && Array.isArray(LIVE.botBoost)) ? LIVE.b
 window.liveChallenge = liveChallenge; // core.js reads the SAME source for the bonus
 
 /* ==================== NAVIGATION ==================== */
-const PAGES = ['home', 'arcade', 'shop', 'board', 'profile', 'store', 'themes', 'game'];
+const PAGES = ['home', 'arcade', 'board', 'profile', 'game'];
 function go(page) {
   // animate current page out smoothly, then switch (premium feel)
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -257,19 +257,12 @@ function go(page) {
   }
   if (page === 'home') renderHome();
   else if (page === 'arcade') renderArcadeGrid('');
-  else if (page === 'shop') renderShop();
   else if (page === 'board') renderBoard('weekly');
   else if (page === 'profile') renderProfile();
-  else if (page === 'store') renderCoinStore();
-  else if (page === 'themes') renderThemes();
   updateCoinDisplay();
 }
 function navInit() {
   document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', () => go(n.dataset.page)));
-  document.querySelectorAll('#shopTabs .tab').forEach(t => t.addEventListener('click', () => {
-    document.querySelectorAll('#shopTabs .tab').forEach(x => x.classList.remove('active'));
-    t.classList.add('active'); renderShop(t.dataset.tab);
-  }));
   document.querySelectorAll('#boardTabs .tab').forEach(t => t.addEventListener('click', () => {
     document.querySelectorAll('#boardTabs .tab').forEach(x => x.classList.remove('active'));
     t.classList.add('active'); renderBoard(t.dataset.range);
@@ -292,12 +285,6 @@ function navInit() {
   // NEW UI: Arcade sort/filter
   const arcadeSort = document.getElementById('arcadeSort');
   if (arcadeSort) arcadeSort.addEventListener('change', () => renderArcadeGrid());
-  
-  // NEW UI: Shop filter/sort
-  const shopFilter = document.getElementById('shopFilter');
-  const shopSort = document.getElementById('shopSort');
-  if (shopFilter) shopFilter.addEventListener('change', () => renderShop(currentShopTab || 'skins'));
-  if (shopSort) shopSort.addEventListener('change', () => renderShop(currentShopTab || 'skins'));
 }
 function updateCoinDisplay() {
   const c = document.getElementById('coinDisplay');
@@ -931,123 +918,6 @@ function resetSearch() {
 }
 
 /* ==================== SHOP ==================== */
-let currentShopTab = 'skins';
-const SHOP_ITEMS = {
-  skins: [],
-  vehicles: [],
-  effects: [],
-  boosters: []
-};
-function renderShop(tab = 'skins') {
-  currentShopTab = tab;
-  
-  // update tab active states
-  document.querySelectorAll('#shopTabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  
-  // live daily deal banner (rotates 4x/day)
-  const deal = liveDeal();
-  const dealEl = document.getElementById('liveDealBanner');
-  const dealText = document.getElementById('dealText');
-  if (dealEl && dealText) {
-    if (deal && tab === 'skins') {
-      dealEl.style.display = 'flex';
-      dealText.innerHTML = `${deal.name} — <b>${deal.pct}% OFF</b> — FIRST BUY TODAY!`;
-    } else {
-      dealEl.style.display = 'none';
-    }
-  }
-  
-  // update shop coin display
-  const shopCoin = document.getElementById('shopCoinDisplay');
-  if (shopCoin) shopCoin.innerText = state.coins.toLocaleString();
-  
-  // filter/sort values
-  const filter = (document.getElementById('shopFilter') || {}).value || 'all';
-  const sort = (document.getElementById('shopSort') || {}).value || 'price-asc';
-  
-  const ownerType = tab === 'skins' ? 'skin' : tab === 'vehicles' ? 'vehicle' : tab === 'effects' ? 'effect' : 'booster';
-  
-  let items = SHOP_ITEMS[tab] || [];
-  
-  // filter
-  if (filter === 'owned') items = items.filter(it => state.inventory.includes(it.id));
-  else if (filter === 'equipped') items = items.filter(it => state.equipped[ownerType] === it.id);
-  else if (filter === 'unowned') items = items.filter(it => !state.inventory.includes(it.id));
-  
-  // sort
-  if (sort === 'price-asc') items.sort((a,b) => a.price - b.price);
-  else if (sort === 'price-desc') items.sort((a,b) => b.price - a.price);
-  else if (sort === 'name') items.sort((a,b) => a.name.localeCompare(b.name));
-  
-  if (!items.length) {
-    document.getElementById('shopItems').innerHTML = '<div style="text-align:center;padding:48px 16px;color:var(--sub);font-size:var(--font-sm)"><div style="font-size:var(--font-2xl);margin-bottom:12px">🛒</div>Shop is empty — nothing to buy right now.</div>';
-    return;
-  }
-  document.getElementById('shopItems').innerHTML = items.map(it => {
-    const owned = state.inventory.includes(it.id);
-    const equipped = state.equipped[ownerType] === it.id;
-    return `
-    <div class="shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}">
-      <div class="item-icon" style="color:${it.price > 1000 ? 'var(--yellow)' : 'var(--cyan)'}">${it.ico}</div>
-      <div class="item-name">${it.name}</div>
-      <div class="item-desc">${it.desc}</div>
-      <div class="item-price">
-        ${equipped 
-          ? `<span class="price-tag">EQUIPPED ✓</span>`
-          : owned 
-            ? `<button class="btn btn-small btn-ghost" onclick="equipItem('${it.id}','${ownerType}')">EQUIP</button>`
-            : `<button class="btn btn-small btn-yellow" onclick="buyItem('${it.id}','${ownerType}',${it.price})"><i class="fa-solid fa-coins"></i> ${it.price.toLocaleString()}</button>`
-        }
-      </div>
-    </div>`;
-  }).join('');
-  
-  // update live deal banner text
-  if (document.getElementById('dealText')) {
-    const deal2 = liveDeal();
-    if (deal2 && deal2.item) {
-      const dealItem = SHOP_ITEMS.skins.find(s => s.id === deal2.item);
-      if (dealItem) document.getElementById('dealText').innerHTML = `${dealItem.name} — <b>${deal2.pct}% OFF</b> — FIRST BUY TODAY!`;
-    }
-  }
-}
-function buyItem(id, type, price) {
-  if (state.inventory.includes(id)) { toast('Already owned'); return; }
-  // B3 FIX [063]: authoritatively resolve the price from SHOP_ITEMS — never trust the caller-supplied price
-  const realPrice = (() => {
-    for (const cat in SHOP_ITEMS) {
-      const it = SHOP_ITEMS[cat].find(x => x.id === id);
-      if (it) return it.price;
-    }
-    return null;
-  })();
-  const cost = (typeof realPrice === 'number') ? realPrice : (price || 0);
-  if (state.coins < cost) { toast('Not enough coins — play games!'); return; }
-  state.coins -= cost;
-  state.inventory.push(id);
-  saveState(); updateCoinDisplay(); renderShop();
-  toast('Purchased! 🛒');
-}
-function equipItem(id, type) {
-  state.equipped[type] = id;
-  saveState(); renderShop(); renderProfile(); renderThemes();
-  toast('Equipped! ⚡');
-}
-// v7.35: boosters are single-use per run — equipping one UNEQUIPS the slot (they
-// take effect from the equipped 'booster' slot at the next launch), but a booster
-// user must be able to switch between the three by re-equipping.
-function equipBooster(id) {
-  equipItem(id, 'booster');
-}
-// v7.35: called after a consumer booster fires — clears the equipped booster slot
-// so the next run doesn't re-consume the same booster.
-window.unequipBooster = () => {
-  if (state.equipped && state.equipped.booster) {
-    state.equipped.booster = null;
-    saveState();
-  }
-};
-
 /* ==================== LEADERBOARD ==================== */
 const BOTS = [
   { name: 'ZX_PULSE', score: 842190, avatar: '⚡' },
@@ -1239,23 +1109,6 @@ function renderProfile() {
 }
 
 /* ==================== COIN STORE ==================== */
-const COIN_PACKS = [
-  { coins: 500, price: 2.99, tag: null },
-  { coins: 1200, price: 5.99, tag: 'POPULAR' },
-  { coins: 2500, price: 9.99, tag: null },
-  { coins: 5000, price: 17.99, tag: 'BEST VALUE' }
-];
-function renderCoinStore() {
-  document.getElementById('coinPacks').innerHTML = COIN_PACKS.map(p => `
-    <div class="card pack-card">
-      ${p.tag ? `<span class="badge">${p.tag}</span>` : ''}
-      <div class="coins">${p.coins.toLocaleString()}</div>
-      <div style="font-size:11px;color:var(--sub)">COINS</div>
-      <div class="price">$${p.price.toFixed(2)}</div>
-      <button class="btn btn-primary" style="width:100%;padding:10px;opacity:.75" onclick="toast('Coin purchase — coming soon with the app release')"><i class="fa-solid fa-lock"></i> COMING SOON</button>
-    </div>`).join('');
-}
-
 /* Per-game skin mapping — each game gets its own palette (skin-by-game).
    Map game type/category → theme id. Individual games can be overridden below. */
 const GAME_SKIN = { _default: 'neon' };
@@ -1287,7 +1140,7 @@ const THEMES = [
     accent:'#A78BFA', accent2:'#C084FC', glass:'rgba(255,255,255,.05)',
     glassBorder:'rgba(167,139,250,.35)', panel:'#050508', sub:'#9CA3AF',
     bgGridSize:'44px 44px' } },
-  { id: 'sunset', name: 'RETRO SUNSET', ico: '🌇', desc: 'Orange/purple retro vibe', price: 400, palette: {
+  { id: 'sunset', name: 'RETRO SUNSET', ico: '🌇', desc: 'Orange/purple retro vibe', price: 0, palette: {
     bg:'#0B0608', glow1:'rgba(255,107,53,.09)', glow2:'rgba(255,0,128,.07)',
     grid:'rgba(255,107,53,.05)', gridv:'rgba(255,0,128,.05)',
     cyan:'#FFB347', cyan2:'#ff8c00', pink:'#FF6B6B', pink2:'#FF2E63',
@@ -1295,7 +1148,7 @@ const THEMES = [
     accent:'#FFB347', accent2:'#FF6B6B', glass:'rgba(255,255,255,.06)',
     glassBorder:'rgba(255,107,53,.35)', panel:'#12090C', sub:'#B08968',
     bgGridSize:'44px 44px' } },
-  { id: 'matrix', name: 'MATRIX GREEN', ico: '💚', desc: 'Green rain terminal look', price: 600, palette: {
+  { id: 'matrix', name: 'MATRIX GREEN', ico: '💚', desc: 'Green rain terminal look', price: 0, palette: {
     bg:'#020804', glow1:'rgba(34,255,136,.08)', glow2:'rgba(0,255,100,.05)',
     grid:'rgba(34,255,136,.05)', gridv:'rgba(0,255,100,.04)',
     cyan:'#22FF88', cyan2:'#00CC66', pink:'#00FFAA', pink2:'#00B366',
@@ -1303,7 +1156,7 @@ const THEMES = [
     accent:'#22FF88', accent2:'#00FFAA', glass:'rgba(255,255,255,.06)',
     glassBorder:'rgba(34,255,136,.4)', panel:'#02130A', sub:'#86D9AC',
     bgGridSize:'0 0' } },
-  { id: 'royal',  name: 'GOLD ROYAL',  ico: '👑', desc: 'Gold & black luxury',      price: 1000, palette: {
+  { id: 'royal',  name: 'GOLD ROYAL',  ico: '👑', desc: 'Gold & black luxury',      price: 0, palette: {
     bg:'#070600', glow1:'rgba(255,215,0,.09)', glow2:'rgba(128,0,128,.06)',
     grid:'rgba(255,215,0,.05)', gridv:'rgba(128,0,128,.04)',
     cyan:'#FFD700', cyan2:'#FFB300', pink:'#E6B800', pink2:'#B8860B',
@@ -1311,7 +1164,7 @@ const THEMES = [
     accent:'#FFD700', accent2:'#E6B800', glass:'rgba(255,255,255,.06)',
     glassBorder:'rgba(255,215,0,.4)', panel:'#0E0B00', sub:'#C4A870',
     bgGridSize:'44px 44px' } },
-  { id: 'neon2',  name: 'NEON VOID',   ico: '🌌', desc: 'Deep purple-blue neon',     price: 200, palette: {
+  { id: 'neon2',  name: 'NEON VOID',   ico: '🌌', desc: 'Deep purple-blue neon',     price: 0, palette: {
     bg:'#030510', glow1:'rgba(99,102,241,.1)', glow2:'rgba(0,255,255,.06)',
     grid:'rgba(99,102,241,.06)', gridv:'rgba(0,255,255,.05)',
     cyan:'#38BDF8', cyan2:'#0EA5E9', pink:'#818CF8', pink2:'#6366F1',
@@ -1545,39 +1398,6 @@ addEventListener('pointerdown', (e) => themeTouchRipple(e.clientX, e.clientY), {
 
 function stopThemeCanvas() { if (themeBgRaf) { cancelAnimationFrame(themeBgRaf); themeBgRaf = null; } }
 
-function renderThemes() {
-  document.getElementById('themeList').innerHTML = THEMES.map(t => {
-    const owned = t.price === 0 || state.inventory.includes('theme-' + t.id);
-    const active = state.equipped.theme === t.id;
-    return `
-    <div class="card shop-item">
-      <div class="s-ico" style="border-color:${active ? t.palette.accent : 'rgba(255,255,255,.15)'};box-shadow:${active ? '0 0 16px ' + t.palette.accent : 'none'}">${t.ico}</div>
-      <div class="s-info">
-        <h4>${t.name}</h4>
-        <p>${t.desc}</p>
-      </div>
-      <div>
-        ${active ? '<button class="btn btn-ghost" style="padding:8px 12px;font-size:11px">ACTIVE ✓</button>'
-          : owned ? `<button class="btn btn-primary" style="padding:8px 12px;font-size:11px" onclick="applyTheme('${t.id}')">APPLY</button>`
-          : `<button class="btn btn-yellow" style="padding:8px 12px;font-size:11px" onclick="buyTheme('${t.id}',${t.price})"><i class="fa-solid fa-coins"></i>${t.price}</button>`}
-      </div>
-    </div>`;
-  }).join('');
-  applyTheme(state.equipped.theme, true);
-}
-function buyTheme(id, price) {
-  // B3 FIX [063]: authoritative price from THEMES + no duplicate purchase
-  if (state.inventory.includes('theme-' + id)) { toast('Already owned'); return; }
-  const t = THEMES.find(x => x.id === id);
-  const cost = t ? (t.price || 0) : (price || 0);
-  if (cost === 0) { toast('This theme is free'); return; }
-  if (state.coins < cost) { toast('Not enough coins'); return; }
-  state.coins -= cost;
-  state.inventory.push('theme-' + id);
-  state.equipped.theme = id;
-  saveState(); updateCoinDisplay(); renderThemes(); renderShop();
-  toast('Theme applied! 🌆');
-}
 /* Apply a full theme palette to CSS variables (6 themes + per-game skins) */
 function applyTheme(id, silent) {
   // resolve: exact theme, or a game id → its palette, else default neon
