@@ -142,6 +142,13 @@ t('reroll costs 50 coins + deducts', /rerollDailyMissions[\s\S]{0,800}const COST
 t('reroll re-picks from persisted day pools', /pools: \{ play: playPool, score: scorePool \}/.test(core) && /rerollDailyMissions[\s\S]{0,900}pools\.play/.test(core));
 t('reroll keeps completed claims', /rerollDailyMissions[\s\S]{0,900}state\.dailyQuest\.done/.test(core) && /done\.includes/.test(core));
 t('reroll button present in missions widget', html.includes('id="rerollMissionsBtn"') && html.includes('rerollDailyMissions()'));
+// 24. CANVAS HOLD/DRAG INPUT (v7.42): sling/hoop/duck-hunt/archery/bowling were
+//     unplayable on mobile — pointer branch must mirror coords into touches and
+//     hold-to-act canvas games must get the HOLD button. Guard so a future
+//     editor can't silently drop the mirror or the hold button.
+t('pointer branch mirrors coords into touches', /const mirrorTouches/.test(core) && /mirrorTouches\(x, y\); engine\.pointerDown/.test(core) && /gameState\.touches\.pointerDown = \{ x, y \}/.test(core));
+t('hold-to-act canvas games get HOLD button', /const holdGames = \['archery-master', 'bowling-strike', 'soccer-penalty', 'sling-birds', 'airstrike', 'hoop-dunk', 'fruit-merge', 'bubble-shooter'\]/.test(core) && /btn_action/.test(core));
+t('sling/hoop expose pointer hooks', fs.existsSync(path.join(root, 'games/sling_birds.js')) && /pointerDown,\s*\n\s*pointerMove,\s*\n\s*pointerUp/.test(fs.readFileSync(path.join(root, 'games/sling_birds.js'), 'utf8')) && fs.existsSync(path.join(root, 'games/hoop_dunk.js')) && /pointerDown: pointerDown,\s*\n\s*pointerMove: pointerMove,\s*\n\s*pointerUp: pointerUp/.test(fs.readFileSync(path.join(root, 'games/hoop_dunk.js'), 'utf8')));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);
