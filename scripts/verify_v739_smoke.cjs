@@ -65,7 +65,11 @@ function inlineScript(file) {
     await inlineScript('games/core.js');
     await new Promise(r => setTimeout(r, 80));
     await inlineScript('app.js');
-    await new Promise(r => setTimeout(r, 400)); // init + loadLive
+    // app.js wires init() on DOMContentLoaded — jsdom already passed that
+    // moment (we appended scripts after parse), so fire it manually like the
+    // browser would, then give loadLive->renderHome time to settle.
+    window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
+    await new Promise(r => setTimeout(r, 500)); // init + loadLive + renderHome
   } catch (e) {
     console.log('SCRIPT LOAD ERROR: ' + e.message);
     process.exit(1);
@@ -75,10 +79,10 @@ function inlineScript(file) {
   ok('window.liveChallenge is a function', typeof window.liveChallenge === 'function');
   ok('liveChallenge returns banner game (live_state)', typeof window.liveChallenge === 'function' && window.liveChallenge() === 'neon-snake');
 
-  // 2. home banner rendered with the REAL reward text
-  const banner = window.document.querySelector('.deal-banner');
+  // 2. home challenge banner rendered with the REAL reward text (scope: home only)
+  const banner = window.document.querySelector('#page-home .deal-banner');
   ok('challenge banner rendered on home', !!banner);
-  ok('banner names the game + reward', !!banner && /neon-snake|Neon Snake/.test(banner.textContent) && /40/.test(banner.textContent) && banner.textContent.includes('🪙'));
+  ok('banner names the game + reward', !!banner && /neon-snake|Neon Snake/i.test(banner.textContent) && /40/.test(banner.textContent) && banner.textContent.includes('🪙'));
   ok('banner claim is honest (no vague "earn bonus coins")', !!banner && !/earn bonus coins/.test(banner.textContent));
 
   // 3. offline fallback: same function with LIVE cleared still returns a game id
