@@ -4,6 +4,7 @@
    Loads each games/*.js engine, stubs canvas/rAF, runs start→frames→pause→resume→destroy. */
 const fs = require('fs'); const path = require('path');
 const G = path.join(__dirname, '..', 'games');
+const root = path.join(__dirname, '..');
 function chainable(){ const f = function(){ return f; }; return new Proxy(f, { get(t, p){ if(p==='addColorStop') return ()=>{}; if(p===Symbol.toPrimitive) return ()=>0; return chainable(); }, set(){ return true; }, apply(){ return chainable(); } }); }
 function makeCtx(){ return new Proxy({}, { get(t, p){ if(p==='canvas') return {width:800,height:450}; if(p==='measureText') return ()=>({width:10}); if(p==='createLinearGradient'||p==='createRadialGradient'||p==='createPattern') return ()=>chainable(); if(p==='getImageData') return ()=>({data:new Uint8ClampedArray(4)}); return chainable(); }, set(){ return true; } }); }
 const canvas = { width:800, height:450, style:{}, getContext(){ return makeCtx(); }, addEventListener(){}, removeEventListener(){}, getBoundingClientRect(){ return {left:0,top:0,width:800,height:450}; } };
@@ -27,18 +28,14 @@ while ((m = re.exec(core))) {
   const f = fn[0].toLowerCase() + fn.slice(1).replace(/([A-Z])/g, '_$1').toLowerCase() + '.js';
   if (['core.js','controls.js','project_status.js'].includes(f)) continue;
   const fp = path.join(G, f);
-  if (fs.existsSync(fp) && fs.readFileSync(fp,'utf8').includes('function '+fn+'(')) map[f.slice(0,-3)] = fn;
+  // iframe-hosted games (2048) keep their dir, not an engine .js — skip from engine map
+  if (fn !== 'game2048' && fs.existsSync(fp) && fs.readFileSync(fp,'utf8').includes('function '+fn+'(')) map[f.slice(0,-3)] = fn;
 }
+const IFRAME_HOSTED = ['2048']; // original-app zip games: verified as dirs below
 
-// New-format engines define window.engines.<name> instead of top-level function —
-// test them via their alias too [master: full 70/70 coverage]
-const aliasEngines = ['bounce','space_impact','bantumi','reversi'];
-for (const a of aliasEngines) {
-  const fp = path.join(G, a + '.js');
-  try { map[a] = 'window.engines.' + a; } catch(e) {}
-}
+// (v7.43: single-game hub — only 2048 iframe remains; alias engines removed)
 const results = [];
-const legacyNames = ['bounce','space_impact','bantumi'];
+const legacyNames = [];
 for (const [file, fn] of Object.entries(map)) {
   try {
     const code = fs.readFileSync(path.join(G, file + '.js'),'utf8');
@@ -66,6 +63,11 @@ for (const [file, fn] of Object.entries(map)) {
   } catch (e) {
     results.push('FAIL ' + file + ' — ' + (e && e.message ? e.message : String(e)) + (e && e.stack ? '\n' + e.stack.split('\n').slice(0,4).join('\n') : ''));
   }
+}
+for (const id of IFRAME_HOSTED) {
+  const dir = path.join(root, id);
+  if (fs.existsSync(dir) && fs.existsSync(path.join(dir, 'index.html'))) results.push('PASS ' + id + ' (iframe dir + index.html)');
+  else { results.push('FAIL ' + id + ' — iframe dir missing'); process.exitCode = 1; }
 }
 results.forEach(r=>console.log(r));
 const fails = results.filter(r=>r.startsWith('FAIL'));

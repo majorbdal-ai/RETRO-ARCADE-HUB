@@ -9,76 +9,7 @@
 // that become globals. Map game id -> engine function name, resolve
 // lazily so script load order never matters.
 const GAME_ENGINE = {
-  'neon-racer':     'neonRacer',
-  'cyber-shooter':  'cyberShooter',
-  'pixel-dungeon':  'pixelDungeon',
-  'light-cycle':    'lightCycle',
-  'neon-snake':     'neonSnake',
-  'brick-breaker':  'brickBreaker',
-  'tetris-blitz':   'tetrisBlitz',
-  'flappy-neon':    'flappyNeon',
-  'pac-runner':     'pacRunner',
-  'space-invaders': 'spaceInvaders',
-  'water-sort':     'waterSort',
-  'triple-sort':    'tripleSort',
-  'fruit-slash':    'fruitSlash',
-  'ludo-king':      'ludoKing',
-  'carrom-pool':    'carromPool',
-  '2048':           'game2048',
-  'hill-climb':     'hillClimb',
-  'temple-run':     'templeRun',
-  'candy-crush':    'candyCrush',
-  'snake-classic':  'snakeClassic',
-  'tank-battle':          'tankBattle',
-  'airstrike':          'airStrike',
-  'fruit-merge':          'fruitMerge',
-  'bubble-shooter':          'bubbleShooter',
-  'piano-tiles':          'pianoTiles',
-  'duck-hunt':          'duckHunt',
-  'neon-dash':          'neonDash',
-  'color-switch':          'colorSwitch',
-  'neon-jumper':          'neonJumper',
-  'stack-drop':          'stackDrop',
-  'helix-drop':          'helixDrop',
-  'traffic-racer':          'trafficRacer',
-  'dino-run':          'dinoRun',
-  'sling-birds':          'slingBirds',
-  'space-miner':          'spaceMiner',
-  'neon-slam':          'neonSlam',
-  'neon-tower':          'neonTower',
-  'cosmic-dash':          'cosmicDash',
-  'lazer-maze':          'lazerMaze',
-  'time-rush':          'timeRush',
-  'pong':          'pong',
-  'table-tennis':          'tableTennis',
-  'bowling-strike':          'bowlingStrike',
-  'cricket-sixer':          'cricketSixer',
-  'hoop-dunk':          'hoopDunk',
-  'archery-master':          'archeryMaster',
-  'soccer-penalty':          'soccerPenalty',
-  'athletics-sprint':          'athleticsSprint',
-  'flow-free':          'flowFree',
-  'word-search':          'wordSearch',
-  'memory-match':          'memoryMatch',
-  'mine-sweeper':          'mineSweeper',
-  'sudoku':          'sudoku',
-  'mastermind':          'mastermind',
-  'simon-says':          'simonSays',
-  'tic-tac-toe':          'ticTacToe',
-  'connect-four':          'connectFour',
-  'checkers':          'checkers',
-  'slide-puzzle':          'slidePuzzle',
-  'nonogram':          'nonogram',
-  'lucky-spin':          'luckySpin',
-  'pinball':          'pinBall',
-  'crossy-neon':          'crossyNeon',
-  'trash-sorter':          'trashSorter',
-  'ladder-climb':          'ladderClimb',
-  'math-dash':          'mathDash',
-  'bounce':             'bounce',
-  'space-impact':       'spaceImpact',
-  'bantumi':            'bantumi',
-  'reversi':            'reversi',
+'2048':           'game2048',
 };
 
 // true when the game's engine file is available (all 70 are; lazy-loaded on launch)
@@ -97,24 +28,7 @@ let pendingReviveFloor = 0;        // score floor carried into the revived run
 // 70 games — per-game star/retry/mission targets
 // 1★ = play & score something · 2★ = 60% · 3★ = beat target (realistic per-game goals)
 const GAME_TARGETS = {
-  'neon-racer': 800, 'cyber-shooter': 150, 'pixel-dungeon': 12, 'light-cycle': 600,
-  'neon-snake': 120, 'brick-breaker': 300, 'tetris-blitz': 12, 'flappy-neon': 50,
-  'pac-runner': 150, 'space-invaders': 40, 'tank-battle': 15, 'airstrike': 300,
-  'water-sort': 8, 'triple-sort': 25, 'fruit-slash': 40, 'fruit-merge': 32,
-  'bubble-shooter': 20, 'piano-tiles': 100, 'ludo-king': 1, 'carrom-pool': 5,
-  '2048': 512, 'hill-climb': 300, 'temple-run': 500, 'candy-crush': 60,
-  'snake-classic': 100, 'duck-hunt': 12, 'neon-dash': 100, 'color-switch': 30,
-  'neon-jumper': 150, 'stack-drop': 500, 'helix-drop': 200, 'traffic-racer': 700,
-  'dino-run': 300, 'sling-birds': 9, 'space-miner': 1000, 'neon-slam': 500,
-  'neon-tower': 1000, 'cosmic-dash': 80, 'lazer-maze': 6, 'time-rush': 60,
-  'pong': 15, 'table-tennis': 20, 'bowling-strike': 100, 'cricket-sixer': 100,
-  'hoop-dunk': 100, 'archery-master': 90, 'soccer-penalty': 15, 'athletics-sprint': 100,
-  'flow-free': 8, 'word-search': 6, 'memory-match': 8, 'mine-sweeper': 8,
-  'sudoku': 1, 'mastermind': 5, 'simon-says': 10, 'tic-tac-toe': 1,
-  'connect-four': 1, 'checkers': 10, 'slide-puzzle': 30, 'nonogram': 8,
-  'lucky-spin': 100, 'pinball': 7, 'crossy-neon': 25, 'trash-sorter': 12,
-  'ladder-climb': 300, 'math-dash': 10, 'bounce': 250, 'space-impact': 600,
-  'bantumi': 24, 'reversi': 2
+    '2048': 512,
 };
 // per-game touch/pointer binding (carrom, temple, snake-classic use canvas swipes)
 let canvasSwipe = { startX: 0, startY: 0, started: false };
@@ -1715,8 +1629,9 @@ function endGame(score, coinsEarned) {
     { id: 'win1000', ico: '📿', name: 'Marathon Man',       test: () => state.stats.gamesPlayed >= 1000 },
     { id: 'score100k',ico: '🌋', name: 'Lifetime 100K',     test: () => (state.stats.totalScore || 0) >= 100000 },
     { id: 'score1m', ico: '🪐', name: 'Lifetime 1M',        test: () => (state.stats.totalScore || 0) >= 1000000 },
-    { id: 'thirty',  ico: '🧩', name: 'Catalog Pro',        test: () => Object.keys(state.best).length >= 30 },
-    { id: 'all70',   ico: '🎖️', name: 'Full Catalog',       test: () => Object.keys(state.best).length >= 70 },
+    { id: 'tile512',  ico: '🧩', name: 'Tile 512',           test: () => (state.best['2048'] || 0) >= 512 },
+    { id: 'tile1024', ico: '🏅', name: 'Tile 1024',          test: () => (state.best['2048'] || 0) >= 1024 },
+    { id: 'tile2048', ico: '🎖️', name: 'Tile 2048!',         test: () => (state.best['2048'] || 0) >= 2048 },
     { id: 'rich5k',  ico: '💸', name: 'Tycoon',             test: () => state.coins >= 5000 },
     { id: 'rich50k', ico: '🏦', name: 'Coin Vault',         test: () => state.coins >= 50000 },
     { id: 'revive25',ico: '🐍', name: 'No Retreat',         test: () => (state.stats.revivesUsed || 0) >= 25 }
@@ -1735,105 +1650,14 @@ function endGame(score, coinsEarned) {
   if (!state.dailyQuest.date || state.dailyQuest.date !== today) {
     // new day: pick 3 game-specific missions (1 play + 2 score, known-score games)
     const playPool = [
-      { id: 'mp-tetris',   ico: '🧱', game: 'tetris-blitz',   desc: 'Play Tetris once',        target: 1, reward: 40, prog: 0 },
-      { id: 'mp-sudoku',   ico: '🧩', game: 'sudoku',         desc: 'Play Sudoku once',        target: 1, reward: 45, prog: 0 },
-      { id: 'mp-pinball',  ico: '🪩', game: 'pinball',  desc: 'Play Pinball once',       target: 1, reward: 40, prog: 0 },
-      { id: 'mp-mines',    ico: '💣', game: 'mine-sweeper',   desc: 'Play Minesweeper once',   target: 1, reward: 45, prog: 0 },
-      { id: 'mp-2048',     ico: '🔢', game: '2048',           desc: 'Play 2048 once',          target: 1, reward: 40, prog: 0 },
-      { id: 'mp-ludo',     ico: '🎲', game: 'ludo-king',      desc: 'Play Ludo once',          target: 1, reward: 45, prog: 0 },
-      { id: 'mp-flappy',   ico: '🐤', game: 'flappy-neon',    desc: 'Play Flappy once',        target: 1, reward: 40, prog: 0 },
-      { id: 'mp-temple',   ico: '🗿', game: 'temple-run',     desc: 'Play Temple Run once',    target: 1, reward: 45, prog: 0 },
-      { id: 'mp-invaders', ico: '👾', game: 'space-invaders', desc: 'Play Invaders once',      target: 1, reward: 40, prog: 0 },
-      { id: 'mp-stack',    ico: '🧱', game: 'stack-drop',     desc: 'Play Stack once',         target: 1, reward: 40, prog: 0 },
-      // ==== PLAY POOL v7.27b (17 remaining games) ====
-      { id: 'mp-dungeon',  ico: '🕳️', game: 'pixel-dungeon', desc: 'Play Dungeon once',      target: 1, reward: 40, prog: 0 },
-      { id: 'mp-piano',    ico: '🎹', game: 'piano-tiles',   desc: 'Play Piano once',         target: 1, reward: 40, prog: 0 },
-      { id: 'mp-sling',    ico: '🪃', game: 'sling-birds',   desc: 'Play Sling once',         target: 1, reward: 40, prog: 0 },
-      { id: 'mp-cosmic',   ico: '🌌', game: 'cosmic-dash',   desc: 'Play Cosmic once',        target: 1, reward: 40, prog: 0 },
-      { id: 'mp-lazer',    ico: '🔦', game: 'lazer-maze',    desc: 'Play Lazer Maze once',    target: 1, reward: 40, prog: 0 },
-      { id: 'mp-timerush', ico: '⏱️', game: 'time-rush',     desc: 'Play Time Rush once',     target: 1, reward: 40, prog: 0 },
-      { id: 'mp-pingpong', ico: '🏓', game: 'table-tennis',  desc: 'Play Table Tennis once',  target: 1, reward: 40, prog: 0 },
-      { id: 'mp-flow',     ico: '🔗', game: 'flow-free',     desc: 'Play Flow once',          target: 1, reward: 40, prog: 0 },
-      { id: 'mp-ttt',      ico: '⭕', game: 'tic-tac-toe',   desc: 'Play Tic-Tac-Toe once',   target: 1, reward: 40, prog: 0 },
-      { id: 'mp-cfour',    ico: '🟡', game: 'connect-four',  desc: 'Play Connect Four once',  target: 1, reward: 40, prog: 0 },
-      { id: 'mp-nonogram', ico: '🎨', game: 'nonogram',      desc: 'Play Nonogram once',      target: 1, reward: 40, prog: 0 },
-      { id: 'mp-spin',     ico: '🎰', game: 'lucky-spin',    desc: 'Play Lucky Spin once',    target: 1, reward: 40, prog: 0 },
-      { id: 'mp-trash',    ico: '🗑️', game: 'trash-sorter', desc: 'Play Trash Sorter once',  target: 1, reward: 40, prog: 0 },
-      { id: 'mp-ladder',   ico: '🪜', game: 'ladder-climb',  desc: 'Play Ladder once',        target: 1, reward: 40, prog: 0 },
-      { id: 'mp-math',     ico: '➗', game: 'math-dash',     desc: 'Play Math Dash once',     target: 1, reward: 40, prog: 0 },
-      { id: 'mp-bantumi',  ico: '🏺', game: 'bantumi',       desc: 'Play Bantumi once',       target: 1, reward: 40, prog: 0 },
-      { id: 'mp-reversi',  ico: '⬛', game: 'reversi',       desc: 'Play Reversi once',       target: 1, reward: 40, prog: 0 }
+      { id: 'mp-2048',     ico: '🔢', game: '2048',       desc: 'Play 2048 once',          target: 1, reward: 40, prog: 0 }
     ];
     const scorePool = [
-      { id: 'ms-flappy50',  ico: '🐤', game: 'flappy-neon',    desc: 'Flappy: score 50',       target: 50,  reward: 60, prog: 0 },
-      { id: 'ms-snake100',  ico: '🐍', game: 'snake-classic',  desc: 'Snake: eat 100',         target: 100, reward: 60, prog: 0 },
-      { id: 'ms-dino300',   ico: '🦖', game: 'dino-run',       desc: 'Dino: run 300m',         target: 300, reward: 60, prog: 0 },
-      { id: 'ms-pinball7',  ico: '🪩', game: 'pinball',  desc: 'Pinball: 7 pts',         target: 7,   reward: 55, prog: 0 },
-      { id: 'ms-break60',   ico: '🧨', game: 'brick-breaker',  desc: 'Breakout: 60 pts',       target: 60,  reward: 55, prog: 0 },
-      { id: 'ms-invaders20',ico: '👾', game: 'space-invaders', desc: 'Invaders: 20 kills',     target: 20,  reward: 60, prog: 0 },
-      { id: 'ms-pac30',     ico: '👻', game: 'pac-runner',     desc: 'Pac: eat 30 dots',       target: 30,  reward: 60, prog: 0 },
-      // ==== EXPANDED COVERAGE v7.14 (every category has a score mission) ====
-      { id: 'ms-cycle600',  ico: '🏍️', game: 'light-cycle',    desc: 'Light Cycle: 600 travel', target: 600, reward: 65, prog: 0 },
-      { id: 'ms-helix200',  ico: '🌀', game: 'helix-drop',     desc: 'Helix: drop 200m',        target: 200, reward: 65, prog: 0 },
-      { id: 'ms-snake120',  ico: '🐍', game: 'neon-snake',     desc: 'Neon Snake: 120 pts',     target: 120, reward: 65, prog: 0 },
-      { id: 'ms-shooter150',ico: '🚀', game: 'cyber-shooter',  desc: 'Shooter: 150 pts',        target: 150, reward: 65, prog: 0 },
-      { id: 'ms-racer800',  ico: '🏎️', game: 'neon-racer',     desc: 'Racer: 800 pts',          target: 800, reward: 65, prog: 0 },
-      { id: 'ms-temple500', ico: '🗿', game: 'temple-run',     desc: 'Temple: run 500m',        target: 500, reward: 70, prog: 0 },
-      { id: 'ms-jumper150', ico: '🦘', game: 'neon-jumper',    desc: 'Jumper: 150 pts',         target: 150, reward: 65, prog: 0 },
-      { id: 'ms-switch30',  ico: '🎯', game: 'color-switch',   desc: 'Color Switch: 30',        target: 30,  reward: 60, prog: 0 },
-      { id: 'ms-crossy25',  ico: '🐔', game: 'crossy-neon',    desc: 'Crossy: 25 roads',        target: 25,  reward: 60, prog: 0 },
-      { id: 'ms-tetris12',  ico: '🧱', game: 'tetris-blitz',   desc: 'Tetris: 12 lines',        target: 12,  reward: 65, prog: 0 },
-      { id: 'ms-miner1000', ico: '🪨', game: 'space-miner',    desc: 'Miner: 1000 ore',         target: 1000,reward: 70, prog: 0 },
-      // ==== SCORE POOL v7.27 (31 more: every category now has a score mission) ====
-      { id: 'ms-duck8',     ico: '🦆', game: 'duck-hunt',      desc: 'Duck Hunt: 8 ducks',      target: 8,   reward: 55, prog: 0 },
-      { id: 'ms-pong8',     ico: '🏓', game: 'pong',           desc: 'Pong: 8 points',          target: 8,   reward: 55, prog: 0 },
-      { id: 'ms-cricket60', ico: '🏏', game: 'cricket-sixer',  desc: 'Cricket: 60 runs',        target: 60,  reward: 60, prog: 0 },
-      { id: 'ms-bowling60', ico: '🎳', game: 'bowling-strike', desc: 'Bowling: 60 pts',         target: 60,  reward: 60, prog: 0 },
-      { id: 'ms-hoop50',    ico: '🏀', game: 'hoop-dunk',      desc: 'Hoop: 50 pts',            target: 50,  reward: 60, prog: 0 },
-      { id: 'ms-archery60', ico: '🏹', game: 'archery-master', desc: 'Archery: 60 pts',         target: 60,  reward: 60, prog: 0 },
-      { id: 'ms-soccer10',  ico: '⚽', game: 'soccer-penalty', desc: 'Soccer: 10 goals',        target: 10,  reward: 60, prog: 0 },
-      { id: 'ms-sprint70',  ico: '🏃', game: 'athletics-sprint', desc: 'Sprint: 70m',          target: 70,  reward: 60, prog: 0 },
-      { id: 'ms-tank8',     ico: '🪖', game: 'tank-battle',    desc: 'Tank: 8 kills',           target: 8,   reward: 60, prog: 0 },
-      { id: 'ms-air200',    ico: '✈️', game: 'airstrike',      desc: 'Airstrike: 200 pts',      target: 200, reward: 60, prog: 0 },
-      { id: 'ms-tower600',  ico: '🗼', game: 'neon-tower',     desc: 'Neon Tower: 600',         target: 600, reward: 65, prog: 0 },
-      { id: 'ms-stack300',  ico: '🧱', game: 'stack-drop',     desc: 'Stack: 300 pts',          target: 300, reward: 60, prog: 0 },
-      { id: 'ms-dash60',    ico: '⚡', game: 'neon-dash',      desc: 'Neon Dash: 60',           target: 60,  reward: 60, prog: 0 },
-      { id: 'ms-slam300',   ico: '💥', game: 'neon-slam',      desc: 'Neon Slam: 300',          target: 300, reward: 60, prog: 0 },
-      { id: 'ms-bubble15',  ico: '🫧', game: 'bubble-shooter', desc: 'Bubble: 15 pops',         target: 15,  reward: 55, prog: 0 },
-      { id: 'ms-sort20',    ico: '🗂️', game: 'triple-sort',    desc: 'Triple Sort: 20',         target: 20,  reward: 55, prog: 0 },
-      { id: 'ms-water6',    ico: '🧪', game: 'water-sort',     desc: 'Water Sort: 6 levels',    target: 6,   reward: 55, prog: 0 },
-      { id: 'ms-simon7',    ico: '🎹', game: 'simon-says',     desc: 'Simon: 7 rounds',         target: 7,   reward: 55, prog: 0 },
-      { id: 'ms-words4',    ico: '📖', game: 'word-search',    desc: 'Word Search: 4 words',    target: 4,   reward: 55, prog: 0 },
-      { id: 'ms-memory6',   ico: '🃏', game: 'memory-match',   desc: 'Memory: 6 pairs',         target: 6,   reward: 55, prog: 0 },
-      { id: 'ms-master4',   ico: '🎯', game: 'mastermind',     desc: 'Mastermind: 4 codes',     target: 4,   reward: 55, prog: 0 },
-      { id: 'ms-slide20',   ico: '🧩', game: 'slide-puzzle',   desc: 'Slide: 20 moves',         target: 20,  reward: 55, prog: 0 },
-      { id: 'ms-checkers6', ico: '♟️', game: 'checkers',       desc: 'Checkers: 6 captures',    target: 6,   reward: 55, prog: 0 },
-      { id: 'ms-candy40',   ico: '🍬', game: 'candy-crush',    desc: 'Candy: 40 matches',       target: 40,  reward: 60, prog: 0 },
-      { id: 'ms-fruit20',   ico: '🍉', game: 'fruit-merge',    desc: 'Fruit Merge: 20',         target: 20,  reward: 60, prog: 0 },
-      { id: 'ms-slash25',   ico: '🔪', game: 'fruit-slash',    desc: 'Fruit Slash: 25',         target: 25,  reward: 55, prog: 0 },
-      { id: 'ms-traffic400',ico: '🚗', game: 'traffic-racer',  desc: 'Traffic: 400 pts',        target: 400, reward: 65, prog: 0 },
-      { id: 'ms-hill150',   ico: '⛰️', game: 'hill-climb',     desc: 'Hill Climb: 150m',        target: 150, reward: 60, prog: 0 },
-      { id: 'ms-bounce150', ico: '🏀', game: 'bounce',         desc: 'Bounce: 150 pts',         target: 150, reward: 60, prog: 0 },
-      { id: 'ms-impact300', ico: '🚀', game: 'space-impact',   desc: 'Space Impact: 300',       target: 300, reward: 65, prog: 0 },
-      { id: 'ms-carrom3',   ico: '🎱', game: 'carrom-pool',    desc: 'Carrom: 3 coins',         target: 3,   reward: 55, prog: 0 },
-      // ==== SCORE POOL v7.27b (17 remaining games get score missions) ====
-      { id: 'ms-dungeon8',  ico: '🕳️', game: 'pixel-dungeon',  desc: 'Dungeon: reach depth 8',  target: 8,   reward: 60, prog: 0 },
-      { id: 'ms-piano50',   ico: '🎹', game: 'piano-tiles',    desc: 'Piano: 50 tiles',         target: 50,  reward: 55, prog: 0 },
-      { id: 'ms-sling6',    ico: '🪃', game: 'sling-birds',    desc: 'Sling: 6 birds',          target: 6,   reward: 55, prog: 0 },
-      { id: 'ms-cosmic40',  ico: '🌌', game: 'cosmic-dash',    desc: 'Cosmic: 40 pts',          target: 40,  reward: 55, prog: 0 },
-      { id: 'ms-lazer4',    ico: '🔦', game: 'lazer-maze',     desc: 'Lazer: 4 levels',         target: 4,   reward: 55, prog: 0 },
-      { id: 'ms-time30',    ico: '⏱️', game: 'time-rush',      desc: 'Time Rush: 30 pts',       target: 30,  reward: 55, prog: 0 },
-      { id: 'ms-pingpong12',ico: '🏓', game: 'table-tennis',   desc: 'Table Tennis: 12 pts',    target: 12,  reward: 55, prog: 0 },
-      { id: 'ms-flow4',     ico: '🔗', game: 'flow-free',      desc: 'Flow: 4 puzzles',         target: 4,   reward: 55, prog: 0 },
-      { id: 'ms-ttt1',      ico: '⭕', game: 'tic-tac-toe',    desc: 'Tic-Tac-Toe: win 1',      target: 1,   reward: 50, prog: 0 },
-      { id: 'ms-cfour1',    ico: '🟡', game: 'connect-four',   desc: 'Connect Four: win 1',     target: 1,   reward: 50, prog: 0 },
-      { id: 'ms-nonogram5', ico: '🎨', game: 'nonogram',       desc: 'Nonogram: 5 puzzles',     target: 5,   reward: 55, prog: 0 },
-      { id: 'ms-spin60',    ico: '🎰', game: 'lucky-spin',     desc: 'Lucky Spin: 60 pts',      target: 60,  reward: 55, prog: 0 },
-      { id: 'ms-trash8',    ico: '🗑️', game: 'trash-sorter',  desc: 'Trash: 8 items',          target: 8,   reward: 55, prog: 0 },
-      { id: 'ms-ladder150', ico: '🪜', game: 'ladder-climb',   desc: 'Ladder: 150m',            target: 150, reward: 60, prog: 0 },
-      { id: 'ms-math6',     ico: '➗', game: 'math-dash',      desc: 'Math: 6 correct',         target: 6,   reward: 55, prog: 0 },
-      { id: 'ms-bantumi16', ico: '🏺', game: 'bantumi',        desc: 'Bantumi: 16 seeds',       target: 16,  reward: 55, prog: 0 },
-      { id: 'ms-reversi1',  ico: '⬛', game: 'reversi',        desc: 'Reversi: win 1',          target: 1,   reward: 50, prog: 0 }
+      { id: 'ms-2048-512',  ico: '🔢', game: '2048', desc: '2048: reach 512 tile',  target: 512,  reward: 60, prog: 0 },
+      { id: 'ms-2048-1024', ico: '🔢', game: '2048', desc: '2048: reach 1024 tile', target: 1024, reward: 70, prog: 0 },
+      { id: 'ms-2048-2048', ico: '🏆', game: '2048', desc: '2048: reach 2048 tile!',target: 2048, reward: 80, prog: 0 },
+      { id: 'ms-2048-10k',   ico: '💎', game: '2048', desc: '2048: score 10,000',   target: 10000,reward: 65, prog: 0 },
+      { id: 'ms-2048-25k',   ico: '💎', game: '2048', desc: '2048: score 25,000',   target: 25000,reward: 75, prog: 0 }
     ];
     shuffle(playPool); shuffle(scorePool);
     // v7.41: persist the day's pools so rerollDailyMissions() re-draws fresh picks
@@ -2449,7 +2273,7 @@ function generateShareCard() {
 
   ctx.font = "11px 'Arial', sans-serif";
   ctx.fillStyle = '#555555';
-  ctx.fillText('70 games · XP · achievements · free to play', W/2, 375);
+  ctx.fillText('2048 · XP · achievements · free to play', W/2, 375);
 
   return cvs;
 }
@@ -2508,7 +2332,7 @@ function copyScoreText() {
     const t = GAME_TARGETS[gameState.id];
     return t ? (score >= t ? 3 : score >= t * 0.6 ? 2 : 1) : 1;
   })());
-  const text = `🎮 ${game.name}: ${score.toLocaleString()} ${stars}\nRETRO ARCADE HUB — 70 free games!`;
+  const text = `🎮 ${game.name}: ${score.toLocaleString()} ${stars}\nRETRO ARCADE HUB — 2048!`;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => toast('Score copied! 📋')).catch(() => toast('Could not copy'));
   } else {
