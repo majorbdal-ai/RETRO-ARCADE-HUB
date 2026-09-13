@@ -977,8 +977,6 @@ function launchOrig2048() {
               document.getElementById('hudScore').innerText = String(st.score);
               const liveEl = document.getElementById('origLocalCoins');
               if (liveEl) liveEl.innerText = String(Math.floor(st.score / 10));
-              const scoreEl = document.getElementById('origLocalScore');
-              if (scoreEl) scoreEl.innerText = String(st.score);
             }
           }
         }
@@ -1009,8 +1007,6 @@ function settleOrig2048() {
       }
       const best = parseInt(ls.getItem('bestScore') || '0', 10) || 0;
       if (best > _2048lastBest) _2048lastBest = best;
-      const bestEl = document.getElementById('origLocalBest');
-      if (bestEl) bestEl.innerText = String(Math.max(parseInt(bestEl.innerText || '0', 10) || 0, best));
     }
   } catch (e) {}
   // coins from the ORIGINAL scoring (10% of score like the hub economy)
@@ -1093,9 +1089,7 @@ function restartOrig2048() {
   gameState = { id: '2048', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('gameOverOverlay').classList.remove('show');
-  const rScore = document.getElementById('origLocalScore');
   const rCoins = document.getElementById('origLocalCoins');
-  if (rScore) rScore.innerText = '0';
   if (rCoins) rCoins.innerText = '0';
   if (window._2048poll) {} else {
     window._2048poll = setInterval(() => {
@@ -1111,8 +1105,6 @@ function restartOrig2048() {
               if (st.score !== gameState.score) {
                 gameState.score = st.score;
                 document.getElementById('hudScore').innerText = String(st.score);
-                const sEl = document.getElementById('origLocalScore');
-                if (sEl) sEl.innerText = String(st.score);
                 const cEl = document.getElementById('origLocalCoins');
                 if (cEl) cEl.innerText = String(Math.floor(st.score / 10));
               }
