@@ -91,6 +91,7 @@ let currentGame = null;   // engine instance
 let currentEngine = null; // function
 let gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
 let reviveUsed = false;            // one coin-continue per session (arcade rule)
+let pendingRevenge = false;        // v7.36 REVENGE MODE: +50% score on next run, bought at game-over
 let pendingReviveFloor = 0;        // score floor carried into the revived run
 // 70 games — per-game star/retry/mission targets (single source of truth)
 // 70 games — per-game star/retry/mission targets
@@ -136,6 +137,43 @@ function clearDPRResize() {
     window.__dprResize = null;
   }
 }
+let tapBinding = null; // universal canvas tap → touches.lastTapX/Y + action (fix: memory-match/checkers)
+
+// Universal canvas tap tracker:
+// Engines that run on BOARD TAPS (memory-match, checkers, nonogram, sudoku,
+// ludo, mine-sweeper, water-sort, …) read touches.lastTapX/lastTapY + touches.action.
+// core.js previously NEVER set those for button-controlled games, so those games
+// were unplayable (tap did nothing). This binds on the canvas for EVERY game and
+// feeds both the coordinate AND a short action pulse.
+function bindTapTracker(canvas) {
+  unbindTapTracker();
+  if (!canvas) return;
+  const setTap = (clientX, clientY) => {
+    const { x, y } = canvasXY(clientX, clientY);
+    gameState.touches.lastTapX = x;
+    gameState.touches.lastTapY = y;
+    // engines that read touches.x/touches.y for tap position (nonogram,
+    // sudoku, ludo-king, soccer-penalty) get the same coordinates
+    gameState.touches.x = x;
+    gameState.touches.y = y;
+    // action pulse so engines that poll touches.action also react
+    gameState.touches.action = true;
+    setTimeout(() => { if (gameState.touches) gameState.touches.action = false; }, 90);
+  };
+  const down = (e) => { e.preventDefault(); const t = e.touches ? e.touches[0] : e; setTap(t.clientX, t.clientY); };
+  const mouseDown = (e) => { e.preventDefault(); setTap(e.clientX, e.clientY); };
+  canvas.addEventListener('touchstart', down, { passive: false });
+  canvas.addEventListener('mousedown', mouseDown, { passive: false });
+  tapBinding = { el: canvas, handlers: { down, mouseDown } };
+}
+function unbindTapTracker() {
+  if (tapBinding) {
+    const { el, handlers } = tapBinding;
+    el.removeEventListener('touchstart', handlers.down);
+    el.removeEventListener('mousedown', handlers.mouseDown);
+    tapBinding = null;
+  }
+}
 function canvasScale() {
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return { sx: 1, sy: 1 };
@@ -175,7 +213,8 @@ function bindGameTouch(engine) {
   const cType = layout ? layout.type : null;
   const gestureTypes = ['canvas', 'swipe', 'swipe-zone', 'drag', 'tilt', 'swipe+drag', 'swipe+action'];
   if (cType && gestureTypes.indexOf(cType) === -1) {
-    // button-controlled game → no canvas gestures; keep only the virtual buttons
+    // button-controlled — no canvas gestures; tap-tracker for board-tap games
+    bindTapTracker(canvas);
     return;
   }
   // track active pointers per pointerId (multi-touch safe)
@@ -289,6 +328,7 @@ function bindGameTouch(engine) {
   }
 }
 function unbindGameTouch() {
+  unbindTapTracker();
   if (swipeBinding) {
     const { el, type, handlers } = swipeBinding;
     if (type === 'pointer') {
@@ -1032,6 +1072,9 @@ function bootGame(id, engine) {
   // hide combo chip until combo active
   const hudComboEl = document.getElementById('hudCombo');
   if (hudComboEl) hudComboEl.style.display = 'none';
+  // REVENGE MODE (v7.36): show the charged chip during the boosted run
+  const hudRevengeEl = document.getElementById('hudRevenge');
+  if (hudRevengeEl) hudRevengeEl.style.display = pendingRevenge ? 'inline-flex' : 'none';
 
   // lock page scroll during gameplay (mobile)
   lockGameScroll(true);
@@ -1222,6 +1265,14 @@ function endGame(score, coinsEarned) {
   // [P1 fix] sanitize score — NaN/Infinity/negative/string must never reach storage [046-050]
   score = Math.max(0, Math.floor(Number(score) || 0));
   coinsEarned = Math.max(0, Math.floor(Number(coinsEarned) || 0));
+  // REVENGE MODE (v7.36): +50% score boost bought at the previous near-miss
+  // game-over. Applied BEFORE the 2x booster so a vengeful boosted run stacks
+  // predictably (score ×1.5 ×2 = ×3 total).
+  if (pendingRevenge) {
+    pendingRevenge = false; // consumed on this run's booking
+    score = Math.floor(score * 1.5);
+    if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch (e) {} }
+  }
   // 2X SCORE booster (equipped 'boost-2x'): double the score that endGame books
   if (shopBooster('2x')) {
     score = Math.floor(score * 2);
@@ -1539,6 +1590,18 @@ function endGame(score, coinsEarned) {
     }
     nearEl.innerText = msg;
   }
+
+  // ==== REVENGE MODE (v7.36): near-miss (score < 60% of target) — buy +50% next run ====
+  // User priority #1 is retry-compulsion — a bad run becomes a reason to continue
+  // with a real advantage. OPT-IN (player spends coins) keeps the economy fair:
+  // 50 coins ≈ what a near-miss run pays out, so the loop is sustainable.
+  const revengeBtn = document.getElementById('revengeBtn');
+  if (revengeBtn) {
+    const tg = GAME_TARGETS[gameState.id];
+    const nv = score > 0 && tg && score < tg * 0.6 && !pendingRevenge && state.coins >= 50;
+    revengeBtn.style.display = nv ? 'inline-flex' : 'none';
+    if (nv) revengeBtn.innerText = '🔥 REVENGE ×1.5 (50 🪙)';
+  }
 }
 // legacy engines (bounce, bantumi) self-report via window.endGame — expose the funnel
 window.endGame = endGame;
@@ -1579,6 +1642,38 @@ function reviveGame() {
   if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
   if (typeof window.playSfx === 'function') { try { window.playSfx('continue'); } catch (e) {} }
   // same full cleanup as restart, but with the floor pre-set
+  const id = gameState.id;
+  unbindGameTouch();
+  stopTilt();
+  lockGameScroll(false);
+  if (currentGame) { try { currentGame.destroy(); } catch (e) {} }
+  currentGame = null;
+  currentEngine = null;
+  gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  clearDPRResize();
+  window.removeEventListener('keydown', keyDown);
+  window.removeEventListener('keyup', keyUp);
+  stopTouchKeySync();
+  document.getElementById('gameOverOverlay').classList.remove('show');
+  launchGame(id);
+}
+
+// ---- revenge mode (v7.36): buy +50% next-run score at a near-miss game-over ----
+// Distinct from coin-continue: continue REUSES the run (same score, no boost);
+// revenge RESTARTS the game with a ×1.5 score advantage. Both feed the
+// retry-compulsion loop the user wants — miss, spend, try again harder.
+function revengeGame() {
+  if (!gameState.id || !gameState.over) return;
+  if (pendingRevenge) { toast('Revenge already charged!'); return; }
+  const COST = 50;
+  if (state.coins < COST) { toast('Need ' + COST + ' coins for revenge!'); return; }
+  state.coins -= COST;
+  pendingRevenge = true;
+  saveState(); updateCoinDisplay();
+  if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
+  if (typeof window.playSfx === 'function') { try { window.playSfx('boost'); } catch (e) {} }
+  toast('🔥 REVENGE CHARGED — next run ×1.5 SCORE!');
+  // same full cleanup as restart — fresh run, boost applied at next endGame booking
   const id = gameState.id;
   unbindGameTouch();
   stopTilt();
@@ -2093,6 +2188,7 @@ function initCRT() {
 function playGame(id, e) {
   if (e) e.stopPropagation();
   reviveUsed = false;   // fresh pick from hub — a new continue is available
+  pendingRevenge = false; // v7.36: revenge charge is per-game, cleared on any fresh hub pick
   runBoosters = { x2: false, shield: false, slow: false, shieldUsed: false }; // v7.35: fresh per-run boosters
   launchGame(id);
 }
