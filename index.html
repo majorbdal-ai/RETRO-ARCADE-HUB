@@ -363,8 +363,11 @@ body.game-2048 #page-game .hud .hud-stats{display:none !important}
 body.game-2048 #page-game .hud{justify-content:center}
 /* 2048 zip-style bottom stats (score/best/coins) in hub below the iframe */
 .orig2048-stats{
-  display:flex;gap:10px;justify-content:center;align-items:center;
-  padding:10px 12px;margin-top:4px;z-index:56}
+  display:none;flex-direction:row;gap:10px;justify-content:center;align-items:center;
+  padding:10px 12px 14px;position:relative;z-index:auto}
+body.game-2048 .orig2048-stats{display:flex}
+body.game-2048 #orig2048Stage{position:relative;inset:auto;width:100%;height:auto;flex:1;border-radius:0;z-index:auto}
+body.game-2048 #orig2048Frame{max-height:none}
 .orig2048-stats .score-container,
 .orig2048-stats .best-container,
 .orig2048-stats .coins-container{

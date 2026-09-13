@@ -25,6 +25,8 @@ let diffMul = 1;  // v7.20 difficulty ramp
     try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {}
   }
 
+  function sfx(n) { if (typeof window.playSfx === 'function') { try { window.playSfx(n); } catch (_) {} } }
+
   function levelOf() { return Math.floor(score / 10) + 1; }
 
   function spawnTile(y) {
@@ -87,6 +89,9 @@ let diffMul = 1;  // v7.20 difficulty ramp
       }
       // perfect if close to hit line
       const distToLine = Math.abs(best.y + best.h - HIT_LINE);
+      // layered hub SFX every hit (perfect hits also pop + win2 at 10+ combo)
+      sfx(distToLine < 40 ? 'pop' : 'click');
+      if (combo === 10) sfx('win2');
       if (distToLine < 40) perfectCount++;
       vibrate(10);
       missFlash = 0;
@@ -103,6 +108,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
       // tapped empty lane — small penalty: reset combo
       combo = 0;
       vibrate(15);
+      sfx('error');
     }
   }
 
@@ -135,6 +141,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
           over = true;
           burst(t.lane * LANE_W + LANE_W / 2, t.y - TILE_H / 2, '#ff4d5e', 18);
           vibrate([80, 40, 120]);
+          sfx('over');
           shakeT = 0.28;
           if (typeof onScore === 'function') onScore(score);
           if (typeof onGameOver === 'function') if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
@@ -330,6 +337,9 @@ let diffMul = 1;  // v7.20 difficulty ramp
     resume: resume,
     destroy: destroy,
     setInput: function(t, k) { touches = t || {}; keys = k || {}; },
-    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; }
+    setDifficulty: function(lvl){ diffMul = [1,1.15,1.3,1.5,1.75,2][Math.min(5,Math.floor(lvl)||0)]||1; },
+    getHelp: function() {
+      return 'D-PAD taps the 4 lanes (← lane 1 · ↓ lane 2 · ↑ lane 3 · → lane 4) — press as each black tile crosses the HIT LINE. Empty-lane taps reset your combo. Speed rises with your score!';
+    }
   };
 }

@@ -5,7 +5,7 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
   let score = 0, coins = 0, keys = {}, touches = {};
   let time = 0, climber = null, holds = [], speed = 0, state = 'play';
   let combo = 0, diffMul = 1, prevPress = false;
-  let hearts = 3, missFlash = 0, hintTimer = 4;
+  let hearts = 3, missFlash = 0, hintTimer = 4, lastMilestone = 0;
 
   function key(n) { return !!keys[n]; }
   function t(n) { return !!touches[n]; }
@@ -29,7 +29,7 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
   function reset() {
     over = false; overSent = false;
     score = 0; coins = 0; time = 0; combo = 0; hearts = 3;
-    prevPress = false; missFlash = 0; hintTimer = 4;
+    prevPress = false; missFlash = 0; hintTimer = 4; lastMilestone = 0;
     state = 'play';
     climber = { x: W / 2, y: START_Y };
 
@@ -77,16 +77,31 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
     climber.x = best.x;
     climber.y = best.y;
     combo++;
-    const pts = 5 + (combo >= 4 ? 3 : 0);
+    // last-chance grab: hold was already inside the danger pulse window
+    const lastChance = best.y > climber.y - 70;
+    let pts = 5 + (combo >= 4 ? 3 : 0);
+    if (lastChance) pts += 2; // clutch bonus
     score += pts; callScore();
     coins++; callCoins();
-    sfx(combo >= 4 ? 'win2' : 'click');
+    sfx(combo >= 4 || lastChance ? 'win2' : 'click');
     haptic('tap');
     try {
       const s = holdScreen(best);
       fxBurst(s.x, s.y - 8, '#3bff8f', 5);
       if (typeof window.popScore === 'function') window.popScore(s.x, s.y - 14, '+' + pts);
+      if (lastChance && typeof window.popScore === 'function') window.popScore(s.x, s.y - 32, 'CLOSE! +2');
     } catch (e) {}
+    // altitude milestone — every 100m of height
+    const mstone = Math.floor(score / 100);
+    if (mstone > lastMilestone) {
+      lastMilestone = mstone;
+      try {
+        const s = holdScreen({ x: climber.x, y: climber.y });
+        fxBurst(s.x, s.y - 20, '#ffd93b', 14);
+        fxShake(1);
+        if (typeof window.popScore === 'function') window.popScore(s.x, s.y - 44, 'ALTITUDE ' + (mstone * 100) + 'M!');
+      } catch (e) {}
+    }
   }
 
   function update(dt) {
@@ -261,5 +276,5 @@ function ladderClimb(canvas, ctx, onScore, onGameOver, onCoins) {
   function destroy() { running = false; over = true; cancelAnimationFrame(raf); }
   function setInput(ts, ks) { touches = ts || {}; keys = ks || {}; }
 
-  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput, setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; } };
+  return { start: start, pause: pause, resume: resume, destroy: destroy, setInput: setInput, setDifficulty: function(level) { diffMul = [1, 1.15, 1.3, 1.5, 1.75, 2][Math.min(5, level)] || 1; }, getHelp: function() { return 'TAP / SPACE when a glowing hold is in reach above you. Grab it before it falls past — 3 misses and you fall! Chain quick grabs for combos and clutch bonuses.'; } };
 }
