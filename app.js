@@ -220,7 +220,7 @@ function liveDeal() { return (LIVE && LIVE.deal && LIVE.deal.item) ? LIVE.deal :
 // index exactly like rotate_daily.js) so offline / live_state.json-down still
 // has a real, stable daily challenge. The bonus payout in core.js reads THIS
 // same function, so banner and reward can never disagree.
-const CHALL_FALLBACK_POOL = [];
+const CHALL_FALLBACK_POOL = ['2048']; // offline fallback — always a real daily challenge for the live game
 function liveChallenge() {
   if (LIVE && LIVE.challenge) return LIVE.challenge;
   // deterministic: same game all day, rotates daily (rot = whole-day index)

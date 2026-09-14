@@ -1,5 +1,28 @@
 {
-  "featured": [],
-  "challenge": "",
-  "lastUpdated": "reset-empty-hub"
+  "rot": 1,
+  "updated": "2026-09-14T18:25:37.758Z",
+  "featured": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "deal": {
+    "item": "skin-cyber",
+    "name": "NEON PHANTOM",
+    "pct": 15
+  },
+  "challenge": "2048",
+  "botBoost": [
+    1.27,
+    1.4,
+    1.63,
+    1.86,
+    1.09,
+    1.22,
+    1.45,
+    1.68
+  ]
 }

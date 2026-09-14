@@ -6,5 +6,5 @@
    ============================================================ */
 
 const CONTROL_LAYOUT = {
-  '2048': { gesture: 'swipe4', hint: 'Swipe to merge tiles' }, // original zip app — swipe gestures handled by the game itself
+  '2048': { gesture: 'swipe4', type: 'swipe4', hint: 'Swipe to merge tiles' }, // original zip app — swipe gestures handled by the game itself
 };

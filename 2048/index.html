@@ -5,16 +5,22 @@
   <title>2048</title>
 
   <link href="style/main.css" rel="stylesheet" type="text/css">
+  <!-- OVERRIDE: run AFTER main.css — fixes body margin, hides hub-redundant elements, iframe fit.
+       The original 2048 responsive layout (500px/280px) is preserved EXACTLY — the board itself stays 100% original. -->
+  <style>
+    /* Reset body margin (original has 80px top/bottom — breaks iframe fit) */
+    html,body{margin:0!important;padding:0!important;background:#faf8ef}
+    /* Hide elements the hub already provides (title, score/best, intro, how-to, restart) */
+    .heading,.above-game,.game-explanation,hr,p{display:none!important}
+    /* Keep the ORIGINAL .container sizing (500px desktop / 280px mobile) — just center it */
+    .container{margin:0 auto!important;padding-top:8px}
+    /* Board fills the iframe nicely on tall screens */
+    .game-container{margin-top:8px!important}
+  </style>
   <link rel="shortcut icon" href="favicon.ico">
-  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png">
-  <link rel="apple-touch-startup-image" href="meta/apple-touch-startup-image-640x1096.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)"> <!-- iPhone 5+ -->
-  <link rel="apple-touch-startup-image" href="meta/apple-touch-startup-image-640x920.png"  media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 2)"> <!-- iPhone, retina -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-
   <meta name="HandheldFriendly" content="True">
   <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
 <body>
   <div class="container">
@@ -35,7 +41,7 @@
       <div class="game-message">
         <p></p>
         <div class="lower">
-	        <a class="keep-playing-button">Keep going</a>
+          <a class="keep-playing-button">Keep going</a>
           <a class="retry-button">Try again</a>
         </div>
       </div>
