@@ -26,16 +26,17 @@ const CHALLENGE_POOL = ['2048'];
 const BOT_COUNT = 8;
 
 function rotCur(state) {
-  const r = (state.rot + 1) % (ALL_FEATURED.length - FEATURED_SHOW + 1);
-  return r;
+  const span = Math.max(1, ALL_FEATURED.length - FEATURED_SHOW + 1);
+  return (state.rot + 1) % span;
 }
 
 function nextState(prev) {
   const rot = (typeof prev.rot === 'number' ? prev.rot : 0) + 1;
-  // featured: rotate window over the 9 featured games
+  // featured: rotate window over the featured games (skips gaps when pool is small/empty)
   const featured = [];
   for (let i = 0; i < FEATURED_SHOW; i++) {
-    featured.push(ALL_FEATURED[(rot + i) % ALL_FEATURED.length]);
+    const g = ALL_FEATURED.length ? ALL_FEATURED[(rot + i) % ALL_FEATURED.length] : null;
+    if (g) featured.push(g);
   }
   // deal: rotate through shop items
   const dealItem = SHOP_ITEMS[rot % SHOP_ITEMS.length];

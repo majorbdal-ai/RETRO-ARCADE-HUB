@@ -32,6 +32,10 @@ t('challenge payout exists in endGame (v7.39)', /CHALLENGE BONUS/.test(endGame) 
 t('challenge bonus is once-per-day gated', /rah_chall_/.test(endGame) && /localStorage\.getItem\(challKey\) !== 'done'/.test(endGame));
 t('challenge bonus only on new best of the challenge game', /challId && challId === gameState\.id && isNewBest/.test(endGame));
 t('window.liveChallenge exported for core payout', /window\.liveChallenge = liveChallenge/.test(app));
+// 4d. Daily challenge pools must never silently empty (v7.48.0): offline fallback in
+//     app.js must keep referencing the live game set.
+const chPool = app.match(/const CHALL_FALLBACK_POOL\s*=\s*\[([^\]]*)\]/);
+t('CHALL_FALLBACK_POOL non-empty (offline challenge never dies)', !!(chPool && chPool[1].trim().length > 0));
 // 4b. combo payoff TDZ guard: scoreCoins must be declared before comboBonus uses it (v7.27 fix)
 const comboPay = core.slice(core.indexOf('const comboMult = getComboMultiplier'), core.indexOf('state.stats.gamesPlayed'));
 t('combo payoff: scoreCoins declared before comboBonus (no TDZ crash)', comboPay.indexOf('const scoreCoins') !== -1 && comboPay.indexOf('const scoreCoins') < comboPay.indexOf('comboBonus'));
