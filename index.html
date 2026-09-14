@@ -347,9 +347,7 @@ body{
 #tutorialToast{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);z-index:60;background:rgba(13,13,26,.94);border:1px solid rgba(139,92,246,.5);color:#F1F0FF;font-size:13px;font-weight:700;text-align:center;padding:10px 18px;border-radius:12px;max-width:86%;box-shadow:0 6px 24px rgba(0,0,0,.55);pointer-events:none;opacity:0;transition:opacity .35s ease,transform .35s ease}
 #tutorialToast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
 #tutorialToast .tt-key{display:inline-block;background:rgba(139,92,246,.15);color:#A78BFA;border:1px solid rgba(139,92,246,.4);border-radius:6px;padding:1px 7px;margin:2px;font-size:11px;font-weight:800}
-body.game-2048 #tutorialToast{bottom:18%}
 /* ===== ORIGINAL 2048 (zip) frame — hub Dark-Neon presentation, zip untouched ===== */
-#orig2048Stage{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   background:
     radial-gradient(ellipse at 50% 20%,rgba(139,92,246,.16) 0%,transparent 55%),
@@ -358,50 +356,25 @@ body.game-2048 #tutorialToast{bottom:18%}
     linear-gradient(160deg,#0D0D1A 0%,#121218 50%,#0D0D1A 100%);
   z-index:4;pointer-events:none;
 }
-#orig2048Stage::before{content:'2048';position:absolute;top:8px;right:14px;font-family:'Orbitron',monospace;font-weight:900;font-size:15px;letter-spacing:4px;color:rgba(139,92,246,.4);text-shadow:0 0 18px rgba(139,92,246,.6);z-index:6}
-#orig2048Stage::after{content:'▲ SWIPE TO MOVE';position:absolute;bottom:10px;left:14px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:rgba(34,211,238,.5);text-shadow:0 0 12px rgba(34,211,238,.6);z-index:6}
-#orig2048Frame{
   display:none;position:relative;z-index:5;width:min(92vw,560px);height:min(92vw,560px);max-height:calc(100vh - 148px);
   border:1px solid rgba(139,92,246,.5);border-radius:14px;background:#faf8ef;
   box-shadow:0 0 22px rgba(139,92,246,.4),0 0 60px rgba(34,211,238,.18),inset 0 0 30px rgba(0,0,0,.4);
   pointer-events:auto;margin:auto;object-fit:contain;
 }
-body.game-active #orig2048Stage{position:fixed;inset:0;width:100%;height:100%;z-index:55;border-radius:0}
 
 #gameCanvasWrap{width:100%}
 #touchControls{width:100%;box-sizing:border-box}
 /* 2048 (zip iframe): hide hub score/coin chips, keep pause, center title */
-body.game-2048 #page-game .hud .hud-stats{display:none !important}
-body.game-2048 #page-game .hud{justify-content:center}
 /* 2048 zip-style bottom stats (score/best/coins coin-box) in hub below the iframe */
-.orig2048-stats{
   display:none;flex-direction:row;gap:10px;justify-content:center;align-items:center;
   padding:10px 12px 14px;position:relative;z-index:auto;background:linear-gradient(0deg,rgba(13,13,26,.6),transparent)}
-body.game-2048 .orig2048-stats{display:flex}
-body.game-2048 #gameCanvasWrap{flex-direction:column}
-body.game-2048 #orig2048Stage{position:relative;inset:auto;width:100%;min-height:60vh;flex:1;border-radius:0;z-index:auto;align-items:center;justify-content:center;padding:8px 0;box-sizing:border-box;background:#0D0D1A}
-body.game-2048 #orig2048Frame{max-height:none;width:min(94vw,520px);height:min(94vw,520px);border:none;border-radius:0}
-.orig2048-stats .score-container,
-.orig2048-stats .best-container,
-.orig2048-stats .coins-container{
   position:relative;min-width:92px;display:inline-block;background:#121218;
   border:1px solid rgba(139,92,246,.35);padding:18px 14px 10px;font-size:20px;
   line-height:1.25;font-weight:bold;border-radius:12px;color:#F1F0FF;
   text-align:center;font-family:'Orbitron',sans-serif;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-.orig2048-stats .score-container:after,
-.orig2048-stats .best-container:after,
-.orig2048-stats .coins-container:after{
   content:"SCORE";position:absolute;width:100%;top:5px;left:0;
   text-transform:uppercase;font-size:9px;line-height:9px;text-align:center;
   letter-spacing:1.5px;color:#22D3EE;font-family:'Orbitron',sans-serif}
-.orig2048-stats .best-container:after{content:"BEST";color:#F59E0B}
-.orig2048-stats .coins-container:after{content:"COINS";color:#EC4899}
-.orig2048-stats .coins-container{border-color:rgba(236,72,153,.45);box-shadow:0 0 12px rgba(236,72,153,.15)}
-.orig2048-stats .score-container{border-color:rgba(34,211,238,.4);box-shadow:0 0 12px rgba(34,211,238,.12)}
-.orig2048-stats .best-container{border-color:rgba(245,158,11,.35);box-shadow:0 0 12px rgba(245,158,11,.1)}
-body.game-2048 #orig2048Stage::after{display:none}
-body.game-2048 #orig2048Stage::before{display:none}
-body.game-2048 #gameCanvasWrap::after{display:none}
 /* ===== PAUSE-INSIDE (v7.16): সব কন্ট্রোল pause মেনুতে; HUD-তে শুধু pause trigger; back-to-hub সরানো ===== */
 body.game-active #page-game .hud{position:absolute;top:0;left:0;right:0;z-index:60;background:linear-gradient(rgba(5,7,10,.75),transparent);border-bottom:none;padding:8px 10px;pointer-events:none}
 body.game-active #page-game .hud-btn{display:none !important}
@@ -421,6 +394,28 @@ body.game-active #page-game .hud-btn{display:none !important}
   body.game-active #page-game .hud .hud-chip{padding:3px 7px;font-size:11px}
   body.game-active #gameCanvasWrap{position:fixed;inset:0;width:100%;height:100%;z-index:55;border-radius:0}
   body.game-active #gameCanvasWrap::after{border-radius:0}
+/* === 2048 IFRAME — MINIMAL (v7.48) ===
+   2048 has its own responsive CSS (500px desktop / 280px mobile).
+   Do NOT touch container/game-container/grid widths. */
+/* Hide hub HUD chips + top bar + bottom nav — immersive */
+body.game-2048 #page-game .hud .hud-stats{display:none!important}
+body.game-2048 #page-game .hud{justify-content:center}
+/* Stage = opaque dark backdrop, iframe centers itself */
+#orig2048Stage{display:none;position:fixed;inset:0;z-index:55;align-items:center;justify-content:center;background:#faf8ef}
+body.game-active #orig2048Stage{display:flex}
+#orig2048Frame{border:none;outline:none;max-width:min(94vw,500px);max-height:min(94vw,500px);aspect-ratio:1;background:#faf8ef}
+/* Coins bar — below frame, on dark bg */
+.orig2048-coins{display:none;position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:60;
+  background:rgba(13,13,26,.92);border:1px solid rgba(139,92,246,.4);border-radius:12px;
+  padding:8px 18px;color:#F1F0FF;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);gap:16px;align-items:center}
+body.game-2048 .orig2048-coins{display:flex}
+.orig2048-coins .ob{display:inline-flex;flex-direction:column;align-items:center;gap:2px}
+.orig2048-coins .ob small{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.orig2048-coins .ob strong{font-size:16px;line-height:1}
+.ob.sc small{color:#22D3EE}
+.ob.bt small{color:#F59E0B}
+.ob.cn small{color:#EC4899}
   body.game-active #gameCanvas{width:100vw;height:100vh}
   body.game-active #touchControls{
     position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:70;width:min(94vw,560px);
@@ -1001,12 +996,12 @@ body.cb-safe .badge{background:var(--cb-orange)}
     </div>
     <div id="gameCanvasWrap">
       <div id="orig2048Stage">
-        <iframe id="orig2048Frame" src="2048/index.html" allow="fullscreen" style="border:0;background:#faf8ef"></iframe>
+        <iframe id="orig2048Frame" src="2048/index.html" allow="fullscreen"></iframe>
       </div>
-      <div id="orig2048Stats" class="orig2048-stats">
-        <div class="score-container">0</div>
-        <div class="best-container">0</div>
-        <div class="coins-container" id="origLocalCoins">0</div>
+      <div id="orig2048Stats" class="orig2048-coins">
+        <span class="ob sc"><small>Score</small><strong id="orig2048Score">0</strong></span>
+        <span class="ob bt"><small>Best</small><strong id="orig2048Best">0</strong></span>
+        <span class="ob cn"><small>Coins</small><strong id="origLocalCoins">0</strong></span>
       </div>
       <canvas id="gameCanvas" width="800" height="450"></canvas>
       <div id="tutorialToast" class="tutorial-toast"></div>

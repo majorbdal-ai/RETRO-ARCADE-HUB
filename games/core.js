@@ -1657,7 +1657,7 @@ function launchOrig2048() {
   if (coinsEl) coinsEl.innerText = '0';
   const hubScore = document.querySelector('.orig2048-stats .score-container');
   if (hubScore) hubScore.innerText = '0';
-  const hubBest = document.querySelector('.orig2048-stats .best-container');
+  const hubBest = document.getElementById('orig2048Best');
   if (hubBest) hubBest.innerText = String(state.best['2048'] || 0);
   // keep the hub HUD top score in sync with the original's live score via rAF polling
   if (window._2048poll) { try { clearInterval(window._2048poll); } catch (e) {} }
@@ -1674,7 +1674,7 @@ function launchOrig2048() {
             if (st.score !== gameState.score) {
               gameState.score = st.score;
               document.getElementById('hudScore').innerText = String(st.score);
-              const hb = document.querySelector('.orig2048-stats .score-container');
+              const hb = document.getElementById('orig2048Score');
               if (hb) hb.innerText = String(st.score);
               const cEl = document.getElementById('origLocalCoins');
               if (cEl) cEl.innerText = String(Math.floor(st.score / 10));
@@ -1684,7 +1684,7 @@ function launchOrig2048() {
         const best = parseInt(ls.getItem('bestScore') || '0', 10) || 0;
         if (best > _2048lastBest) {
           _2048lastBest = best;
-          const hb = document.querySelector('.orig2048-stats .best-container');
+          const hb = document.getElementById('orig2048Best');
           if (hb) hb.innerText = String(Math.max(best, state.best['2048'] || 0));
         }
       }
