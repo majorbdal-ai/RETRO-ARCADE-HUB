@@ -193,7 +193,9 @@ async function syncScore(gameId, score) {
 }
 
 /* ==================== 70 GAMES ==================== */
-const GAMES = [];
+const GAMES = [
+  { id: '2048', name: '2048', icon: '🔢', color: '#EDC22E', desc: 'Swipe merge, reach 2048', featured: true, type: '2048', cat: 'Arcade', controls: 'swipe4' },
+];
 
 
 /* ==================== LIVE STATE (auto-rotated 4x/day by GitHub Actions) ==================== */

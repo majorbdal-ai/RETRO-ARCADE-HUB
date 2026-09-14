@@ -344,9 +344,57 @@ body{
   background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%);
   background-image:repeating-linear-gradient(to bottom,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 2px,transparent 4px);}
 #gameCanvas{width:100%;height:100%;object-fit:contain;background:#000;touch-action:none}
+/* ===== ORIGINAL 2048 (zip) frame — hub Dark-Neon presentation, zip untouched ===== */
+#orig2048Stage{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(ellipse at 50% 20%,rgba(139,92,246,.16) 0%,transparent 55%),
+    radial-gradient(ellipse at 50% 90%,rgba(34,211,238,.12) 0%,transparent 55%),
+    repeating-linear-gradient(to bottom,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 2px,transparent 5px),
+    linear-gradient(160deg,#0D0D1A 0%,#121218 50%,#0D0D1A 100%);
+  z-index:4;pointer-events:none;
+}
+#orig2048Stage::before{content:'2048';position:absolute;top:8px;right:14px;font-family:'Orbitron',monospace;font-weight:900;font-size:15px;letter-spacing:4px;color:rgba(139,92,246,.4);text-shadow:0 0 18px rgba(139,92,246,.6);z-index:6}
+#orig2048Stage::after{content:'▲ SWIPE TO MOVE';position:absolute;bottom:10px;left:14px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:rgba(34,211,238,.5);text-shadow:0 0 12px rgba(34,211,238,.6);z-index:6}
+#orig2048Frame{
+  display:none;position:relative;z-index:5;width:min(92vw,560px);height:min(92vw,560px);max-height:calc(100vh - 148px);
+  border:1px solid rgba(139,92,246,.5);border-radius:14px;background:#faf8ef;
+  box-shadow:0 0 22px rgba(139,92,246,.4),0 0 60px rgba(34,211,238,.18),inset 0 0 30px rgba(0,0,0,.4);
+  pointer-events:auto;margin:auto;object-fit:contain;
+}
+body.game-active #orig2048Stage{position:fixed;inset:0;width:100%;height:100%;z-index:55;border-radius:0}
 
 #gameCanvasWrap{width:100%}
 #touchControls{width:100%;box-sizing:border-box}
+/* 2048 (zip iframe): hide hub score/coin chips, keep pause, center title */
+body.game-2048 #page-game .hud .hud-stats{display:none !important}
+body.game-2048 #page-game .hud{justify-content:center}
+/* 2048 zip-style bottom stats (score/best/coins coin-box) in hub below the iframe */
+.orig2048-stats{
+  display:none;flex-direction:row;gap:10px;justify-content:center;align-items:center;
+  padding:10px 12px 14px;position:relative;z-index:auto;background:linear-gradient(0deg,rgba(13,13,26,.6),transparent)}
+body.game-2048 .orig2048-stats{display:flex}
+body.game-2048 #orig2048Stage{position:relative;inset:auto;width:100%;height:auto;flex:1;border-radius:0;z-index:auto}
+body.game-2048 #orig2048Frame{max-height:none}
+.orig2048-stats .score-container,
+.orig2048-stats .best-container,
+.orig2048-stats .coins-container{
+  position:relative;min-width:74px;display:inline-block;background:#121218;
+  border:1px solid rgba(139,92,246,.35);padding:12px 18px 10px;font-size:22px;
+  height:22px;line-height:30px;font-weight:bold;border-radius:12px;color:#F1F0FF;
+  text-align:center;font-family:'Orbitron',sans-serif;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.orig2048-stats .score-container:after,
+.orig2048-stats .best-container:after,
+.orig2048-stats .coins-container:after{
+  content:"SCORE";position:absolute;width:100%;top:4px;left:0;
+  text-transform:uppercase;font-size:9px;line-height:9px;text-align:center;
+  letter-spacing:1px;color:#22D3EE;font-family:'Orbitron',sans-serif}
+.orig2048-stats .best-container:after{content:"BEST";color:#F59E0B}
+.orig2048-stats .coins-container:after{content:"COINS";color:#EC4899}
+.orig2048-stats .coins-container{border-color:rgba(236,72,153,.45);box-shadow:0 0 12px rgba(236,72,153,.15)}
+.orig2048-stats .score-container{border-color:rgba(34,211,238,.4);box-shadow:0 0 12px rgba(34,211,238,.12)}
+.orig2048-stats .best-container{border-color:rgba(245,158,11,.35);box-shadow:0 0 12px rgba(245,158,11,.1)}
+body.game-2048 #orig2048Stage::after{display:none}
 /* ===== PAUSE-INSIDE (v7.16): সব কন্ট্রোল pause মেনুতে; HUD-তে শুধু pause trigger; back-to-hub সরানো ===== */
 body.game-active #page-game .hud{position:absolute;top:0;left:0;right:0;z-index:60;background:linear-gradient(rgba(5,7,10,.75),transparent);border-bottom:none;padding:8px 10px;pointer-events:none}
 body.game-active #page-game .hud-btn{display:none !important}
@@ -945,7 +993,14 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <button class="hud-btn pause-btn" onclick="togglePause()" title="Pause"><i class="fa-solid fa-pause"></i></button>
     </div>
     <div id="gameCanvasWrap">
-      
+      <div id="orig2048Stage">
+        <iframe id="orig2048Frame" src="2048/index.html" allow="fullscreen" style="width:100%;height:100%;border:0;background:#faf8ef"></iframe>
+      </div>
+      <div id="orig2048Stats" class="orig2048-stats">
+        <div class="score-container">0</div>
+        <div class="best-container">0</div>
+        <div class="coins-container" id="origLocalCoins">0</div>
+      </div>
       <canvas id="gameCanvas" width="800" height="450"></canvas>
       <div id="tutorialToast" class="tutorial-toast"></div>
       <div id="gameOverOverlay">

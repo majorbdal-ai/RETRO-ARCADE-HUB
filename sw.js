@@ -3,7 +3,7 @@
    pre-cache ALL 70 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.47.2';
+const CACHE = 'retro-arcade-hub-v7.47.3';
 const STATIC_CORE = [
   './',
   './index.html',
@@ -19,6 +19,25 @@ const STATIC_CORE = [
   './assets/favicon-16.png',
   './games/core.js',
   './games/controls.js',
+  './2048/index.html',
+  './2048/style/main.css',
+  './2048/style/fonts/clear-sans.css',
+  './2048/style/fonts/ClearSans-Bold-webfont.svg',
+  './2048/style/fonts/ClearSans-Bold-webfont.woff',
+  './2048/style/fonts/ClearSans-Light-webfont.svg',
+  './2048/style/fonts/ClearSans-Light-webfont.woff',
+  './2048/style/fonts/ClearSans-Regular-webfont.svg',
+  './2048/style/fonts/ClearSans-Regular-webfont.woff',
+  './2048/js/bind_polyfill.js',
+  './2048/js/classlist_polyfill.js',
+  './2048/js/animframe_polyfill.js',
+  './2048/js/keyboard_input_manager.js',
+  './2048/js/html_actuator.js',
+  './2048/js/grid.js',
+  './2048/js/tile.js',
+  './2048/js/local_storage_manager.js',
+  './2048/js/game_manager.js',
+  './2048/js/application.js',
   './robots.txt',
   './sitemap.xml'
 ];

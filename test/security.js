@@ -73,7 +73,7 @@ t('GAME_TARGETS covers every registry game', (() => {
   const gs = app.slice(app.indexOf('const GAMES'), app.indexOf('\n];', app.indexOf('const GAMES')) + 3);
   const reg = (gs.match(/id: '([^']+)'/g) || []).map(x => x.slice(5, -1));
   const tgt = (core.match(/const GAME_TARGETS = \{[\s\S]*?\n\};/) || [''])[0];
-  return reg.length === 0; // empty hub — no games, no targets
+  return reg.every(id => tgt.includes("'" + id + "'")); // every registry game has a target
 })());
 // 13. RESIZE RECURSION GUARD (v7.29.1 regression): never dispatch a synthetic
 // 'resize' event from inside a resize/orientation listener — that recurses forever
@@ -118,7 +118,7 @@ t('SHIELD booster auto-continues', /shopBoosterOn\('shield'\)[\s\S]{0,400}runBoo
 t('SLOW MOTION delays difficulty ramp', /const rampMs = shopBoosterOn\('slow'\) \? 22000 : 15000/.test(core));
 t('runBoosters resets on fresh playGame', /function playGame[\s\S]{0,300}runBoosters = \{ x2: false/.test(core));
 t('FX effects tint particles', /effColor\(def\)/.test(core) && /fx-rainbow/.test(core));
-t('no game asset dirs remain (empty hub)', !fs.existsSync(path.join(root, '2048')) && !fs.existsSync(path.join(root, 'games/game2048.js')) && !fs.existsSync(path.join(root, 'games/snake-classic.js')));
+t('only 2048 game asset dir remains (zip game allowed)', !fs.existsSync(path.join(root, 'games/game2048.js')) && !fs.existsSync(path.join(root, 'games/snake-classic.js')) && fs.existsSync(path.join(root, '2048/index.html')));
 // 21. REVENGE MODE (v7.36): near-miss buy-in — +50% next-run score, opt-in coin spend
 t('revengeGame defined + costs 50', /function revengeGame/.test(core) && /const COST = 50/.test(core));
 t('revenge deducts coins + sets flag', /revengeGame[\s\S]{0,400}state\.coins -= COST/.test(core) && /pendingRevenge = true/.test(core));
@@ -143,7 +143,7 @@ t('reroll button present in missions widget', html.includes('id="rerollMissionsB
 //     can't silently drop the mirror or the hold button.
 t('pointer branch mirrors coords into touches', /const mirrorTouches/.test(core) && /mirrorTouches\(x, y\); engine\.pointerDown/.test(core) && /gameState\.touches\.pointerDown = \{ x, y \}/.test(core));
 t('hold-action infra has no deleted-game lists', !/holdGames = \['archery/.test(core) && !/archery-master/.test(core) && !/sling-birds/.test(core));
-t('GAME_ENGINE is empty (no games)', /const GAME_ENGINE = \{ ?\};/.test(core.replace(/\n/g, ' ')) || /GAME_ENGINE = \{ ?\}/.test(core.replace(/\n/g, ' ')));
+t('GAME_ENGINE maps only the 2048 iframe game', /'2048': 'game2048'/.test(core));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);
