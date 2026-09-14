@@ -1025,7 +1025,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <select id="boardGameSelect" style="display:none;width:100%;margin:8px 0;padding:8px;border-radius:var(--radius-md);background:rgba(139,92,246,.08);color:var(--text);border:1px solid rgba(139,92,246,.3);font-size:12px" onchange="renderBoard('game', this.value)"></select>
       <div id="myRankCard" class="glass" style="display:none"></div>
       <div id="boardList"></div>
-      <div style="text-align:center;font-size:10px;color:var(--sub);margin:16px 0 6px;opacity:.7">TOP 12 PLAYERS · UPDATED DAILY</div>
+      <div style="text-align:center;font-size:10px;color:var(--sub);margin:16px 0 6px;opacity:.7">TOP 12 PLAYERS</div>
     </div>
   </section>
 
@@ -1111,8 +1111,35 @@ body.cb-safe .badge{background:var(--cb-orange)}
     </div>
   </section>
 
-  <!-- 06 COIN STORE -->
-  
+  <!-- 06 SHOP (empty hub — redesign, no items yet) -->
+  <section id="page-shop" class="page">
+    <div class="scroll-area">
+      <!-- SHOP HEADER -->
+      <div style="text-align:center;padding:8px 0 4px">
+        <div class="font-orbitron" style="font-size:24px;letter-spacing:2px;background:linear-gradient(90deg,#8B5CF6,#22D3EE,#EC4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 0 16px rgba(139,92,246,.4))">SHOP</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;letter-spacing:1px">STYLES · BOOSTS · MORE</div>
+      </div>
+      <!-- SHOP CATEGORY TABS -->
+      <div class="tab-row" id="shopTabs" style="margin:14px 0 12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);border-radius:16px;padding:5px">
+        <button class="tab active" data-cat="skins" onclick="setShopCat('skins')">🎨 SKINS</button>
+        <button class="tab" data-cat="boosters" onclick="setShopCat('boosters')">⚡ BOOSTS</button>
+        <button class="tab" data-cat="effects" onclick="setShopCat('effects')">✨ EFFECTS</button>
+      </div>
+      <!-- COIN BALANCE -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 14px;padding:10px 16px;border-radius:999px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(13,13,26,.4));border:1px solid rgba(245,158,11,.3);max-width:180px;margin-left:auto;margin-right:auto">
+        <i class="fa-solid fa-coins" style="color:#F59E0B"></i>
+        <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:15px;color:#F59E0B" id="shopCoinDisplay">0</span>
+      </div>
+      <!-- SHOP GRID (empty for now) -->
+      <div id="shopGrid"></div>
+      <!-- EMPTY STATE -->
+      <div id="shopEmptyState" style="text-align:center;padding:36px 16px;border:1px dashed rgba(139,92,246,.4);border-radius:var(--radius-lg);background:linear-gradient(160deg,rgba(139,92,246,.08),rgba(34,211,238,.04),rgba(236,72,153,.06));box-shadow:inset 0 0 40px rgba(139,92,246,.05);margin-top:8px">
+        <div style="font-size:44px;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(139,92,246,.6))">🛍️</div>
+        <div class="font-orbitron" style="font-size:16px;letter-spacing:1px;background:linear-gradient(90deg,#8B5CF6,#22D3EE,#EC4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;margin-bottom:8px">SHOP IS LOADING</div>
+        <div style="color:var(--sub);font-size:var(--font-sm);max-width:260px;margin:0 auto;line-height:1.6">Skins, boosts & effects are being prepared. Check back soon!</div>
+      </div>
+    </div>
+  </section>
 
 </main>
 
@@ -1121,6 +1148,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
   <button class="nav-item active" data-page="home"><i class="fa-solid fa-house"></i>HOME</button>
   <button class="nav-item" data-page="arcade"><i class="fa-solid fa-gamepad"></i>ARCADE</button>
   <button class="nav-item" data-page="board"><i class="fa-solid fa-trophy"></i>BOARD</button>
+  <button class="nav-item" data-page="shop"><i class="fa-solid fa-cart-shopping"></i>SHOP</button>
   <button class="nav-item" data-page="profile"><i class="fa-solid fa-user"></i>PROFILE</button>
 </nav>
 

@@ -229,7 +229,7 @@ function liveBotBoost() { return (LIVE && Array.isArray(LIVE.botBoost)) ? LIVE.b
 window.liveChallenge = liveChallenge; // core.js reads the SAME source for the bonus
 
 /* ==================== NAVIGATION ==================== */
-const PAGES = ['home', 'arcade', 'board', 'profile', 'game'];
+const PAGES = ['home', 'arcade', 'board', 'shop', 'profile', 'game'];
 function go(page) {
   // animate current page out smoothly, then switch (premium feel)
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -258,6 +258,7 @@ function go(page) {
   if (page === 'home') renderHome();
   else if (page === 'arcade') renderArcadeGrid('');
   else if (page === 'board') renderBoard('weekly');
+  else if (page === 'shop') renderShop();
   else if (page === 'profile') renderProfile();
   updateCoinDisplay();
 }
@@ -1009,7 +1010,6 @@ function renderBoard(range = 'weekly', gameId = null) {
       <div style="flex:1;text-align:center;padding:10px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(139,92,246,.12),rgba(13,13,26,.5));border:1px solid rgba(139,92,246,.25);backdrop-filter:blur(10px)">
         <div style="font-size:20px">${medals[i]}</div>
         <div style="font-size:10px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(b.name)}</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#F1F0FF;margin-top:2px">${Number(b.score).toLocaleString()}</div>
       </div>`).join('');
   }
   const mc = document.getElementById('myRankCard');
@@ -1021,11 +1021,6 @@ function renderBoard(range = 'weekly', gameId = null) {
       <div class="rank-avatar" style="width:40px;height:40px;font-size:18px">${myRow.avatar}</div>
       <div style="flex:1">
         <div style="font-weight:800;color:#F1F0FF;font-size:14px">${escHTML(myRow.name)} <span style="font-size:9px;color:var(--sub)">YOU</span></div>
-        <div style="font-size:11px;color:var(--sub)">${myRow.score.toLocaleString()} PTS</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:10px;color:var(--sub)">TO NEXT</div>
-        <div style="font-size:13px;font-weight:800;color:#34D399">+${Math.round(myRow.score * 0.15).toLocaleString()}</div>
       </div>
     </div>`;
   }
@@ -1034,7 +1029,6 @@ function renderBoard(range = 'weekly', gameId = null) {
       <div class="rank-no">${i < 3 ? '<span class="crown">👑</span>' : '#' + (i + 1)}</div>
       <div class="rank-avatar">${escHTML(b.avatar)}</div>
       <div class="rank-name">${escHTML(b.name)}${b.me ? ' <span style="color:var(--cyan);font-size:10px">(YOU)</span>' : ''}</div>
-      <div class="rank-score">${Number(b.score).toLocaleString()}</div>
     </div>`).join('');
 }
 
@@ -1560,6 +1554,20 @@ function comboTimeRemaining() {
 
 /* ==================== INIT ==================== */
 
+// v7.47.2: shop page — category tabs + coin balance (empty hub, items later)
+function setShopCat(cat) {
+  document.querySelectorAll('#shopTabs .tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.cat === cat);
+  });
+}
+function updateShopCoin() {
+  const el = document.getElementById('shopCoinDisplay');
+  if (el && typeof state !== 'undefined') el.innerText = (state.coins || 0).toLocaleString();
+}
+function renderShop() {
+  updateShopCoin();
+}
+
 // v7.46.2: empty-hub layout — hide game sections when no games, show clean coming-soon card
 function toggleEmptyHub() {
   const gs = document.getElementById('gameSections');
@@ -1577,6 +1585,7 @@ function toggleEmptyHub() {
 function init() {
   initErrorHandler();
   toggleEmptyHub();
+  renderShop();
   openAuth();
   navInit();
   initCRT();
