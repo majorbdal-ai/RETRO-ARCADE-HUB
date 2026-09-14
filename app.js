@@ -1000,19 +1000,37 @@ function renderBoard(range = 'weekly', gameId = null) {
   }
   const myRank = list.findIndex(b => b.me) + 1;
   const myRow = list.find(b => b.me);
-  document.getElementById('myRankCard').innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px">
-      <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:var(--yellow)">#${myRank}</div>
-      <div class="rank-avatar" style="width:36px;height:36px;font-size:16px">${myRow.avatar}</div>
+  // stats strip — top 3 highlight
+  const top3 = list.slice(0, 3);
+  const boardStats = document.getElementById('boardStats');
+  if (boardStats) {
+    const medals = ['🥇','🥈','🥉'];
+    boardStats.innerHTML = top3.map((b, i) => `
+      <div style="flex:1;text-align:center;padding:10px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(139,92,246,.12),rgba(13,13,26,.5));border:1px solid rgba(139,92,246,.25);backdrop-filter:blur(10px)">
+        <div style="font-size:20px">${medals[i]}</div>
+        <div style="font-size:10px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(b.name)}</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#F1F0FF;margin-top:2px">${Number(b.score).toLocaleString()}</div>
+      </div>`).join('');
+  }
+  const mc = document.getElementById('myRankCard');
+  if (mc) {
+    mc.style.display = '';
+    mc.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;padding:4px 2px">
+      <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(145deg,#8B5CF6,#EC4899);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;color:#F1F0FF;box-shadow:0 0 16px rgba(139,92,246,.5)">#${myRank}</div>
+      <div class="rank-avatar" style="width:40px;height:40px;font-size:18px">${myRow.avatar}</div>
       <div style="flex:1">
-        <div style="font-weight:700;color:#fff;font-size:13px">YOU</div>
+        <div style="font-weight:800;color:#F1F0FF;font-size:14px">${escHTML(myRow.name)} <span style="font-size:9px;color:var(--sub)">YOU</span></div>
         <div style="font-size:11px;color:var(--sub)">${myRow.score.toLocaleString()} PTS</div>
       </div>
-      <div style="font-size:11px;font-weight:700;color:var(--green)">+${Math.round(myRow.score * 0.15).toLocaleString()} <span style="color:var(--sub)">TO NEXT</span></div>
-    </div>
-    <div style="margin-top:8px;font-size:11px;color:var(--sub)">YOUR RANK: <b style="color:var(--cyan)">#${myRank}</b> · ${myRow.score.toLocaleString()} PTS</div>`;
+      <div style="text-align:right">
+        <div style="font-size:10px;color:var(--sub)">TO NEXT</div>
+        <div style="font-size:13px;font-weight:800;color:#34D399">+${Math.round(myRow.score * 0.15).toLocaleString()}</div>
+      </div>
+    </div>`;
+  }
   document.getElementById('boardList').innerHTML = list.slice(0, 12).map((b, i) => `
-    <div class="card rank-row ${b.me ? 'me' : ''}" style="margin-bottom:8px">
+    <div class="card rank-row ${b.me ? 'me' : ''}" style="margin-bottom:8px;${i === 0 ? 'border-color:rgba(139,92,246,.5);box-shadow:0 0 18px rgba(139,92,246,.18)' : ''}">
       <div class="rank-no">${i < 3 ? '<span class="crown">👑</span>' : '#' + (i + 1)}</div>
       <div class="rank-avatar">${escHTML(b.avatar)}</div>
       <div class="rank-name">${escHTML(b.name)}${b.me ? ' <span style="color:var(--cyan);font-size:10px">(YOU)</span>' : ''}</div>
@@ -1031,7 +1049,12 @@ function renderProfile() {
   document.getElementById('playerName').innerText = p.username;
   const unameInp = document.getElementById('usernameInput');
   if (unameInp) unameInp.value = p.username || '';
-  document.getElementById('playerLevel').innerHTML = 'LVL ' + p.level + (p.level >= 30 ? ' <span style="color:var(--gold)">VIP</span>' : '') + `<div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div><span class="xp-label">${Math.round(xpCur)}/${Math.round(xpNeed)}</span></div>`;
+  const lvlEl = document.getElementById('playerLevel');
+  if (lvlEl) lvlEl.innerHTML = '<span style="background:linear-gradient(90deg,#EC4899,#8B5CF6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">LVL ' + p.level + '</span>' + (p.level >= 30 ? ' <span style="color:#F59E0B">👑</span>' : '');
+  const xb = document.getElementById('xpBar');
+  if (xb) xb.style.width = xpPct + '%';
+  const xl = document.getElementById('xpPctLabel');
+  if (xl) xl.innerText = xpPct + '% · ' + Math.round(xpCur) + '/' + Math.round(xpNeed) + ' XP';
   document.getElementById('statWins').innerText = state.stats.gamesPlayed;
   document.getElementById('statCoins').innerText = state.coins.toLocaleString();
   document.getElementById('statSkins').innerText = skinsOwned + '/24';

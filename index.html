@@ -1008,45 +1008,61 @@ body.cb-safe .badge{background:var(--cb-orange)}
   <!-- 03 BOARD -->
   <section id="page-board" class="page">
     <div class="scroll-area">
-      <div class="sec-title"><span class="glow">LEADERBOARD</span></div>
-      <div class="tab-row" id="boardTabs">
+      <!-- BOARD HEADER -->
+      <div style="text-align:center;padding:8px 0 4px">
+        <div class="font-orbitron" style="font-size:24px;letter-spacing:2px;background:linear-gradient(90deg,#8B5CF6,#22D3EE,#EC4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 0 16px rgba(139,92,246,.4))">LEADERBOARD</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;letter-spacing:1px">WHO IS THE KING? 👑</div>
+      </div>
+      <!-- STATS STRIP -->
+      <div id="boardStats" style="display:flex;gap:10px;margin:14px 0 4px"></div>
+      <!-- TABS -->
+      <div class="tab-row" id="boardTabs" style="margin:14px 0 12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);border-radius:16px;padding:5px">
         <button class="tab active" data-range="weekly">WEEKLY</button>
         <button class="tab" data-range="alltime">ALL TIME</button>
         <button class="tab" data-range="friends">TOP PLAYERS</button>
         <button class="tab" data-range="game">GAME-WISE</button>
       </div>
       <select id="boardGameSelect" style="display:none;width:100%;margin:8px 0;padding:8px;border-radius:var(--radius-md);background:rgba(139,92,246,.08);color:var(--text);border:1px solid rgba(139,92,246,.3);font-size:12px" onchange="renderBoard('game', this.value)"></select>
-      <div id="myRankCard" class="glass"></div>
+      <div id="myRankCard" class="glass" style="display:none"></div>
       <div id="boardList"></div>
+      <div style="text-align:center;font-size:10px;color:var(--sub);margin:16px 0 6px;opacity:.7">TOP 12 PLAYERS · UPDATED DAILY</div>
     </div>
   </section>
 
   <!-- 05 PROFILE -->
   <section id="page-profile" class="page">
     <div class="scroll-area">
-      <div class="sec-title"><span class="glow">PROFILE</span></div>
-      <div class="widget" style="display:flex;align-items:center;gap:14px">
-        <div class="avatar-big" id="avatarBig">👤</div>
-        <div style="flex:1">
-          <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;color:#fff" id="playerName">PLAYER</div>
-          <div style="font-size:11px;color:var(--pink);font-weight:700" id="playerLevel">LVL 1</div>
+      <!-- PROFILE HEADER -->
+      <div style="text-align:center;padding:8px 0 4px">
+        <div class="font-orbitron" style="font-size:24px;letter-spacing:2px;background:linear-gradient(90deg,#8B5CF6,#22D3EE,#EC4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 0 16px rgba(139,92,246,.4))">PROFILE</div>
+      </div>
+      <!-- HERO CARD -->
+      <div style="margin:14px 0;padding:20px 16px;text-align:center;border-radius:var(--radius-xl);background:linear-gradient(160deg,rgba(139,92,246,.16),rgba(13,13,26,.6) 50%,rgba(34,211,238,.06));border:1px solid rgba(139,92,246,.35);box-shadow:0 0 40px rgba(139,92,246,.12),inset 0 1px 0 rgba(255,255,255,.07);backdrop-filter:blur(16px);position:relative;overflow:hidden">
+        <div class="avatar-big" id="avatarBig" style="margin:0 auto;width:76px;height:76px;font-size:34px">👤</div>
+        <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;color:#F1F0FF;margin-top:10px" id="playerName">PLAYER</div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;margin-top:4px" id="playerLevel"><span style="background:linear-gradient(90deg,#EC4899,#8B5CF6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">LVL 1</span></div>
+        <button class="btn btn-ghost" onclick="promptUsername()" style="margin-top:12px;padding:8px 16px;font-size:12px;border-radius:999px"><i class="fa-solid fa-pen"></i> EDIT NAME</button>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:6px;letter-spacing:.5px"><span>LEVEL PROGRESS</span><span id="xpPctLabel">0%</span></div>
+          <div class="progress" style="height:10px"><div id="xpBar" style="width:0%;background:linear-gradient(90deg,#8B5CF6,#22D3EE,#EC4899)"></div></div>
         </div>
-        <button class="btn btn-ghost" onclick="promptUsername()" style="padding:8px 12px;font-size:12px"><i class="fa-solid fa-pen"></i></button>
       </div>
-      <div class="widget" style="padding:var(--space-sm)">
-        <label style="font-size:11px;color:var(--sub);font-weight:700;display:block;margin-bottom:4px">PLAYER NAME</label>
-        <input type="text" id="usernameInput" maxlength="16" placeholder="Enter name..." style="width:100%;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.3);border-radius:8px;padding:8px 12px;color:#F1F0FF;font-size:13px;font-family:'Orbitron',sans-serif;outline:none" onchange="setUsername(this.value)">
+      <!-- NAME EDIT -->
+      <div style="margin:0 0 14px;padding:12px 14px;border-radius:var(--radius-lg);background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.18)">
+        <label style="font-size:10px;color:var(--sub);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px">PLAYER NAME</label>
+        <input type="text" id="usernameInput" maxlength="16" placeholder="Enter name..." style="width:100%;background:rgba(13,13,26,.6);border:1px solid rgba(139,92,246,.3);border-radius:10px;padding:9px 12px;color:#F1F0FF;font-size:13px;font-family:'Orbitron',sans-serif;outline:none" onchange="setUsername(this.value)">
       </div>
-      <div class="widget" style="display:flex;flex-wrap:wrap">
-        <div class="stat-box"><h3 id="statWins">0</h3><p>WINS</p></div>
-        <div class="stat-box"><h3 style="color:var(--yellow)" id="statCoins">0</h3><p>COINS</p></div>
-        <div class="stat-box"><h3 style="color:var(--pink)" id="statSkins">0/24</h3><p>SKINS</p></div>
-        <div class="stat-box"><h3 style="color:var(--red,#f87171)" id="statFav">0</h3><p>FAVES</p></div>
-        <div class="stat-box"><h3 style="color:#FF9D00" id="statStreak">0d</h3><p>STREAK</p></div>
-        <div class="stat-box"><h3 style="color:var(--gold,#FFD700)" id="statCombo">0</h3><p>COMBO</p></div>
-        <div class="stat-box"><h3 style="color:var(--gold,#FFD700)" id="statComboCur">x0</h3><p>MAX</p></div>
-        <div class="stat-box"><h3 style="color:var(--cyan)" id="statRuns">0</h3><p>RUNS</p></div>
-        <div class="stat-box"><h3 style="color:var(--green,#39FF88)" id="statRevives">0</h3><p>REVIVES</p></div>
+      <!-- STATS CHIP GRID -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px">
+        <div style="text-align:center;padding:11px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(139,92,246,.10),rgba(13,13,26,.4));border:1px solid rgba(139,92,246,.2)"><h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#F1F0FF;margin:0" id="statWins">0</h3><p style="font-size:9px;color:var(--sub);margin:2px 0 0;letter-spacing:.5px">WINS</p></div>
+        <div style="text-align:center;padding:11px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(245,158,11,.08),rgba(13,13,26,.4));border:1px solid rgba(245,158,11,.25)"><h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#F59E0B;margin:0" id="statCoins">0</h3><p style="font-size:9px;color:var(--sub);margin:2px 0 0;letter-spacing:.5px">COINS</p></div>
+        <div style="text-align:center;padding:11px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(236,72,153,.08),rgba(13,13,26,.4));border:1px solid rgba(236,72,153,.25)"><h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#EC4899;margin:0" id="statSkins">0/24</h3><p style="font-size:9px;color:var(--sub);margin:2px 0 0;letter-spacing:.5px">SKINS</p></div>
+        <div style="text-align:center;padding:11px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(244,63,94,.08),rgba(13,13,26,.4));border:1px solid rgba(244,63,94,.25)"><h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#F43F5E;margin:0" id="statFav">0</h3><p style="font-size:9px;color:var(--sub);margin:2px 0 0;letter-spacing:.5px">FAVES</p></div>
+        <div style="text-align:center;padding:11px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(34,211,238,.08),rgba(13,13,26,.4));border:1px solid rgba(34,211,238,.25)"><h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#22D3EE;margin:0" id="statStreak">0d</h3><p style="font-size:9px;color:var(--sub);margin:2px 0 0;letter-spacing:.5px">STREAK</p></div>
+        <div style="text-align:center;padding:11px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(245,158,11,.08),rgba(13,13,26,.4));border:1px solid rgba(245,158,11,.25)"><h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#F59E0B;margin:0" id="statCombo">0</h3><p style="font-size:9px;color:var(--sub);margin:2px 0 0;letter-spacing:.5px">BEST COMBO</p></div>
+        <div style="text-align:center;padding:11px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(245,158,11,.08),rgba(13,13,26,.4));border:1px solid rgba(245,158,11,.25)"><h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#EC4899;margin:0" id="statComboCur">x0</h3><p style="font-size:9px;color:var(--sub);margin:2px 0 0;letter-spacing:.5px">COMBO NOW</p></div>
+        <div style="text-align:center;padding:11px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(139,92,246,.08),rgba(13,13,26,.4));border:1px solid rgba(139,92,246,.25)"><h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#A78BFA;margin:0" id="statRuns">0</h3><p style="font-size:9px;color:var(--sub);margin:2px 0 0;letter-spacing:.5px">RUNS</p></div>
+        <div style="text-align:center;padding:11px 4px;border-radius:14px;background:linear-gradient(160deg,rgba(52,211,153,.08),rgba(13,13,26,.4));border:1px solid rgba(52,211,153,.25)"><h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#34D399;margin:0" id="statRevives">0</h3><p style="font-size:9px;color:var(--sub);margin:2px 0 0;letter-spacing:.5px">REVIVES</p></div>
       </div>
       <div class="widget" id="streakWidget"></div>
       <div class="widget" id="masteryWidget"></div>
