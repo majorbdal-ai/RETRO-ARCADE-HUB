@@ -43,6 +43,11 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
   let touches = { left: false, right: false, action: false };
   let keys = {};
   let difficultyMult = 1;   // v7.18 difficulty ramp
+  // v7.46 haptic feel — throttled ticks so collisions buzz, not rattle
+  let hapticCool = 0, hapticSeed = 0, padCool = 0, serveBuzz = 0;
+  function hapticTick() {
+    if (navigator.vibrate) { try { navigator.vibrate(18); } catch (e) {} }
+  }
 
   // ---- helpers ----
   function rect(x, y, w, h, color, glow) {
@@ -146,6 +151,10 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
   // ---- update ----
   function update(dt) {
     if (over || !running) return;
+    // v7.46: decay haptic throttles + serve pulse
+    if (hapticCool > 0) hapticCool -= dt;
+    if (padCool > 0) padCool -= dt;
+    if (serveBuzz > 0) serveBuzz -= dt;
 
     // paddle movement
     let moveDir = 0;
@@ -167,6 +176,8 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
     // serve ball
     if (serving && (touches.action || keys.Space || keys.Enter)) {
       serveBall();
+      // v7.46: soft launch tick (distinct from collision buzz)
+      if (serveBuzz <= 0) { serveBuzz = 0.5; hapticTick(); }
     }
 
     // update balls
@@ -208,6 +219,9 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
         // ensure going up
         if (b.vy > -50) b.vy = -50;
         if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} } // v7.15 paddle tap
+        // v7.46: paddle thump + speed-pulse glow (feed-forward for the ramp)
+        if (padCool <= 0) { padCool = 0.08; hapticTick(); }
+        b.flash = 0.12;
       }
 
       // brick collisions
@@ -236,6 +250,11 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
             onScore(score);
             if (typeof window.playSfx === 'function') { try { window.playSfx('pop'); } catch (e) {} } // v7.15 brick break
             spawnParticles(br.x + br.w / 2, br.y + br.h / 2, br.color, 8);
+            // v7.46: brick-break buzz (throttled ~55ms — fast clears rumble, not rattle)
+            if (hapticCool <= 0) { hapticCool = 0.055; hapticTick(); }
+            // v7.46: ball bonus pulse on break — ramp feel without touch on the cap
+            const ns = Math.min((b.speed || b._spd || 320) + 1.5 * difficultyMult, 540);
+            b.speed = ns; b._spd = ns;
 
             // coin drop: 10% chance
             if (Math.random() < 0.10) {
@@ -369,11 +388,14 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
     // balls
     for (const b of balls) {
       circle(b.x, b.y, b.r, '#FFFFFF', 16);
-      // glow trail
+      // glow trail (v7.46: pulse with speed — faster ball = longer visible tail)
+      const trailLen = b.flash ? 0.045 : 0.02;
       ctx.fillStyle = 'rgba(0,255,255,0.3)';
       ctx.beginPath();
-      ctx.arc(b.x - b.vx * 0.02, b.y - b.vy * 0.02, b.r - 1, 0, Math.PI * 2);
+      ctx.arc(b.x - b.vx * trailLen, b.y - b.vy * trailLen, b.r - 1, 0, Math.PI * 2);
       ctx.fill();
+      // v7.46: paddle-hit flash decay
+      if (b.flash) b.flash = Math.max(0, b.flash - 0.003);
     }
 
     // drops
@@ -480,7 +502,8 @@ function brickBreaker(canvas, ctx, onScore, onGameOver, onCoins) {
     over = true;
     running = false;
     if (raf) cancelAnimationFrame(raf);
-    if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+    // v7.46: shorter loss pattern so the phone stays responsive (was 200ms)
+    if (navigator.vibrate) { try { navigator.vibrate([60, 40, 120]); } catch (e) {} }
     if (typeof gameFX !== 'undefined') { try { var __r = canvas.getBoundingClientRect(); gameFX.burst(__r.left + (W/2) * __r.width / canvas.width, __r.top + (H/2) * __r.height / canvas.height, '#ff4444', 16); } catch(e){} gameFX.shake(5); }
       onGameOver(Math.floor(score), coins);
   }

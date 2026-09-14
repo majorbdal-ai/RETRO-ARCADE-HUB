@@ -40,10 +40,15 @@ let diffMul = 1;  // v7.20 difficulty ramp
   let shakeTimer, shakeIntensity;
   let time;
   let prevAction = false; // for edge detection
+  let paddleHapticCooldown = 0, serveHapticCooldown = 0;
 
   // ── Helpers ──
   function rand(a, b) { return Math.random() * (b - a) + a; }
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function haptic(p) {
+    // low-end friendly: 20ms tick, no pattern ids that older Android drops
+    if (navigator.vibrate) { try { navigator.vibrate(p === 'ball' ? 20 : 12); } catch (e) {} }
+  }
 
   // Input helpers — read from input.touches / input.keys
   function isActionDown() {
@@ -72,8 +77,12 @@ let diffMul = 1;  // v7.20 difficulty ramp
   }
 
   function isTapDown() {
-    // Touch x coordinate on canvas (for paddle follow)
-    return (input.x !== undefined && input.x !== null) ? input.x : null;
+    // Touch x coordinate on canvas (for paddle follow) — v7.46: also accept
+    // the live tap coords that core's tap-tracker feeds (touches.x/y) so the
+    // paddle follows a finger drag on the CANVAS for dpad/tap layouts
+    if (input.x !== undefined && input.x !== null) return input.x;
+    if (input.touches && typeof input.touches.x === 'number') return input.touches.x;
+    return null;
   }
 
   function rect(x, y, w, h, color, glow) {
@@ -312,7 +321,11 @@ let diffMul = 1;  // v7.20 difficulty ramp
         if (typeof window.playSfx === 'function') { try { window.playSfx('click'); } catch (e) {} }
       }
 
-      ball.speed = Math.min(ball.speed + 2 * diffMul, 550);
+      // v7.46: lifetime cap on ball speed growth per difficulty level — later
+      // difficulty tiers bump the CAP, hours of play can't inflate speed into
+      // an unplayable pinball (diffMul ramps 1→2 over ~75s of play)
+      var speedCap = 430 + 90 * diffMul;
+      ball.speed = Math.min(ball.speed + 2 * diffMul, speedCap);
       return true;
     }
     return false;
@@ -420,8 +433,12 @@ let diffMul = 1;  // v7.20 difficulty ramp
     if (ball.stuck) {
       ball.x = paddle.x + paddle.w / 2;
       ball.y = paddle.y - ball.radius - 2;
-      if (actionPressed()) {
+      // v7.46: drag-follow also on dpad — if the finger x is INSIDE the paddle
+      // zone, treat it as a drag (no serve); outside = tapped to serve.
+      if (actionPressed() && (touchX === null || Math.abs(touchX - ball.x) > paddle.w / 2)) {
         serveBall();
+        serveHapticCooldown = 0.4;
+        haptic('ball');
       }
       updateParticles(dt);
       updateCoinDrops(dt);
@@ -442,16 +459,19 @@ let diffMul = 1;  // v7.20 difficulty ramp
       ball.x = ball.radius;
       ball.vx = Math.abs(ball.vx);
       spawnParticles(ball.x, ball.y, '#FFFFFF', 3);
+      if (paddleHapticCooldown <= 0) { paddleHapticCooldown = 0.12; haptic('ball'); }
     }
     if (ball.x + ball.radius > W) {
       ball.x = W - ball.radius;
       ball.vx = -Math.abs(ball.vx);
       spawnParticles(ball.x, ball.y, '#FFFFFF', 3);
+      if (paddleHapticCooldown <= 0) { paddleHapticCooldown = 0.12; haptic('ball'); }
     }
     if (ball.y - ball.radius < 0) {
       ball.y = ball.radius;
       ball.vy = Math.abs(ball.vy);
       spawnParticles(ball.x, ball.y, '#FFFFFF', 3);
+      if (paddleHapticCooldown <= 0) { paddleHapticCooldown = 0.12; haptic('ball'); }
     }
 
     // ── Ball fell off bottom ──
@@ -462,6 +482,7 @@ let diffMul = 1;  // v7.20 difficulty ramp
       shakeTimer = 0.3;
       shakeIntensity = 6;
       spawnParticles(ball.x, H, '#FF3B3B', 15);
+      haptic('ball'); // loss rumble (single 20ms tick, no pattern)
       if (typeof window.playSfx === 'function') { try { window.playSfx('error'); } catch (e) {} }
       return;
     }
@@ -497,6 +518,9 @@ let diffMul = 1;  // v7.20 difficulty ramp
 
     // Screen shake
     if (shakeTimer > 0) shakeTimer -= dt;
+    // haptic cooldowns
+    if (paddleHapticCooldown > 0) paddleHapticCooldown -= dt;
+    if (serveHapticCooldown > 0) serveHapticCooldown -= dt;
 
     // Speed normalization
     var speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
