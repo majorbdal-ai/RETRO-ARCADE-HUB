@@ -826,6 +826,16 @@ function renderHome() {
   let currentHomeQuery = '';
   function setHomeQuery(q) {
     currentHomeQuery = (q || '').toLowerCase();
+    const resetBtn = document.getElementById('homeResetBtn');
+    if (resetBtn) resetBtn.style.display = currentHomeQuery ? 'flex' : 'none';
+    renderHomeGrid();
+  }
+  function homeResetSearch() {
+    currentHomeQuery = '';
+    const inp = document.getElementById('searchInput');
+    if (inp) inp.value = '';
+    const resetBtn = document.getElementById('homeResetBtn');
+    if (resetBtn) resetBtn.style.display = 'none';
     renderHomeGrid();
   }
   function setHomeCat(cat) {
@@ -867,8 +877,14 @@ function renderHome() {
       <button class="btn ${ready ? 'btn-primary' : 'btn-ghost'}" style="width:100%;padding:8px;font-size:11px;margin-top:6px" onclick="event.stopPropagation();${ready ? `playGame('${g.id}')` : `comingSoon('${g.name}')`}">${ready ? '▶ PLAY' : 'COMING SOON &#128274;'}</button>
     </div>`;
     }).join('');
+    const emptyState = (q || c !== 'ALL') ? `<div class="empty-state" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:32px 16px;text-align:center;color:var(--sub)">
+      <div style="font-size:38px">🔍</div>
+      <div style="font-size:var(--font-sm);font-weight:700;color:var(--text)">NO GAMES FOUND</div>
+      <div style="font-size:var(--font-xs);max-width:220px">${q ? `No game matches "${q}"` : 'No games in this category yet'}</div>
+      <button class="btn btn-primary" onclick="homeResetSearch()" style="padding:8px 18px;font-size:12px;margin-top:6px"><i class="fa-solid fa-xmark"></i> CLEAR SEARCH</button>
+    </div>` : '';
     const g1 = document.getElementById('gameGrid');
-    if (g1) g1.innerHTML = html;
+    if (g1) g1.innerHTML = html || emptyState;
   }
 
   // NEW UI: Featured Carousel (horizontal scroll)
