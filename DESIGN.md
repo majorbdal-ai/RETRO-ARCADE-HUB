@@ -1,5 +1,10 @@
 # DESIGN — RETRO ARCADE HUB
 
+> **🔒 DESIGN LOCK (v7.47.2 → frozen)**
+> The **Dark Neon Fusion** design is **permanently locked** as of commit `3f1630f` (v7.47.2), tag `design-lock-v1`.
+> **No design/UI changes may be made without an explicit user command.** Game additions, features, content — yes. Design rework — no.
+> Locked look: deep navy `#0D0D1A` / `#121218` bg, electric purple `#8B5CF6` + cyan `#22D3EE` + pink-magenta `#EC4899` gradient glow, glassmorphism cards, gradient text headers, Poppins/Space Grotesk/Orbitron type, subtle hover-glow micro-interactions.
+
 ## Design System
 - **Palette tokens:** CSS custom properties on `:root` — `--bg`, `--bg-glow-1/2`, `--bg-grid`, `--cyan`, `--cyan2`, `--pink`, `--purple`, `--yellow`, `--green`, `--red`, `--accent`, `--glow`, `--space-*`, `--radius-*`, `--font-*`.
 - **Theming:** 6 palettes (neon, neon2, void, sunset, matrix, royal) in `THEMES[]` (app.js). `applyTheme(id)` sets vars at runtime. Skin-by-game: `GAME_SKIN{gameId→theme}` applied on `bootGame`, reverted on `exitToHub`.
