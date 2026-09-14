@@ -1587,6 +1587,9 @@ function toggleEmptyHub() {
 function init() {
   initErrorHandler();
   toggleEmptyHub();
+  // hero text: set immediately from GAMES.length (avoids stale SW cache "COMING SOON")
+  const hg = document.getElementById('heroSubCount');
+  if (hg) hg.innerText = GAMES.length > 0 ? (GAMES.length + ' GAME' + (GAMES.length > 1 ? 'S' : '') + ' · PLAY INSTANTLY') : '70 CLASSICS · COMING SOON';
   renderShop();
   openAuth();
   navInit();
@@ -1687,9 +1690,9 @@ function showVersionBadge() {
         else gc.innerText = 'RETRO';  // empty hub: "RETRO ARCADE" instead of "0 GAMES"
       }
       const sg = document.getElementById('heroStatGames');
-      if (sg) sg.innerText = d.games > 0 ? (d.games + '+') : '70+';
+      if (sg) sg.innerText = d.games > 0 ? (d.games + '+') : (GAMES.length > 0 ? GAMES.length + '+' : '70+');
       const hsc = document.getElementById('heroSubCount');
-      if (hsc) hsc.innerText = d.games > 0 ? (d.games + ' GAMES · PLAY INSTANTLY') : '70 CLASSICS · COMING SOON';
+      if (hsc) hsc.innerText = d.games > 0 ? (d.games + ' GAMES · PLAY INSTANTLY') : (GAMES.length > 0 ? GAMES.length + ' GAME' + (GAMES.length > 1 ? 'S' : '') + ' · PLAY INSTANTLY' : '70 CLASSICS · COMING SOON');
       // dynamic hero badge version
       const hv = document.getElementById('heroVersionText');
       if (hv) hv.innerText = `NEW UPDATE v${d.version}`;
