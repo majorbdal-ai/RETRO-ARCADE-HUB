@@ -3,7 +3,7 @@
    pre-cache ALL 70 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.47.8';
+const CACHE = 'retro-arcade-hub-v7.47.9';
 const STATIC_CORE = [
   './',
   './index.html',
@@ -106,6 +106,21 @@ self.addEventListener('fetch', (e) => {
           return res;
         })
         .catch(() => caches.match(e.request).then((m) => m || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Original iframe games (2048/) — network-first so the override index.html
+  // (watermark removed, mobile fit) is ALWAYS fresh; cached copy only offline.
+  if (url.pathname.includes('/2048/')) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
     );
     return;
   }
