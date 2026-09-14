@@ -1536,8 +1536,24 @@ function comboTimeRemaining() {
 // NOTE: comboTimeRemaining is kept as a shared helper (used by a future countdown chip)
 
 /* ==================== INIT ==================== */
+
+// v7.46.2: empty-hub layout — hide game sections when no games, show clean coming-soon card
+function toggleEmptyHub() {
+  const gs = document.getElementById('gameSections');
+  const eh = document.getElementById('emptyHubHome');
+  const at = document.getElementById('arcadeToolbar');
+  const hasGames = (typeof GAMES !== 'undefined') && GAMES.length > 0;
+  if (gs) gs.style.display = hasGames ? '' : 'none';
+  if (eh) eh.style.display = hasGames ? 'none' : '';
+  if (at) { at.style.display = hasGames ? 'flex' : 'none'; }
+  // top bar search — pointless when no games
+  const sb = document.querySelector('#topBar .search-bar');
+  if (sb) sb.style.display = hasGames ? '' : 'none';
+}
+
 function init() {
   initErrorHandler();
+  toggleEmptyHub();
   openAuth();
   navInit();
   initCRT();
@@ -1632,11 +1648,14 @@ function showVersionBadge() {
       document.body.appendChild(badge);
       // keep hero copy truthful without hand-editing
       const gc = document.getElementById('heroGameCount');
-      if (gc) gc.innerText = d.games;
+      if (gc) {
+        if (d.games > 0) gc.innerText = d.games;
+        else gc.innerText = 'RETRO';  // empty hub: "RETRO ARCADE" instead of "0 GAMES"
+      }
       const sg = document.getElementById('heroStatGames');
-      if (sg) sg.innerText = d.games + '+';
+      if (sg) sg.innerText = d.games > 0 ? (d.games + '+') : '70+';
       const hsc = document.getElementById('heroSubCount');
-      if (hsc) hsc.innerText = d.games + ' GAMES · PLAY INSTANTLY';
+      if (hsc) hsc.innerText = d.games > 0 ? (d.games + ' GAMES · PLAY INSTANTLY') : '70 CLASSICS · COMING SOON';
       // dynamic hero badge version
       const hv = document.getElementById('heroVersionText');
       if (hv) hv.innerText = `NEW UPDATE v${d.version}`;

@@ -775,7 +775,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <div class="hero-section" style="margin-bottom:var(--space-xl);padding:var(--space-lg);background:linear-gradient(135deg,rgba(139,92,246,.10),rgba(13,13,26,.9) 40%,rgba(34,211,238,.06));border-radius:var(--radius-xl);border:1px solid rgba(139,92,246,.35);box-shadow:0 0 40px rgba(139,92,246,.12),inset 0 1px 0 rgba(255,255,255,.06);overflow:hidden;position:relative;backdrop-filter:blur(14px)">
         <div class="hero-content" style="display:flex;flex-direction:column;gap:var(--space-md);align-items:flex-start;position:relative;z-index:1">
           <div class="hero-badge" id="heroBadge" style="display:inline-flex;align-items:center;gap:var(--space-xs);background:linear-gradient(135deg,#8B5CF6,#EC4899);color:#F1F0FF;padding:var(--space-xs) var(--space-sm);border-radius:999px;font-size:var(--font-xs);font-weight:700;letter-spacing:.5px;box-shadow:0 0 18px rgba(236,72,153,.4)"><i class="fa-solid fa-fire"></i> <span id="heroVersionText">LOADING...</span></div>
-          <h1 class="hero-title" style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(var(--font-xl),6vw,var(--font-2xl));line-height:1.1;background:linear-gradient(120deg,#8B5CF6 0%,#22D3EE 45%,#EC4899 80%);-webkit-background-clip:text;background-clip:text;color:transparent;margin:0;filter:drop-shadow(0 0 18px rgba(139,92,246,.35))"><span id="heroGameCount">0</span> GAMES.</h1>
+          <h1 class="hero-title" style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(var(--font-xl),6vw,var(--font-2xl));line-height:1.1;background:linear-gradient(120deg,#8B5CF6 0%,#22D3EE 45%,#EC4899 80%);-webkit-background-clip:text;background-clip:text;color:transparent;margin:0;filter:drop-shadow(0 0 18px rgba(139,92,246,.35))"><span id="heroGameCount">0</span> GAMES</h1>
           <p class="hero-subtitle" style="color:var(--sub);font-size:var(--font-md);margin:0;max-width:280px">Play free retro arcade games on mobile. No downloads. Instant fun. <span id="heroOfflineBadge" style="display:none;color:var(--green,#22c55e);font-weight:700">OFFLINE-READY</span></p>
           <div class="hero-stats" style="display:flex;gap:var(--space-lg);margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:1px solid rgba(255,255,255,.08)">
             <div class="stat" style="text-align:center">
@@ -802,7 +802,26 @@ body.cb-safe .badge{background:var(--cb-orange)}
         </div>
       </div>
 
-      <!-- CATEGORY TABS -->
+
+      <!-- EMPTY-STATE: clean coming soon (games = 0) -->
+      <div id="emptyHubHome">
+        <div class="coming-soon-hero" style="margin:var(--space-md) 0;padding:28px 18px;text-align:center;border-radius:var(--radius-xl);background:linear-gradient(160deg,rgba(139,92,246,.14),rgba(13,13,26,.7) 45%,rgba(34,211,238,.07));border:1px solid rgba(139,92,246,.35);box-shadow:0 0 44px rgba(139,92,246,.12),inset 0 1px 0 rgba(255,255,255,.07);backdrop-filter:blur(16px);position:relative;overflow:hidden">
+          <div style="font-size:52px;margin-bottom:10px;filter:drop-shadow(0 0 22px rgba(139,92,246,.7))">🕹️</div>
+          <div class="font-orbitron" style="font-size:19px;letter-spacing:1.5px;background:linear-gradient(90deg,#8B5CF6,#22D3EE,#EC4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;margin-bottom:8px">THE ARCADE IS LOADING</div>
+          <div style="color:var(--sub);font-size:var(--font-sm);max-width:280px;margin:0 auto;line-height:1.7">70 original retro games are being prepared for you. Fresh classics, missions & rewards — coming very soon!</div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:16px">
+            <span style="padding:6px 14px;border-radius:999px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.4);color:#D8CCFF;font-size:11px;font-weight:700">🎯 MISSIONS</span>
+            <span style="padding:6px 14px;border-radius:999px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.35);color:#A5F3FC;font-size:11px;font-weight:700">🔥 STREAKS</span>
+            <span style="padding:6px 14px;border-radius:999px;background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.4);color:#FBCFE8;font-size:11px;font-weight:700">🪙 REWARDS</span>
+          </div>
+        </div>
+        
+      </div>
+
+
+      <!-- GAME SECTIONS (visible only when games exist) -->
+  <div id="gameSections" style="display:none">
+<!-- CATEGORY TABS -->
       <div class="cat-tabs" id="homeCatTabs" style="display:flex;gap:var(--space-sm);overflow-x:auto;padding:var(--space-xs) var(--space-xs) var(--space-md);scrollbar-width:none;-ms-overflow-style:none">
         <button class="cat-tab active" data-cat="ALL" onclick="setHomeCat('ALL')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:linear-gradient(135deg,#8B5CF6,#EC4899);color:#F1F0FF;border:none;border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer">ALL</button>
         <button class="cat-tab" data-cat="Action" onclick="setHomeCat('Action')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)">ACTION</button>
@@ -868,7 +887,9 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <div class="game-grid" id="gameGrid"></div>
       <div style="text-align:center;font-size:var(--font-xs);color:var(--sub);margin:var(--space-xl) 0;letter-spacing:2px">WHO IS THE KING? 👑</div>
     </div>
-  </section>
+  
+  </div>
+</section>
 
   <!-- 02 ARCADE (all games) -->
   <section id="page-arcade" class="page">
@@ -886,8 +907,8 @@ body.cb-safe .badge{background:var(--cb-orange)}
           </div>
         </div>
         
-        <!-- SEARCH + FILTER BAR -->
-        <div class="arcade-toolbar" style="display:flex;flex-direction:column;gap:var(--space-sm)">
+        <!-- SEARCH + FILTER BAR (hidden while hub empty) -->
+        <div class="arcade-toolbar" id="arcadeToolbar" style="display:none;flex-direction:column;gap:var(--space-sm)">
           <div class="search-bar" style="flex:1;margin:0"><i class="fa-solid fa-magnifying-glass"></i><input id="arcadeSearch" placeholder="Search games..." oninput="renderArcadeGrid(this.value)" style="font-size:var(--font-md)"><button id="searchResetBtn" onclick="resetSearch()" style="display:none;background:none;border:none;color:var(--sub);cursor:pointer;padding:6px;font-size:14px" title="Clear search"><i class="fa-solid fa-xmark"></i></button></div>
           <div class="filter-row" style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:center">
             <div class="cat-filter" id="catFilter" style="display:flex;gap:var(--space-xs);overflow-x:auto;padding-bottom:var(--space-xs);scrollbar-width:none;-ms-overflow-style:none;flex:1"></div>
