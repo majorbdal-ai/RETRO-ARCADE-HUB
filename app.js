@@ -779,8 +779,18 @@ function renderHome() {
     </div>`;
     }).join('');
     const g1 = document.getElementById('gameGrid');
-    if (g1) g1.innerHTML = html;
+    if (g1) g1.innerHTML = html || comingSoonBlock();
   }
+
+
+
+function comingSoonBlock() {
+  return `<div style="grid-column:1/-1;text-align:center;padding:36px 16px;border:1px dashed rgba(139,92,246,.4);border-radius:var(--radius-lg);background:linear-gradient(160deg,rgba(139,92,246,.08),rgba(34,211,238,.04),rgba(236,72,153,.06));box-shadow:inset 0 0 40px rgba(139,92,246,.05)">
+    <div style="font-size:44px;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(139,92,246,.6))">🚀</div>
+    <div class="font-orbitron" style="font-size:18px;letter-spacing:1px;background:linear-gradient(90deg,#8B5CF6,#22D3EE,#EC4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;margin-bottom:8px">GAMES ARE LOADING</div>
+    <div style="color:var(--sub);font-size:var(--font-sm);max-width:280px;margin:0 auto;line-height:1.6">70 original arcade classics are being prepared. Check back soon — the arcade is almost ready! 🕹️</div>
+  </div>`;
+}
 
   // NEW UI: Featured Carousel (horizontal scroll)
   function renderFeaturedCarousel() {
@@ -878,12 +888,20 @@ function renderArcadeGrid(filter = '') {
   }).join('');
   const g1 = document.getElementById('gameGrid');
   const g2 = document.getElementById('arcadeGrid');
-  const htmlOut = html || (q || c !== 'ALL' ? `<div class="empty-state" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:32px 16px;text-align:center;color:var(--sub)">
-      <div style="font-size:38px">🔍</div>
-      <div style="font-size:var(--font-sm);font-weight:700;color:var(--text)">NO GAMES FOUND</div>
-      <div style="font-size:var(--font-xs);max-width:220px">${q ? `No game matches "<b>${q}</b>"` : 'No games in this category yet'}</div>
-      <button class="btn btn-primary" onclick="resetSearch()" style="padding:8px 18px;font-size:12px;margin-top:6px"><i class="fa-solid fa-xmark"></i> CLEAR SEARCH</button>
-    </div>` : '');
+  let emptyBlock = '';
+  if (!html) {
+    if (q || c !== 'ALL') {
+      emptyBlock = `<div class="empty-state" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:32px 16px;text-align:center;color:var(--sub)">
+        <div style="font-size:38px">🔍</div>
+        <div style="font-size:var(--font-sm);font-weight:700;color:var(--text)">NO GAMES FOUND</div>
+        <div style="font-size:var(--font-xs);max-width:220px">${q ? `No game matches "<b>${q}</b>"` : 'No games in this category yet'}</div>
+        <button class="btn btn-primary" onclick="resetSearch()" style="padding:8px 18px;font-size:12px;margin-top:6px"><i class="fa-solid fa-xmark"></i> CLEAR SEARCH</button>
+      </div>`;
+    } else {
+      emptyBlock = comingSoonBlock();
+    }
+  }
+  const htmlOut = html || emptyBlock;
   if (g1) g1.innerHTML = htmlOut;
   if (g2) g2.innerHTML = htmlOut;
 
@@ -1124,13 +1142,13 @@ function applyGameSkin(gameId) {
 /* 6 full theme palettes — each sets the ENTIRE CSS variable set.
    Applied via applyTheme() → CSS custom properties → instant skin change. */
 const THEMES = [
-  { id: 'neon',   name: 'NEON CYBER',   ico: '🌆', desc: 'Default cyan/pink glow',   price: 0, palette: {
-    bg:'#05070A', glow1:'rgba(0,255,255,.08)', glow2:'rgba(255,16,240,.07)',
-    grid:'rgba(0,255,255,.05)', gridv:'rgba(255,16,240,.05)',
-    cyan:'#00FFFF', cyan2:'#00b8ff', pink:'#FF10F0', pink2:'#b900ff',
-    yellow:'#FFE600', yellow2:'#ff9d00', green:'#39FF88', red:'#FF3B6B',
-    accent:'#00FFFF', accent2:'#FF10F0', glass:'rgba(255,255,255,.06)',
-    glassBorder:'rgba(0,255,255,.35)', panel:'#0A0E16', sub:'#8A93A6',
+  { id: 'neon',   name: 'DARK NEON FUSION', ico: '🌌', desc: 'Deep navy + electric purple/cyan/pink glow', price: 0, palette: {
+    bg:'#0D0D1A', glow1:'rgba(139,92,246,.14)', glow2:'rgba(236,72,153,.12)',
+    grid:'rgba(139,92,246,.07)', gridv:'rgba(34,211,238,.06)',
+    cyan:'#22D3EE', cyan2:'#0EA5E9', pink:'#EC4899', pink2:'#8B5CF6',
+    yellow:'#F59E0B', yellow2:'#EF4444', green:'#34D399', red:'#F43F5E',
+    accent:'#8B5CF6', accent2:'#EC4899', glass:'rgba(255,255,255,.07)',
+    glassBorder:'rgba(139,92,246,.3)', panel:'#121218', sub:'#9CA3AF',
     bgGridSize:'44px 44px' } },
   { id: 'void',   name: 'VOID DARK',   ico: '🌑', desc: 'Pure black, minimal neon',  price: 0, palette: {
     bg:'#000000', glow1:'rgba(139,92,246,.07)', glow2:'rgba(0,0,0,0)',
