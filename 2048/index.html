@@ -3,6 +3,12 @@
 <head>
   <meta charset="utf-8">
   <title>2048</title>
+  <!-- No-cache: the hub serves this inside an iframe; stale SW/browser copies
+       of the pre-override page broke layout on phones (desktop-size board cut off).
+       version query on the iframe src + these headers guarantee a fresh copy. -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
   <link href="style/main.css" rel="stylesheet" type="text/css">
   <!-- OVERRIDE: run AFTER main.css — fixes body margin, hides hub-redundant elements, iframe fit.
