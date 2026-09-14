@@ -1646,8 +1646,10 @@ function launchOrig2048() {
   if (stage) stage.style.display = 'flex';
   if (frame) {
     frame.style.display = 'block';
-    // (re)load the pristine original — never mutated
-    frame.src = '2048/index.html';
+    // (re)load the pristine original — never mutated.
+    // Version query defeats stale SW/browser caches that kept the pre-override
+    // 2048 page (duplicate title, desktop-size board cut off on phones).
+    frame.src = '2048/index.html?v=' + (window.APP_VERSION || Date.now());
   }
   _2048started = false;
   _2048lastBest = 0;

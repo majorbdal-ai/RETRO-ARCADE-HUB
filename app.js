@@ -245,8 +245,17 @@ function go(page) {
   }
   if (page === 'game') {
     document.body.classList.add('game-active');
+    // v7.47.6: in-game = immersive — hide hub chrome (search bar + bottom nav)
+    const tb = document.getElementById('topBar');
+    if (tb) tb.style.display = 'none';
+    const bn = document.getElementById('bottomNav');
+    if (bn) bn.style.display = 'none';
   } else {
     document.body.classList.remove('game-active');
+    const tb = document.getElementById('topBar');
+    if (tb && tb.style.display === 'none') tb.style.display = 'flex';
+    const bn = document.getElementById('bottomNav');
+    if (bn && bn.style.display === 'none') bn.style.display = 'flex';
   }
   if (['home','arcade','shop','board','profile'].includes(page)) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));

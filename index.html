@@ -378,8 +378,8 @@ body.game-2048 #page-game .hud{justify-content:center}
   display:none;flex-direction:row;gap:10px;justify-content:center;align-items:center;
   padding:10px 12px 14px;position:relative;z-index:auto;background:linear-gradient(0deg,rgba(13,13,26,.6),transparent)}
 body.game-2048 .orig2048-stats{display:flex}
-body.game-2048 #orig2048Stage{position:relative;inset:auto;width:100%;min-height:60vh;flex:1;border-radius:0;z-index:auto;align-items:flex-start;justify-content:center;padding-top:10px;box-sizing:border-box}
-body.game-2048 #orig2048Frame{max-height:none;width:min(94vw,520px);height:min(94vw,520px)}
+body.game-2048 #orig2048Stage{position:relative;inset:auto;width:100%;min-height:60vh;flex:1;border-radius:0;z-index:auto;align-items:flex-start;justify-content:center;padding-top:10px;box-sizing:border-box;background:#0D0D1A}
+body.game-2048 #orig2048Frame{max-height:none;width:min(94vw,520px);height:min(94vw,520px);border:none;border-radius:0}
 .orig2048-stats .score-container,
 .orig2048-stats .best-container,
 .orig2048-stats .coins-container{
@@ -399,6 +399,7 @@ body.game-2048 #orig2048Frame{max-height:none;width:min(94vw,520px);height:min(9
 .orig2048-stats .score-container{border-color:rgba(34,211,238,.4);box-shadow:0 0 12px rgba(34,211,238,.12)}
 .orig2048-stats .best-container{border-color:rgba(245,158,11,.35);box-shadow:0 0 12px rgba(245,158,11,.1)}
 body.game-2048 #orig2048Stage::after{display:none}
+body.game-2048 #orig2048Stage::before{display:none}
 body.game-2048 #gameCanvasWrap::after{display:none}
 /* ===== PAUSE-INSIDE (v7.16): সব কন্ট্রোল pause মেনুতে; HUD-তে শুধু pause trigger; back-to-hub সরানো ===== */
 body.game-active #page-game .hud{position:absolute;top:0;left:0;right:0;z-index:60;background:linear-gradient(rgba(5,7,10,.75),transparent);border-bottom:none;padding:8px 10px;pointer-events:none}
