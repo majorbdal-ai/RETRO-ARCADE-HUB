@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>RETRO ARCADE HUB — 70 Games! Play Free Online</title>
-<meta name="description" content="Play 70 free retro arcade games on your phone — neon snake, tetris, pinball, racing, puzzle, sports & more. XP, achievements, daily quests, coins, skins, leaderboard. No download, no install.">
-<meta name="keywords" content="retro arcade games, free mobile games, neon games, online arcade, play games free, tetris, snake, pinball">
+<meta name="description" content="RETRO ARCADE HUB — retro games on your phone in neon style. XP, achievements, daily quests, coins, skins, leaderboard. No download, no install.">
+<meta name="keywords" content="retro arcade, mobile games, offline arcade">
 <meta name="robots" content="index,follow">
 <meta name="author" content="RETRO ARCADE HUB">
 <meta name="theme-color" content="#05070A">
 <!-- Open Graph / Social Preview (Facebook, WhatsApp, etc.) -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="RETRO ARCADE HUB — 70 Free Games">
-<meta property="og:description" content="Play 70 free retro arcade games on your phone. XP, achievements, daily quests, coins, skins, leaderboard. No download needed.">
+<meta property="og:title" content="RETRO ARCADE HUB">
+<meta property="og:description" content="Play retro games on your phone. XP, achievements, daily quests, coins, skins, leaderboard. No download needed.">
 <meta property="og:url" content="https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/">
 <meta property="og:site_name" content="RETRO ARCADE HUB">
 <meta property="og:image" content="https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/assets/og-cover.png">
@@ -20,7 +20,7 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="RETRO ARCADE HUB — 70 Free Games">
+<meta name="twitter:title" content="RETRO ARCADE HUB">
 <meta name="twitter:description" content="Play 70 free retro arcade games on your phone.">
 <meta name="twitter:image" content="https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/assets/og-cover.png">
 <!-- B7 SEO: canonical + JSON-LD structured data -->
@@ -31,7 +31,7 @@
   "@type": "WebApplication",
   "name": "RETRO ARCADE HUB",
   "url": "https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/",
-  "description": "Play 70 free retro arcade games on your phone. Snake, Tetris, Flappy Bird, and more classic games with neon theme.",
+  "description": "Play retro games on your phone in neon style.",
   "applicationCategory": "GameApplication",
   "operatingSystem": "Any (Web)",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -110,7 +110,7 @@
   100% { transform: translateY(-42px) scale(1); opacity: 0; }
 }
 /* Smooth theme cross-fade on everything color-related */
-body,.page,.cat-tab,.game-card,.nav-btn,.top-btn,.deal-banner,.deal-banner *{transition:background-color var(--theme-transition) ease,border-color var(--theme-transition) ease,box-shadow var(--theme-transition) ease,color var(--theme-transition) ease}
+body,.page,.cat-tab,.game-card,.nav-btn,.top-btn{transition:background-color var(--theme-transition) ease,border-color var(--theme-transition) ease,box-shadow var(--theme-transition) ease,color var(--theme-transition) ease}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
 body{
@@ -326,67 +326,7 @@ body{
   background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%);
   background-image:repeating-linear-gradient(to bottom,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 2px,transparent 4px);}
 #gameCanvas{width:100%;height:100%;object-fit:contain;background:#000;touch-action:none}
-/* ===== ORIGINAL 2048 (zip) frame — hub neon presentation, zip untouched ===== */
-#orig2048Stage{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:
-    radial-gradient(ellipse at 50% 20%,rgba(57,255,136,.14) 0%,transparent 55%),
-    radial-gradient(ellipse at 50% 90%,rgba(0,229,255,.12) 0%,transparent 55%),
-    repeating-linear-gradient(to bottom,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 2px,transparent 5px),
-    linear-gradient(160deg,#070a14 0%,#0b1020 50%,#05070d 100%);
-  z-index:4;pointer-events:none;
-}
-#orig2048Stage::before{content:'2048';position:absolute;top:8px;right:14px;font-family:'Orbitron',monospace;font-weight:900;font-size:15px;letter-spacing:4px;color:rgba(57,255,136,.35);text-shadow:0 0 18px rgba(57,255,136,.5);z-index:6}
-#orig2048Stage::after{content:'▲ SWIPE TO MOVE';position:absolute;bottom:10px;left:14px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:rgba(0,229,255,.4);text-shadow:0 0 12px rgba(0,229,255,.5);z-index:6}
-#orig2048Frame{
-  display:none;position:relative;z-index:5;width:min(92vw,560px);height:min(92vw,560px);max-height:calc(100vh - 148px);
-  border:1px solid rgba(57,255,136,.45);border-radius:14px;background:#faf8ef;
-  box-shadow:0 0 22px rgba(57,255,136,.35),0 0 60px rgba(0,229,255,.18),inset 0 0 30px rgba(0,0,0,.4);
-  pointer-events:auto;margin:auto;object-fit:contain;
-}
-body.game-active #orig2048Stage{position:fixed;inset:0;width:100%;height:100%;z-index:55;border-radius:0}
-/* Tutorial toast — shows how to play for ~3s at game start (v7.31) */
-#tutorialToast{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);z-index:60;background:rgba(8,10,24,.94);border:1px solid rgba(57,255,136,.45);color:#fff;font-size:13px;font-weight:700;text-align:center;padding:10px 18px;border-radius:12px;max-width:86%;box-shadow:0 6px 24px rgba(0,0,0,.55);pointer-events:none;opacity:0;transition:opacity .35s ease,transform .35s ease}
-#tutorialToast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
-#tutorialToast .tt-key{display:inline-block;background:rgba(57,255,136,.15);color:var(--green,#39FF88);border:1px solid rgba(57,255,136,.4);border-radius:6px;padding:1px 7px;margin:2px;font-size:11px;font-weight:800}
-/* When game is active, hide bottom nav + fill whole screen */
-body.game-active #bottomNav{display:none !important}
-body.game-active #page-game{height:100vh;height:100dvh;max-height:none}
-#page-game{position:fixed;inset:0;z-index:100;display:none}
-#page-game.active{display:flex;flex-direction:column}
-body.game-active{overflow:hidden}
-body.game-active main{display:none}
-body.game-active #topBar{display:none !important}
-#page-game .hud{flex-shrink:0}
-/* 2048 (zip iframe) finish: hide hub score/coin chips, keep pause, center title */
-body.game-2048 #page-game .hud .hud-stats{display:none !important}
-body.game-2048 #page-game .hud{justify-content:center}
-/* 2048 zip-style bottom stats (score/best/coins) in hub below the iframe */
-.orig2048-stats{
-  display:none;flex-direction:row;gap:10px;justify-content:center;align-items:center;
-  padding:10px 12px 14px;position:relative;z-index:auto}
-body.game-2048 .orig2048-stats{display:flex}
-body.game-2048 #orig2048Stage{position:relative;inset:auto;width:100%;height:auto;flex:1;border-radius:0;z-index:auto}
-body.game-2048 #orig2048Frame{max-height:none}
-.orig2048-stats .score-container,
-.orig2048-stats .best-container,
-.orig2048-stats .coins-container{
-  position:relative;min-width:74px;display:inline-block;background:#141c3c;
-  border:1px solid rgba(255,255,255,.12);padding:12px 18px 10px;font-size:22px;
-  height:22px;line-height:30px;font-weight:bold;border-radius:12px;color:#fff;
-  text-align:center;font-family:'Orbitron',sans-serif}
-.orig2048-stats .score-container:after,
-.orig2048-stats .best-container:after,
-.orig2048-stats .coins-container:after{
-  content:"SCORE";position:absolute;width:100%;top:4px;left:0;
-  text-transform:uppercase;font-size:9px;line-height:9px;text-align:center;
-  letter-spacing:1px;color:#7ff;font-family:'Orbitron',sans-serif}
-.orig2048-stats .best-container:after{content:"BEST";color:#ffe74a}
-.orig2048-stats .coins-container:after{content:"COINS";color:#ff8ad8}
-.orig2048-stats .coins-container{border-color:rgba(255,62,200,.4);box-shadow:0 0 12px rgba(255,62,200,.12)}
-.orig2048-stats .score-container{border-color:rgba(0,229,255,.4);box-shadow:0 0 12px rgba(0,229,255,.12)}
-.orig2048-stats .best-container{border-color:rgba(255,230,0,.35);box-shadow:0 0 12px rgba(255,230,0,.1)}
-body.game-2048 #orig2048Stage::after{display:none}
+
 #gameCanvasWrap{width:100%}
 #touchControls{width:100%;box-sizing:border-box}
 /* ===== PAUSE-INSIDE (v7.16): সব কন্ট্রোল pause মেনুতে; HUD-তে শুধু pause trigger; back-to-hub সরানো ===== */
@@ -558,11 +498,6 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 .tab-row{display:flex;gap:8px;margin:12px 0}
 .tab{flex:1;padding:9px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--sub);font-weight:700;font-size:12px;cursor:pointer;text-align:center;transition:all .2s}
 .tab.active{background:linear-gradient(135deg,rgba(0,255,255,.2),rgba(255,16,240,.15));border-color:var(--accent);color:#fff;box-shadow:0 0 14px var(--glow)}
-.shop-item{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:10px}
-.shop-item .s-ico{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(145deg,rgba(0,255,255,.15),rgba(255,16,240,.12));border:1px solid rgba(255,255,255,.15);flex-shrink:0}
-.shop-item .s-info{flex:1;min-width:0}
-.shop-item .s-info h4{font-size:14px;color:#fff}
-.shop-item .s-info p{font-size:11px;color:var(--sub)}
 /* ==================== LEADERBOARD ==================== */
 .rank-row{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px}
 .rank-row .rank-no{width:28px;text-align:center;font-family:'Press Start 2P',monospace;font-size:11px;color:var(--sub)}
@@ -598,11 +533,9 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 .sd-reward{font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:var(--sub)}
 .sd-reward.got{background:linear-gradient(135deg,rgba(255,140,0,.3),rgba(255,59,107,.3));border-color:#FF9D00;color:#FFE600}
 /* ==================== STORE (coins/themes) ==================== */
-.pack-card{padding:18px;text-align:center;margin-bottom:12px;position:relative}
 .pack-card .coins{font-family:'Orbitron',sans-serif;font-size:26px;color:var(--yellow);text-shadow:0 0 14px rgba(255,230,0,.4)}
 .pack-card .price{font-family:'Orbitron',sans-serif;font-size:17px;color:#fff;margin:6px 0 10px}
 .pack-card .badge{position:absolute;top:-8px;right:10px;background:var(--yellow);color:#000;font-size:9px;font-weight:900;border-radius:99px;padding:3px 8px;letter-spacing:.5px}
-.deal-banner{background:linear-gradient(90deg,rgba(255,230,0,.18),rgba(255,16,240,.15));border:1px solid var(--yellow);border-radius:14px;padding:10px 14px;text-align:center;font-weight:700;color:var(--yellow);font-size:13px;margin:10px 0}
 /* ==================== MODALS / TOAST ==================== */
 #toast{
   position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);
@@ -697,38 +630,19 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 .view-btn.active{background:var(--btn-grad);color:#000;box-shadow:0 2px 8px rgba(0,255,255,.3)}
 
 /* Filter/Sort Components */
-.filter-row,.shop-filter{flex-wrap:wrap}
-.filter-group,.sort-group,.sort-select{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);transition:all var(--transition-fast)}
+.filter-row,.filter-group,.sort-group,.sort-select{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);transition:all var(--transition-fast)}
 .filter-group:focus-within,.sort-group:focus-within,.sort-select:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,255,.2)}
 .filter-group select,.sort-group select,.sort-select select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A93A6' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right var(--space-sm) center;padding-right:28px}
 
 /* Shop Components */
-.shop-header{padding-bottom:var(--space-md);border-bottom:1px solid rgba(255,255,255,.05)}
-.coin-display-large{font-family:'Orbitron',sans-serif}
-.shop-toolbar{padding-bottom:var(--space-md);border-bottom:1px solid rgba(255,255,255,.05)}
 .tab-row button{transition:all var(--transition-fast)}
 .tab-row button:hover:not(.active){background:rgba(0,255,255,.1);color:var(--cyan);border-color:var(--cyan)}
-.deal-banner{position:relative;overflow:hidden}
-.deal-banner::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);animation:shimmer 2s infinite}
 @keyframes shimmer{0%{left:-100%}100%{left:100%}}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 
 /* Shop Grid */
-.shop-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
-.shop-item{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:var(--space-md);transition:all var(--transition-normal);position:relative;overflow:hidden}
-.shop-item:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg),var(--shadow-glow);border-color:var(--accent)}
-.shop-item.owned{border-color:rgba(57,255,136,.4);background:rgba(57,255,136,.05)}
-.shop-item.equipped{border-color:var(--accent);box-shadow:var(--shadow-glow)}
-.shop-item .item-icon{font-size:var(--font-2xl);text-align:center;margin-bottom:var(--space-sm);filter:drop-shadow(0 4px 12px currentColor)}
-.shop-item .item-name{font-weight:700;font-size:var(--font-sm);color:#fff;margin-bottom:var(--space-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.shop-item .item-desc{font-size:var(--font-xs);color:var(--sub);margin-bottom:var(--space-md);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.shop-item .item-price{display:flex;align-items:center;justify-content:space-between;align-items:center}
-.shop-item .price-tag{font-family:'Orbitron',sans-serif;font-weight:700;color:var(--yellow);font-size:var(--font-md)}
-.shop-item .btn-small{padding:var(--space-xs) var(--space-md);font-size:var(--font-xs);border-radius:var(--radius-sm);font-weight:700}
 
 /* Quick Links */
-.quick-link{transition:all var(--transition-normal)}
-.quick-link:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
 
 /* Featured Carousel Cards */
 .featured-carousel .featured-card{background:linear-gradient(145deg,var(--panel),var(--bg));border:1px solid var(--glass-border);border-radius:var(--radius-xl);padding:var(--space-lg);min-width:260px;scroll-snap-align:start;transition:all var(--transition-normal)}
@@ -774,8 +688,7 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
   .hero-section{padding:var(--space-md)}
   .hero-visual{width:120px;height:120px}
   .featured-carousel .featured-card{width:220px}
-  .shop-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
-  .cat-tab{font-size:var(--font-xs);padding:var(--space-xs) var(--space-sm)}
+    .cat-tab{font-size:var(--font-xs);padding:var(--space-xs) var(--space-sm)}
 }
 
 /* Reduced Motion */
@@ -787,14 +700,14 @@ body.acc-mode .ctrl-btn{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 /* High contrast: user prefers more contrast → stronger borders/text */
 @media (prefers-contrast:more){
   :root{--bg:#000}
-  .widget,.card,.game-card,.shop-card,.tab,.cat-tab,.ctrl-btn,.btn{border-width:2px !important}
+  .widget,.card,.game-card,.tab,.cat-tab,.ctrl-btn,.btn{border-width:2px !important}
   body{color:#fff}
-  .game-card p,.shop-card p,.hint,.ctrl-hint{color:#ddd !important;opacity:1 !important}
+  .game-card p,.hint,.ctrl-hint{color:#ddd !important;opacity:1 !important}
   .sec-title span{opacity:1 !important;text-shadow:none !important}
 }
 /* Focus visible: keyboard navigation ring (WCAG 2.4.7) */
 .btn:focus-visible,.tab:focus-visible,.cat-tab:focus-visible,.nav-item:focus-visible,
-.game-card:focus-visible,.shop-card:focus-visible,.ctrl-btn:focus-visible,
+.game-card:focus-visible,.ctrl-btn:focus-visible,
 .radio-active:focus-visible,.theme-swatch:focus-visible{
   outline:3px solid var(--yellow) !important;outline-offset:2px;border-radius:8px}
 /* Color-blind friendly palette toggle (protanopia/deuteranopia safe) */
@@ -826,7 +739,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
 <!-- ============ TOP BAR ============ -->
 <div id="topBar" style="display:none">
   <div class="logo glitch" data-text="RETRO<b>ARCADE</b>"><span>RETRO<b>ARCADE</b></span></div>
-  <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search games..." oninput="setHomeQuery(this.value)"><button id="homeResetBtn" onclick="homeResetSearch()" style="display:none;background:none;border:none;color:var(--sub);cursor:pointer;padding:6px;font-size:14px" title="Clear search"><i class="fa-solid fa-xmark"></i></button></div>
+  <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search games..." oninput="setHomeQuery(this.value)"></div>
   <div class="coin-badge"><i class="fa-solid fa-coins"></i><span id="coinDisplay">0</span></div>
   <button class="hud-btn" id="themeQuickBtn" onclick="cycleTheme()" title="Theme"><i class="fa-solid fa-palette"></i></button>
 </div>
@@ -841,7 +754,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <div class="hero-section" style="margin-bottom:var(--space-xl);padding:var(--space-lg);background:linear-gradient(135deg,var(--panel),var(--bg));border-radius:var(--radius-xl);border:1px solid var(--glass-border);overflow:hidden;position:relative">
         <div class="hero-content" style="display:flex;flex-direction:column;gap:var(--space-md);align-items:flex-start;position:relative;z-index:1">
           <div class="hero-badge" id="heroBadge" style="display:inline-flex;align-items:center;gap:var(--space-xs);background:var(--btn-grad);color:#000;padding:var(--space-xs) var(--space-sm);border-radius:999px;font-size:var(--font-xs);font-weight:700;letter-spacing:.5px"><i class="fa-solid fa-fire"></i> <span id="heroVersionText">LOADING...</span></div>
-          <h1 class="hero-title" style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(var(--font-xl),6vw,var(--font-2xl));line-height:1.1;color:#fff;background:linear-gradient(135deg,#fff,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;margin:0"><span id="heroGameCount">70</span> GAMES. ONE ARENA.</h1>
+          <h1 class="hero-title" style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(var(--font-xl),6vw,var(--font-2xl));line-height:1.1;color:#fff;background:linear-gradient(135deg,#fff,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;margin:0"><span id="heroGameCount">0</span> GAMES.</h1>
           <p class="hero-subtitle" style="color:var(--sub);font-size:var(--font-md);margin:0;max-width:280px">Play free retro arcade games on mobile. No downloads. Instant fun. <span id="heroOfflineBadge" style="display:none;color:var(--green,#22c55e);font-weight:700">OFFLINE-READY</span></p>
           <div class="hero-stats" style="display:flex;gap:var(--space-lg);margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:1px solid rgba(255,255,255,.08)">
             <div class="stat" style="text-align:center">
@@ -944,7 +857,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap">
           <div>
             <h2 class="sec-title" style="margin:0"><span class="glow">ARCADE</span></h2>
-            <p style="margin:var(--space-xs) 0 0;color:var(--sub);font-size:var(--font-sm)" id="heroSubCount">70 GAMES · PLAY INSTANTLY</p>
+            <p style="margin:var(--space-xs) 0 0;color:var(--sub);font-size:var(--font-sm)" id="heroSubCount">RETRO ARCADE · PLAY INSTANTLY</p>
           </div>
           <div class="view-toggle" style="display:flex;gap:var(--space-xs);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:var(--space-xs)">
             <button class="view-btn active" data-view="grid" onclick="setArcadeView('grid')" title="Grid View" style="padding:var(--space-xs) var(--space-sm);background:var(--btn-grad);color:#000;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--font-xs)"><i class="fa-solid fa-th-large"></i></button>
@@ -990,14 +903,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
       <button class="hud-btn pause-btn" onclick="togglePause()" title="Pause"><i class="fa-solid fa-pause"></i></button>
     </div>
     <div id="gameCanvasWrap">
-      <div id="orig2048Stage">
-        <iframe id="orig2048Frame" src="2048/index.html" allow="fullscreen" style="width:100%;height:100%;border:0;background:#faf8ef"></iframe>
-      </div>
-      <div id="orig2048Stats" class="orig2048-stats">
-        <div class="score-container">0</div>
-        <div class="best-container">0</div>
-        <div class="coins-container" id="origLocalCoins">0</div>
-      </div>
+      
       <canvas id="gameCanvas" width="800" height="450"></canvas>
       <div id="tutorialToast" class="tutorial-toast"></div>
       <div id="gameOverOverlay">
@@ -1058,79 +964,6 @@ body.cb-safe .badge{background:var(--cb-orange)}
   </section>
 
   <!-- 03 SHOP -->
-  <section id="page-shop" class="page">
-    <div class="scroll-area">
-      <!-- SHOP HEADER -->
-      <div class="shop-header" style="display:flex;flex-direction:column;gap:var(--space-md);margin-bottom:var(--space-lg)">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap">
-          <div>
-            <h2 class="sec-title" style="margin:0"><span class="glow">SHOP</span></h2>
-            <p style="margin:var(--space-xs) 0 0;color:var(--sub);font-size:var(--font-sm)">CUSTOMIZE YOUR ARCADE</p>
-          </div>
-          <div class="coin-display-large" style="display:flex;align-items:center;gap:var(--space-xs);background:rgba(255,230,0,.12);border:1px solid rgba(255,230,0,.4);color:var(--yellow);border-radius:999px;padding:var(--space-xs) var(--space-md);font-weight:700;font-size:var(--font-md)"><i class="fa-solid fa-coins"></i><span id="shopCoinDisplay">0</span></div>
-        </div>
-        
-        <!-- TABS + FILTER -->
-        <div class="shop-toolbar" style="display:flex;flex-direction:column;gap:var(--space-sm)">
-          <div class="tab-row" id="shopTabs" style="display:flex;gap:var(--space-xs);overflow-x:auto;padding-bottom:var(--space-xs);scrollbar-width:none;-ms-overflow-style:none">
-            <button class="tab active" data-tab="skins" onclick="renderShop('skins')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:var(--btn-grad);color:#000;border:none;border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer"><i class="fa-solid fa-shirt"></i> SKINS</button>
-            <button class="tab" data-tab="vehicles" onclick="renderShop('vehicles')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)"><i class="fa-solid fa-car"></i> VEHICLES</button>
-            <button class="tab" data-tab="effects" onclick="renderShop('effects')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)"><i class="fa-solid fa-magic"></i> EFFECTS</button>
-            <button class="tab" data-tab="boosters" onclick="renderShop('boosters')" style="flex-shrink:0;padding:var(--space-xs) var(--space-md);background:rgba(255,255,255,.06);color:var(--sub);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:var(--font-sm);font-weight:700;cursor:pointer;transition:all var(--transition-fast)"><i class="fa-solid fa-bolt"></i> BOOSTERS</button>
-          </div>
-          
-          <div class="shop-filter" style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:center">
-            <div class="filter-group" style="display:flex;align-items:center;gap:var(--space-xs);padding:0 var(--space-sm);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md)">
-              <label style="font-size:var(--font-xs);color:var(--sub);white-space:nowrap">FILTER:</label>
-              <select id="shopFilter" onchange="renderShop(currentShopTab)" style="background:transparent;color:var(--text);border:none;outline:none;font-size:var(--font-sm);font-family:'Space Grotesk',sans-serif;cursor:pointer;min-width:140px">
-                <option value="all">ALL ITEMS</option>
-                <option value="owned">OWNED</option>
-                <option value="equipped">EQUIPPED</option>
-                <option value="unowned">NOT OWNED</option>
-              </select>
-            </div>
-            <div class="sort-group" style="display:flex;align-items:center;gap:var(--space-xs);padding:0 var(--space-sm);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);margin-left:auto">
-              <label style="font-size:var(--font-xs);color:var(--sub);white-space:nowrap">SORT:</label>
-              <select id="shopSort" onchange="renderShop(currentShopTab)" style="background:transparent;color:var(--text);border:none;outline:none;font-size:var(--font-sm);font-family:'Space Grotesk',sans-serif;cursor:pointer;min-width:140px">
-                <option value="price-asc">PRICE LOW-HIGH</option>
-                <option value="price-desc">PRICE HIGH-LOW</option>
-                <option value="name">NAME A-Z</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- DAILY DEAL BANNER -->
-      <div class="deal-banner" id="liveDealBanner" style="display:flex;align-items:center;gap:var(--space-md);background:linear-gradient(90deg,rgba(255,230,0,.18),rgba(255,16,240,.15));border:1px solid var(--yellow);border-radius:var(--radius-lg);padding:var(--space-md);margin-bottom:var(--space-lg);animation:pulse 2s infinite">
-        <div style="font-size:var(--font-xl);animation:bounce 1s infinite">🔥</div>
-        <div style="flex:1">
-          <div style="font-weight:700;color:var(--yellow);font-size:var(--font-sm);text-transform:uppercase;letter-spacing:.5px">DAILY DEAL</div>
-          <div id="dealText" style="color:#fff;font-size:var(--font-sm);margin-top:var(--space-xs)">Loading...</div>
-        </div>
-        <div style="font-size:var(--font-lg);animation:pulse 1.5s infinite">⚡</div>
-      </div>
-
-      <!-- SHOP ITEMS GRID -->
-      <div class="shop-grid" id="shopItems" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:var(--space-md)"></div>
-
-      <!-- QUICK LINKS -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin-top:var(--space-xl)">
-        <div class="card quick-link" onclick="go('store')" style="text-align:center;padding:var(--space-lg);background:linear-gradient(135deg,rgba(0,255,255,.1),rgba(255,16,240,.05));border-color:var(--cyan)">
-          <div style="font-size:var(--font-2xl);color:var(--cyan)"><i class="fa-solid fa-coins"></i></div>
-          <b style="font-size:var(--font-md);color:#fff;display:block;margin-top:var(--space-sm)">COIN STORE</b>
-          <span style="font-size:var(--font-xs);color:var(--sub);display:block;margin-top:var(--space-xs)">Buy coins — no ads</span>
-        </div>
-        <div class="card quick-link" onclick="go('themes')" style="text-align:center;padding:var(--space-lg);background:linear-gradient(135deg,rgba(255,16,240,.1),rgba(0,255,255,.05));border-color:var(--pink)">
-          <div style="font-size:var(--font-2xl);color:var(--pink)"><i class="fa-solid fa-palette"></i></div>
-          <b style="font-size:var(--font-md);color:#fff;display:block;margin-top:var(--space-sm)">THEMES STORE</b>
-          <span style="font-size:var(--font-xs);color:var(--sub);display:block;margin-top:var(--space-xs)">Customize your arcade</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 04 LEADERBOARD -->
   <section id="page-board" class="page">
     <div class="scroll-area">
       <div class="sec-title"><span class="glow">LEADERBOARD</span></div>
@@ -1221,28 +1054,7 @@ body.cb-safe .badge{background:var(--cb-orange)}
   </section>
 
   <!-- 06 COIN STORE -->
-  <section id="page-store" class="page">
-    <div class="scroll-area">
-      <div class="sec-title"><span class="glow">COIN STORE</span></div>
-      <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px">BUY COINS — NO ADS</div>
-      <div id="coinPacks"></div>
-      <div class="widget" style="text-align:center">
-        <div style="font-size:11px;color:var(--sub);margin-bottom:6px">COMING SOON</div>
-        <div style="display:flex;gap:10px;justify-content:center;font-size:18px;color:var(--sub)">
-          <i class="fa-brands fa-google-play"></i><i class="fa-brands fa-apple"></i><i class="fa-solid fa-lock" style="color:var(--sub)"></i>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 07 THEMES STORE -->
-  <section id="page-themes" class="page">
-    <div class="scroll-area">
-      <div class="sec-title"><span class="glow">THEMES STORE</span></div>
-      <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px">CUSTOMIZE YOUR ARCADE</div>
-      <div id="themeList"></div>
-    </div>
-  </section>
+  
 
 </main>
 
@@ -1250,7 +1062,6 @@ body.cb-safe .badge{background:var(--cb-orange)}
 <nav id="bottomNav" aria-label="Main navigation" style="display:none">
   <button class="nav-item active" data-page="home"><i class="fa-solid fa-house"></i>HOME</button>
   <button class="nav-item" data-page="arcade"><i class="fa-solid fa-gamepad"></i>ARCADE</button>
-  <button class="nav-item" data-page="shop"><i class="fa-solid fa-bag-shopping"></i>SHOP</button>
   <button class="nav-item" data-page="board"><i class="fa-solid fa-trophy"></i>BOARD</button>
   <button class="nav-item" data-page="profile"><i class="fa-solid fa-user"></i>PROFILE</button>
 </nav>

@@ -11,7 +11,7 @@ const core = fs.readFileSync(path.join(root, 'games/core.js'), 'utf8');
 const ctrl = fs.readFileSync(path.join(root, 'games/controls.js'), 'utf8');
 const sw = fs.existsSync(path.join(root, 'sw.js')) ? fs.readFileSync(path.join(root, 'sw.js'), 'utf8') : '';
 
-const GAMES_BLOCK = app.match(/const GAMES\s*=\s*\[([\s\S]*?)\n\];/);
+const GAMES_BLOCK = app.match(/const GAMES\s*=\s*\[([^\]]*)\]/);
 if (!GAMES_BLOCK) { console.error('Could not locate GAMES array in app.js'); process.exit(1); }
 const ids = [...GAMES_BLOCK[1].matchAll(/id: '([a-z0-9-]+)'/g)].map(m => m[1]);
 const engineBlock = core.match(/const GAME_ENGINE\s*=\s*\{([\s\S]*?)\n\};/);
@@ -28,9 +28,8 @@ if (fnBlock) {
   }
 }
 function fnToFile(fn) {
-  if (fn === 'bounce') return 'bounce.js';
   if (fn === 'spaceImpact') return 'space_impact.js';
-  if (fn === 'bantumi') return 'bantumi.js';
+  // (no legacy aliases — empty hub)
   return fn.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase().replace(/^game_/, 'game') + '.js';
 }
 // GAME_SKIN map (app.js) — game → theme
@@ -52,7 +51,7 @@ const extraCtrl = ctrlIds.filter(i => !ids.includes(i));
 if (extraCtrl.length) { errs.push('UNUSED CONTROL LAYOUT: ' + extraCtrl.join(', ')); fail = true; }
 // B10: engine file must exist & match
 const missFiles = [];
-const IFRAME_GAMES = ['2048']; // original-app games: no canvas engine file
+const IFRAME_GAMES = []; // no iframe-hosted games (hub is empty) // original-app games: no canvas engine file
 for (const id of ids) {
   if (IFRAME_GAMES.includes(id)) continue; // hosted as original app (iframe)
   const fn = fnMap[id];
@@ -64,7 +63,7 @@ if (missFiles.length) { errs.push('MISSING ENGINE FILE: ' + missFiles.join(', ')
 // B10: sw.js must pre-cache every engine file
 if (sw) {
   const missingSw = ids.filter(id => {
-    if (IFRAME_GAMES.includes(id)) return false; // iframe game — no engine file to cache (its 2048/ assets are cached by sw tier-2)
+    if (IFRAME_GAMES.includes(id)) return false; // iframe game — no engine file to cache
     const fn = fnMap[id];
     if (!fn) return true;
     return !sw.includes('./games/' + fnToFile(fn));

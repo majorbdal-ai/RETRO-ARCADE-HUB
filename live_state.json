@@ -1,28 +1,5 @@
 {
-  "rot": 23,
-  "updated": "2026-09-14T11:42:04.691Z",
-  "featured": [
-    "bubble-shooter",
-    "neon-dash",
-    "sling-birds",
-    "cricket-sixer",
-    "neon-racer",
-    "cyber-shooter"
-  ],
-  "deal": {
-    "item": "boost-slow",
-    "name": "SLOW MOTION",
-    "pct": 25
-  },
-  "challenge": "neon-snake",
-  "botBoost": [
-    1.61,
-    1.84,
-    1.07,
-    1.2,
-    1.43,
-    1.66,
-    1.89,
-    1.02
-  ]
+  "featured": [],
+  "challenge": "",
+  "lastUpdated": "reset-empty-hub"
 }
