@@ -21,6 +21,7 @@ function engineReady(id) {
 let currentGame = null;   // engine instance
 let currentEngine = null; // function
 let gameState = { id: null, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+let runBestBeaten = false;         // v7.49: live mid-run NEW BEST celebration fired once per run
 let reviveUsed = false;            // one coin-continue per session (arcade rule)
 let pendingRevenge = false;        // v7.36 REVENGE MODE: +50% score on next run, bought at game-over
 let pendingReviveFloor = 0;        // score floor carried into the revived run
@@ -1095,6 +1096,8 @@ function bootGame(id, engine) {
 
   // reset game state
   gameState = { id, running: false, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  runBestBeaten = false;   // v7.49: live NEW BEST celebration re-arms for every fresh run
+  const hs = document.getElementById('hudScore'); if (hs) { try { hs.classList.remove('run-best'); } catch(e) {} }
 
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
@@ -1125,6 +1128,19 @@ function bootGame(id, engine) {
   const onScoreCb = (s) => {
     const shown = s + reviveFloor;    // revive: add carried floor to the live score
     document.getElementById('hudScore').innerText = shown;
+    // v7.49 LIVE NEW BEST: the moment the run crosses the player's own best,
+    // celebrate INSTANTLY (gold burst + trophy pop + win SFX + haptic) — once
+    // per run. Retry-compulsion: the streak moment lands mid-run, not buried
+    // in the game-over panel. The HUD chip also glows gold via .run-best.
+    if (!runBestBeaten && shown > 0 && state.best && shown > (state.best[gameState.id] || 0)) {
+      runBestBeaten = true;
+      const scoreEl = document.getElementById('hudScore');
+      if (window.gameFX) { try { window.gameFX.burst(innerWidth/2, innerHeight/2 - 60, '#FFE600', 18); } catch(e) {} }
+      if (typeof window.popScore === 'function') { try { window.popScore(innerWidth/2 - 60, innerHeight/2 - 90, '🏆 NEW BEST!'); } catch(e) {} }
+      if (typeof window.playSfx === 'function') { try { window.playSfx('win2'); } catch(e) {} }
+      if (navigator.vibrate) { try { navigator.vibrate([60,40,120]); } catch(e) {} }
+      if (scoreEl) { try { scoreEl.classList.add('run-best'); } catch(e) {} }
+    }
     // gameFX: subtle score particles every few points
     if (shown > 0 && shown % 5 === 0 && window.gameFX) {
       const scoreEl = document.getElementById('hudScore');
@@ -1655,7 +1671,7 @@ function launchOrig2048() {
   _2048lastBest = 0;
   const coinsEl = document.getElementById('origLocalCoins');
   if (coinsEl) coinsEl.innerText = '0';
-  const hubScore = document.querySelector('.orig2048-stats .score-container');
+  const hubScore = document.getElementById('orig2048Score');
   if (hubScore) hubScore.innerText = '0';
   const hubBest = document.getElementById('orig2048Best');
   if (hubBest) hubBest.innerText = String(state.best['2048'] || 0);
@@ -1714,7 +1730,7 @@ function settleOrig2048() {
       }
       const best = parseInt(ls.getItem('bestScore') || '0', 10) || 0;
       if (best > _2048lastBest) _2048lastBest = best;
-      const hubBest = document.querySelector('.orig2048-stats .best-container');
+      const hubBest = document.getElementById('orig2048Best');
       if (hubBest) hubBest.innerText = String(Math.max(score, best, state.best['2048'] || 0));
     }
   } catch (e) {}
@@ -1800,7 +1816,7 @@ function restartOrig2048() {
   document.getElementById('gameOverOverlay').classList.remove('show');
   const rCoins = document.getElementById('origLocalCoins');
   if (rCoins) rCoins.innerText = '0';
-  const hb = document.querySelector('.orig2048-stats .score-container');
+  const hb = document.getElementById('orig2048Score');
   if (hb) hb.innerText = '0';
   if (window._2048poll) {} else {
     window._2048poll = setInterval(() => {
@@ -1816,7 +1832,7 @@ function restartOrig2048() {
               if (st.score !== gameState.score) {
                 gameState.score = st.score;
                 document.getElementById('hudScore').innerText = String(st.score);
-                const scEl = document.querySelector('.orig2048-stats .score-container');
+                const scEl = document.getElementById('orig2048Score');
                 if (scEl) scEl.innerText = String(st.score);
                 const cEl = document.getElementById('origLocalCoins');
                 if (cEl) cEl.innerText = String(Math.floor(st.score / 10));
