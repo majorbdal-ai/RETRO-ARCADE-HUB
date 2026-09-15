@@ -1,7 +1,7 @@
 /* ============================================================
    RETRO ARCADE HUB — ORIGINAL (ZIP) GAMES IFRAME HOST
    Isolated host code for games that ship as their own full
-   web app (2048, Sky Flap, ...). Each game stays in its own
+   web app (2048, Neon Flap, ...). Each game stays in its own
    folder with its own index.html + assets — zero mixing.
    The hub only frames the pristine app and bridges coins.
    Loaded AFTER games/core.js (uses its state/targets/hooks).
@@ -92,7 +92,7 @@ function launchOrig2048() {
 }
 
 // Haptic bridge for iframe originals (2048 pristine zip = zero vibration, unlike
-// Sky Flap which vibrates via me.device.vibrate). The hub polls each iframe's own
+// Neon Flap which vibrates via me.device.vibrate). The hub polls each iframe's own
 // LocalStorage — it can tap THE SAME data for feel: tile-tier buzzes, merge-back
 // buzz, best-score beat pulse, game-over rattle. Fired only from the poll (the
 // originals' internals are never touched). Mirrors core.js haptic() patterns.
@@ -272,22 +272,22 @@ function restartOrig2048() {
   }
 }
 
-// ---------------- SKY FLAP (original app) ----------------
-let _sfFrame = null;
+// ---------------- NEON FLAP (original app) ----------------
+let _nfFrame = null;
 let _sfPoll = null;
 let _sfLastBest = 0;
 let _sfBracket = 0;         // last landmark bracket seen (topSteps/10) — hub milestone haptics
 
-function launchOrigSkyFlap() {
-  const g = GAMES.find(x => x.id === 'sky-flap');
+function launchOrigNeonFlap() {
+  const g = GAMES.find(x => x.id === 'neon-flap');
   if (!g) return;
   if (typeof window.pushGameHistory === 'function') { try { window.pushGameHistory(); } catch (e) {} }
-  if (typeof window.applyGameSkin === 'function') { try { window.applyGameSkin('sky-flap'); } catch (e) {} }
+  if (typeof window.applyGameSkin === 'function') { try { window.applyGameSkin('neon-flap'); } catch (e) {} }
   go('game');
   if (document.fullscreenEnabled && !document.fullscreenElement) {
     try { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
   }
-  if (typeof window.showTutorialToast === 'function') { try { window.showTutorialToast(g, 'sky-flap'); } catch (e) {} }
+  if (typeof window.showTutorialToast === 'function') { try { window.showTutorialToast(g, 'neon-flap'); } catch (e) {} }
   document.getElementById('hudGameTitle').innerText = g.name;
   document.getElementById('hudScore').innerText = '0';
   const hudLivesEl = document.getElementById('hudLives');
@@ -297,16 +297,16 @@ function launchOrigSkyFlap() {
   const hudRevengeEl = document.getElementById('hudRevenge');
   if (hudRevengeEl) hudRevengeEl.style.display = 'none';
   lockGameScroll(true);
-  gameState = { id: 'sky-flap', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
-  document.body.classList.add('game-skyflap');
+  gameState = { id: 'neon-flap', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  document.body.classList.add('game-neonflap');
   const canvas = document.getElementById('gameCanvas');
-  const stage = document.getElementById('skyflapStage');
+  const stage = document.getElementById('neonflapStage');
   if (canvas) canvas.style.display = 'none';
   if (stage) stage.style.display = 'flex';
-  _sfFrame = document.getElementById('skyflapFrame');
-  if (_sfFrame) {
-    _sfFrame.style.display = 'block';
-    _sfFrame.src = 'sky-flap/index.html?v=' + (window.APP_VERSION || Date.now());
+  _nfFrame = document.getElementById('neonflapFrame');
+  if (_nfFrame) {
+    _nfFrame.style.display = 'block';
+    _nfFrame.src = 'neon-flap/index.html?v=' + (window.APP_VERSION || Date.now());
   }
   _sfLastBest = 0;
   _sfBracket = 0;
@@ -315,10 +315,10 @@ function launchOrigSkyFlap() {
   // poll the iframe's own localStorage score (engine stores topSteps)
   if (_sfPoll) clearInterval(_sfPoll);
   _sfPoll = setInterval(() => {
-    if (!gameState || gameState.id !== 'sky-flap') return;
+    if (!gameState || gameState.id !== 'neon-flap') return;
     try {
-      if (_sfFrame && _sfFrame.contentWindow && _sfFrame.contentWindow.localStorage) {
-        const ls = _sfFrame.contentWindow.localStorage;
+      if (_nfFrame && _nfFrame.contentWindow && _nfFrame.contentWindow.localStorage) {
+        const ls = _nfFrame.contentWindow.localStorage;
         const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
         if (top > _sfLastBest) {
           // milestone brackets: every 10 steps above a previous all-time high
@@ -339,14 +339,14 @@ function launchOrigSkyFlap() {
 }
 
 // settle = award hub coins from the game's own best steps (blind-box economy)
-function settleOrigSkyFlap() {
-  if (!gameState || gameState.id !== 'sky-flap' || gameState.over) return;
+function settleOrigNeonFlap() {
+  if (!gameState || gameState.id !== 'neon-flap' || gameState.over) return;
   gameState.over = true;
   gameState.running = false;
   let score = gameState.score || 0;
   try {
-    if (_sfFrame && _sfFrame.contentWindow && _sfFrame.contentWindow.localStorage) {
-      const ls = _sfFrame.contentWindow.localStorage;
+    if (_nfFrame && _nfFrame.contentWindow && _nfFrame.contentWindow.localStorage) {
+      const ls = _nfFrame.contentWindow.localStorage;
       const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
       score = Math.max(score, top);
     }
@@ -354,28 +354,28 @@ function settleOrigSkyFlap() {
   const coins = Math.floor(score / 10);
   gameState.score = score;
   gameState.coinsEarned = coins;
-  const prevBest = state.best['sky-flap'] || 0;
+  const prevBest = state.best['neon-flap'] || 0;
   const isNewBest = score > prevBest;
-  if (isNewBest) state.best['sky-flap'] = score;
+  if (isNewBest) state.best['neon-flap'] = score;
   if (coins > 0) state.coins += coins;
   if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
   if (gameFX) { try { gameFX.deathFX(); } catch (e) {} }
   if (_sfPoll) clearInterval(_sfPoll);
   _sfPoll = null;
   const gc = document.getElementById('gameCanvas');
-  const stg = document.getElementById('skyflapStage');
+  const stg = document.getElementById('neonflapStage');
   if (gc) gc.style.display = '';
   if (stg) stg.style.display = 'none';
-  document.body.classList.remove('game-skyflap');
+  document.body.classList.remove('game-neonflap');
   document.getElementById('gameOverOverlay').classList.add('show');
   document.getElementById('overScore').innerText = String(score);
   document.getElementById('overCoins').innerText = String(coins);
   document.getElementById('overBest').innerText = String(Math.max(prevBest, score));
-  const tgt = GAME_TARGETS['sky-flap'];
+  const tgt = GAME_TARGETS['neon-flap'];
   let stars = !tgt ? 1 : score >= tgt ? 3 : score >= tgt * 0.6 ? 2 : 1;
   if (typeof state.stars !== 'object' || state.stars === null) state.stars = {};
-  const prevStars = state.stars['sky-flap'] || 0;
-  if (stars > prevStars) state.stars['sky-flap'] = stars;
+  const prevStars = state.stars['neon-flap'] || 0;
+  if (stars > prevStars) state.stars['neon-flap'] = stars;
   const starEls = document.querySelectorAll('#overStars span');
   if (starEls.length) {
     for (let i = 0; i < 3; i++) {
@@ -395,8 +395,8 @@ function settleOrigSkyFlap() {
   setTimeout(() => toast('🪙 Earned: ' + coins), 700);
 }
 
-function restartOrigSkyFlap() {
-  if (!gameState || gameState.id !== 'sky-flap') return;
+function restartOrigNeonFlap() {
+  if (!gameState || gameState.id !== 'neon-flap') return;
   if (gameState.over) gameState.over = false;
   if (_sfPoll) clearInterval(_sfPoll);
   _sfPoll = null;
@@ -404,27 +404,27 @@ function restartOrigSkyFlap() {
   _sfBracket = 0;
   const gc = document.getElementById('gameCanvas');
   if (gc) gc.style.display = 'none';
-  const stg = document.getElementById('skyflapStage');
+  const stg = document.getElementById('neonflapStage');
   if (stg) stg.style.display = 'flex';
-  if (_sfFrame) {
+  if (_nfFrame) {
     try {
-      if (_sfFrame.contentWindow && _sfFrame.contentWindow.location) {
-        _sfFrame.contentWindow.location.reload();
-      } else { _sfFrame.src = 'sky-flap/index.html'; }
-    } catch (e) { _sfFrame.src = 'sky-flap/index.html'; }
+      if (_nfFrame.contentWindow && _nfFrame.contentWindow.location) {
+        _nfFrame.contentWindow.location.reload();
+      } else { _nfFrame.src = 'neon-flap/index.html'; }
+    } catch (e) { _nfFrame.src = 'neon-flap/index.html'; }
   }
-  gameState = { id: 'sky-flap', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  gameState = { id: 'neon-flap', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('overScore').innerText = '0';
   document.getElementById('gameOverOverlay').classList.remove('show');
-  document.body.classList.add('game-skyflap');
+  document.body.classList.add('game-neonflap');
   const cEl = document.getElementById('sfCoins');
   if (cEl) cEl.innerText = '0';
   _sfPoll = setInterval(() => {
-    if (!gameState || gameState.id !== 'sky-flap') return;
+    if (!gameState || gameState.id !== 'neon-flap') return;
     try {
-      if (_sfFrame && _sfFrame.contentWindow && _sfFrame.contentWindow.localStorage) {
-        const ls = _sfFrame.contentWindow.localStorage;
+      if (_nfFrame && _nfFrame.contentWindow && _nfFrame.contentWindow.localStorage) {
+        const ls = _nfFrame.contentWindow.localStorage;
         const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
         if (top > _sfLastBest) {
           _sfLastBest = top;

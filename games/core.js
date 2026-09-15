@@ -10,7 +10,7 @@
 // lazily so script load order never matters.
 const GAME_ENGINE = {
   '2048': 'game2048',
-  'sky-flap': 'gameSkyFlap', 
+  'neon-flap': 'gameNeonFlap', 
 };
 
 // true when the game's engine file is available (all 70 are; lazy-loaded on launch)
@@ -31,7 +31,7 @@ let pendingReviveFloor = 0;        // score floor carried into the revived run
 // 1★ = play & score something · 2★ = 60% · 3★ = beat target (realistic per-game goals)
 const GAME_TARGETS = {
   '2048': 512,
-  'sky-flap': 30, 
+  'neon-flap': 30, 
 };
 // per-game touch/pointer binding (gesture-driven engines use canvas swipes)
 let canvasSwipe = { startX: 0, startY: 0, started: false };
@@ -929,7 +929,7 @@ function launchGame(id) {
 
   // ORIGINAL 2048 (zip) — hosted 100% untouched in an iframe; hub adds the coin box.
   if (id === '2048') { launchOrig2048(); return; }
-  if (id === 'sky-flap') { launchOrigSkyFlap(); return; }
+  if (id === 'neon-flap') { launchOrigNeonFlap(); return; }
   const engine = window[GAME_ENGINE[id]];
   if (typeof engine === 'function') { bootGame(id, engine); return; }
   // engine not loaded yet — lazy load it (performance), show loading screen
@@ -1632,8 +1632,8 @@ function rerollDailyMissions() {
 }
 
 // ---- ORIGINAL (ZIP) GAMES — moved to games/iframe_games.js ----
-// 2048 + Sky Flap host code (launchOrig2048 / settleOrig2048 / restartOrig2048,
-// launchOrigSkyFlap / settleOrigSkyFlap / restartOrigSkyFlap) lives in its own
+// 2048 + Neon Flap host code (launchOrig2048 / settleOrig2048 / restartOrig2048,
+// launchOrigNeonFlap / settleOrigNeonFlap / restartOrigNeonFlap) lives in its own
 // file so every game's host is isolated and nothing mixes.
 // Load order: games/core.js then games/iframe_games.js (see index.html).
 
@@ -1643,7 +1643,7 @@ function restartGame() {
   if (!gameState.id) return;
   const id = gameState.id;
   if (id === '2048') { restartOrig2048(); return; }
-  if (id === 'sky-flap') { restartOrigSkyFlap(); return; }
+  if (id === 'neon-flap') { restartOrigNeonFlap(); return; }
   // full cleanup (same as exitToHub minus go('arcade'))
   unbindGameTouch();
   stopTilt();
@@ -1665,7 +1665,7 @@ function restartGame() {
 function reviveGame() {
   if (!gameState.id || !gameState.over) return;
   if (gameState.id === '2048') { toast('2048 has its own continue!'); return; }
-  if (gameState.id === 'sky-flap') { restartOrigSkyFlap(); return; }
+  if (gameState.id === 'neon-flap') { restartOrigNeonFlap(); return; }
   if (reviveUsed) { toast('One continue per run!'); return; }
   const COST = 150;
   if (state.coins < COST) { toast('Need ' + COST + ' coins for continue!'); if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('err'); } catch (e) {} } return; }
@@ -1727,7 +1727,7 @@ function revengeGame() {
 // ---- exit to hub ----
 function exitToHub() {
   if (gameState.id === '2048') { settleOrig2048(); }
-  if (gameState.id === 'sky-flap') { settleOrigSkyFlap(); }
+  if (gameState.id === 'neon-flap') { settleOrigNeonFlap(); }
   clearInterval(window._diffTimer);   // stop difficulty ramp timer on exit
   unbindGameTouch();
   stopTilt(); // B1 [010]: clean up tilt listener
@@ -1781,8 +1781,8 @@ function togglePause() {
     }
     return;
   }
-  // sky-flap iframe: same overlay-only pause (original app keeps running)
-  if (gameState.id === 'sky-flap') {
+  // neon-flap iframe: same overlay-only pause (original app keeps running)
+  if (gameState.id === 'neon-flap') {
     if (gameState.paused) {
       gameState.paused = false;
       document.getElementById('pauseOverlay').classList.remove('show');

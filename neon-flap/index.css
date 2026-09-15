@@ -30,10 +30,12 @@ body {
   margin: auto !important;
   /* Hide the gap for font descenders. */
   display: block !important;
+  /* keep the game's true 3:2 aspect — fill screen, never distort */
   width: 100vw !important;
   height: 100vh !important;
   max-width: none !important;
   max-height: none !important;
+  object-fit: contain !important;
   
   image-rendering: auto !important;
 }

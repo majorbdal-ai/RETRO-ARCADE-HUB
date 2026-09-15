@@ -51,7 +51,7 @@ const extraCtrl = ctrlIds.filter(i => !ids.includes(i));
 if (extraCtrl.length) { errs.push('UNUSED CONTROL LAYOUT: ' + extraCtrl.join(', ')); fail = true; }
 // B10: engine file must exist & match
 const missFiles = [];
-const IFRAME_GAMES = ['2048', 'sky-flap']; // original-app games hosted in iframes
+const IFRAME_GAMES = ['2048', 'neon-flap']; // original-app games hosted in iframes
 for (const id of ids) {
   if (IFRAME_GAMES.includes(id)) continue; // hosted as original app (iframe)
   const fn = fnMap[id];

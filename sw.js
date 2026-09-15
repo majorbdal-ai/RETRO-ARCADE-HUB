@@ -3,7 +3,7 @@
    pre-cache ALL 70 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.62.0';
+const CACHE = 'retro-arcade-hub-v7.63.0';
 const STATIC_CORE = [
   './',
   './index.html',
@@ -39,22 +39,22 @@ const STATIC_CORE = [
   './2048/js/local_storage_manager.js',
   './2048/js/game_manager.js',
   './2048/js/application.js',
-  './sky-flap/index.html',
-  './sky-flap/index.css',
-  './sky-flap/build/skyflap-min.js',
-  './sky-flap/js/engine-min.js',
-  './sky-flap/data/img/bg.png',
-  './sky-flap/data/img/skyflap.png',
-  './sky-flap/data/img/pipe.png',
-  './sky-flap/data/img/ground.png',
-  './sky-flap/data/img/logo.png',
-  './sky-flap/data/img/gameover.png',
-  './sky-flap/data/img/gameoverbg.png',
-  './sky-flap/data/img/getready.png',
-  './sky-flap/data/img/new.png',
-  './sky-flap/data/img/hit.png',
-  './sky-flap/data/img/share.png',
-  './sky-flap/data/img/tweet.png',
+  './neon-flap/index.html',
+  './neon-flap/index.css',
+  './neon-flap/build/neonflap-min.js',
+  './neon-flap/js/engine-min.js',
+  './neon-flap/data/img/bg.png',
+  './neon-flap/data/img/neonflap.png',
+  './neon-flap/data/img/pipe.png',
+  './neon-flap/data/img/ground.png',
+  './neon-flap/data/img/logo.png',
+  './neon-flap/data/img/gameover.png',
+  './neon-flap/data/img/gameoverbg.png',
+  './neon-flap/data/img/getready.png',
+  './neon-flap/data/img/new.png',
+  './neon-flap/data/img/hit.png',
+  './neon-flap/data/img/share.png',
+  './neon-flap/data/img/tweet.png',
   './robots.txt',
   './sitemap.xml'
 ];
@@ -127,9 +127,9 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Original iframe games (2048/, sky-flap/) — network-first so the override index.html
+  // Original iframe games (2048/, neon-flap/) — network-first so the override index.html
   // (watermark removed, mobile fit) is ALWAYS fresh; cached copy only offline.
-  if (url.pathname.includes('/2048/') || url.pathname.includes('/sky-flap/')) {
+  if (url.pathname.includes('/2048/') || url.pathname.includes('/neon-flap/')) {
     e.respondWith(
       fetch(e.request)
         .then((res) => {
