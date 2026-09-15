@@ -1,0 +1,61 @@
+name: Daily Rotation
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # 4x per day: 00:00, 06:00, 12:00, 18:00 UTC
+  workflow_dispatch:        # manual trigger too
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-rotation
+  cancel-in-progress: false
+
+jobs:
+  rotate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Syntax check rotation script
+        run: node --check scripts/rotate_daily.js
+
+      - name: Run rotation
+        id: rot
+        run: node scripts/rotate_daily.js
+
+      - name: Verify live_state.json is valid + sane
+        run: |
+          node -e "
+            const s = require('./live_state.json');
+            if (!Array.isArray(s.featured) || s.featured.length === 0) throw new Error('featured missing');
+            if (!s.deal || !s.deal.item) throw new Error('deal missing');
+            if (!s.challenge) throw new Error('challenge missing');
+            if (!Array.isArray(s.botBoost) || s.botBoost.length !== 8) throw new Error('botBoost bad');
+            console.log('STATE_OK rot=' + s.rot + ' featured=' + s.featured.length + ' deal=' + s.deal.item + ' chall=' + s.challenge);
+          "
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet live_state.json; then
+            echo "No change — nothing to commit"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add live_state.json
+            git commit -m "chore: daily rotation #${{ steps.rot.outputs.rot }}" || true
+            git push
+            echo "Pushed rotation"
+          fi
+
+      - name: Verify push landed
+        run: |
+          git fetch origin main --quiet
+          echo "Latest remote: $(git rev-parse --short origin/main)"
