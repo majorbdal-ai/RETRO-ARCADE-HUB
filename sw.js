@@ -3,7 +3,7 @@
    pre-cache ALL 70 game engines at install
    (whole arcade playable offline), stale-while-revalidate for engines,
    navigation fallback to index.html, versioned cache with cleanup. */
-const CACHE = 'retro-arcade-hub-v7.56.0';
+const CACHE = 'retro-arcade-hub-v7.57.0';
 const STATIC_CORE = [
   './',
   './index.html',
@@ -142,19 +142,20 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Game engines → stale-while-revalidate (instant offline, updates in background)
+  // Game engines → network-first (SO the GAME_ENGINE map always stays fresh —
+  // a stale core.js here previously kept new games stuck on "COMING SOON"),
+  // fall back to cache offline; SWR only revalidates AFTER showing old.
   if (url.pathname.includes('/games/')) {
     e.respondWith(
-      caches.match(e.request).then((cached) => {
-        const network = fetch(e.request).then((res) => {
+      fetch(e.request)
+        .then((res) => {
           if (res && res.status === 200) {
             const copy = res.clone();
             caches.open(CACHE + '-engines').then((c) => c.put(e.request, copy));
           }
           return res;
-        }).catch(() => cached);
-        return cached || network;
-      })
+        })
+        .catch(() => caches.match(e.request))
     );
     return;
   }
