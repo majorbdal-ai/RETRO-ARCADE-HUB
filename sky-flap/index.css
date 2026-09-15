@@ -30,10 +30,17 @@ body {
   margin: auto;
   /* Hide the gap for font descenders. */
   display: block;
-  max-width: 100vw;
-  max-height: 100vh;
-  width: auto;
-  height: auto;
+  width: 100vw;
+  height: 100vh;
+}
+@media (orientation: portrait) {
+  #screen canvas {
+    /* rotate the landscape game to fill a portrait phone edge-to-edge */
+    width: calc(100vh * 0.666);
+    height: 100vw;
+    transform: rotate(90deg);
+  }
+}
 
   /* disable scaling interpolation */
   image-rendering: optimizeSpeed;
