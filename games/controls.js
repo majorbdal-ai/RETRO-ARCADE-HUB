@@ -8,5 +8,5 @@
 
 const CONTROL_LAYOUT = {
   '2048': { gesture: 'swipe4', type: 'swipe4', hint: 'Swipe to merge tiles' },
-  'clumsy-bird': { gesture: 'tap', type: 'tap', hint: 'Tap to flap' },
+  'sky-flap': { gesture: 'tap', type: 'tap', hint: 'Tap to flap' },
 };

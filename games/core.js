@@ -10,7 +10,7 @@
 // lazily so script load order never matters.
 const GAME_ENGINE = {
   '2048': 'game2048',
-  'clumsy-bird': 'gameClumsy', 
+  'sky-flap': 'gameSkyFlap', 
 };
 
 // true when the game's engine file is available (all 70 are; lazy-loaded on launch)
@@ -31,7 +31,7 @@ let pendingReviveFloor = 0;        // score floor carried into the revived run
 // 1★ = play & score something · 2★ = 60% · 3★ = beat target (realistic per-game goals)
 const GAME_TARGETS = {
   '2048': 512,
-  'clumsy-bird': 30, 
+  'sky-flap': 30, 
 };
 // per-game touch/pointer binding (gesture-driven engines use canvas swipes)
 let canvasSwipe = { startX: 0, startY: 0, started: false };
@@ -929,7 +929,7 @@ function launchGame(id) {
 
   // ORIGINAL 2048 (zip) — hosted 100% untouched in an iframe; hub adds the coin box.
   if (id === '2048') { launchOrig2048(); return; }
-  if (id === 'clumsy-bird') { launchOrigClumsy(); return; }
+  if (id === 'sky-flap') { launchOrigSkyFlap(); return; }
   const engine = window[GAME_ENGINE[id]];
   if (typeof engine === 'function') { bootGame(id, engine); return; }
   // engine not loaded yet — lazy load it (performance), show loading screen
@@ -1848,23 +1848,23 @@ function restartOrig2048() {
   }
 }
 
-// ---- ORIGINAL CLUMSY-BIRD (zip) iframe host — 100% original app inside ----
+// ---- ORIGINAL SKY-FLAP (zip) iframe host — 100% original app inside ----
 // Same pattern as 2048: untouched zip app in an iframe, hub frames it and
 // awards coins on run end. Blind-box iframe: the game keeps its own score
 // internally; the hub overlays coins + a restart button.
-let _cbFrame = null;
-let _cbPoll = null;
-let _cbLastBest = 0;
-function launchOrigClumsy() {
-  const g = GAMES.find(x => x.id === 'clumsy-bird');
+let _sfFrame = null;
+let _sfPoll = null;
+let _sfLastBest = 0;
+function launchOrigSkyFlap() {
+  const g = GAMES.find(x => x.id === 'sky-flap');
   if (!g) return;
   if (typeof window.pushGameHistory === 'function') { try { window.pushGameHistory(); } catch (e) {} }
-  if (typeof window.applyGameSkin === 'function') { try { window.applyGameSkin('clumsy-bird'); } catch (e) {} }
+  if (typeof window.applyGameSkin === 'function') { try { window.applyGameSkin('sky-flap'); } catch (e) {} }
   go('game');
   if (document.fullscreenEnabled && !document.fullscreenElement) {
     try { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
   }
-  if (typeof window.showTutorialToast === 'function') { try { window.showTutorialToast(g, 'clumsy-bird'); } catch (e) {} }
+  if (typeof window.showTutorialToast === 'function') { try { window.showTutorialToast(g, 'sky-flap'); } catch (e) {} }
   document.getElementById('hudGameTitle').innerText = g.name;
   document.getElementById('hudScore').innerText = '0';
   const hudLivesEl = document.getElementById('hudLives');
@@ -1874,30 +1874,30 @@ function launchOrigClumsy() {
   const hudRevengeEl = document.getElementById('hudRevenge');
   if (hudRevengeEl) hudRevengeEl.style.display = 'none';
   lockGameScroll(true);
-  gameState = { id: 'clumsy-bird', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
-  document.body.classList.add('game-clumsy');
+  gameState = { id: 'sky-flap', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  document.body.classList.add('game-skyflap');
   const canvas = document.getElementById('gameCanvas');
-  const stage = document.getElementById('clumsyStage');
+  const stage = document.getElementById('skyflapStage');
   if (canvas) canvas.style.display = 'none';
   if (stage) stage.style.display = 'flex';
-  _cbFrame = document.getElementById('clumsyFrame');
-  if (_cbFrame) {
-    _cbFrame.style.display = 'block';
-    _cbFrame.src = 'clumsy-bird/index.html?v=' + (window.APP_VERSION || Date.now());
+  _sfFrame = document.getElementById('skyflapFrame');
+  if (_sfFrame) {
+    _sfFrame.style.display = 'block';
+    _sfFrame.src = 'sky-flap/index.html?v=' + (window.APP_VERSION || Date.now());
   }
-  _cbLastBest = 0;
-  const coinsEl = document.getElementById('cbCoins');
+  _sfLastBest = 0;
+  const coinsEl = document.getElementById('sfCoins');
   if (coinsEl) coinsEl.innerText = '0';
   // poll the iframe's own localStorage score (melonJS stores topSteps)
-  if (_cbPoll) clearInterval(_cbPoll);
-  _cbPoll = setInterval(() => {
-    if (!gameState || gameState.id !== 'clumsy-bird') return;
+  if (_sfPoll) clearInterval(_sfPoll);
+  _sfPoll = setInterval(() => {
+    if (!gameState || gameState.id !== 'sky-flap') return;
     try {
-      if (_cbFrame && _cbFrame.contentWindow && _cbFrame.contentWindow.localStorage) {
-        const ls = _cbFrame.contentWindow.localStorage;
+      if (_sfFrame && _sfFrame.contentWindow && _sfFrame.contentWindow.localStorage) {
+        const ls = _sfFrame.contentWindow.localStorage;
         const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
-        if (top > _cbLastBest) {
-          _cbLastBest = top;
+        if (top > _sfLastBest) {
+          _sfLastBest = top;
           if (document.getElementById('hudScore')) document.getElementById('hudScore').innerText = String(top);
         }
       }
@@ -1905,14 +1905,14 @@ function launchOrigClumsy() {
   }, 800);
 }
 // settle = award hub coins from the game's own best steps (blind-box economy)
-function settleOrigClumsy() {
-  if (!gameState || gameState.id !== 'clumsy-bird' || gameState.over) return;
+function settleOrigSkyFlap() {
+  if (!gameState || gameState.id !== 'sky-flap' || gameState.over) return;
   gameState.over = true;
   gameState.running = false;
   let score = gameState.score || 0;
   try {
-    if (_cbFrame && _cbFrame.contentWindow && _cbFrame.contentWindow.localStorage) {
-      const ls = _cbFrame.contentWindow.localStorage;
+    if (_sfFrame && _sfFrame.contentWindow && _sfFrame.contentWindow.localStorage) {
+      const ls = _sfFrame.contentWindow.localStorage;
       const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
       score = Math.max(score, top);
     }
@@ -1920,28 +1920,28 @@ function settleOrigClumsy() {
   const coins = Math.floor(score / 10);
   gameState.score = score;
   gameState.coinsEarned = coins;
-  const prevBest = state.best['clumsy-bird'] || 0;
+  const prevBest = state.best['sky-flap'] || 0;
   const isNewBest = score > prevBest;
-  if (isNewBest) state.best['clumsy-bird'] = score;
+  if (isNewBest) state.best['sky-flap'] = score;
   if (coins > 0) state.coins += coins;
   if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
   if (gameFX) { try { gameFX.deathFX(); } catch (e) {} }
-  if (_cbPoll) clearInterval(_cbPoll);
-  _cbPoll = null;
+  if (_sfPoll) clearInterval(_sfPoll);
+  _sfPoll = null;
   const gc = document.getElementById('gameCanvas');
-  const stg = document.getElementById('clumsyStage');
+  const stg = document.getElementById('skyflapStage');
   if (gc) gc.style.display = '';
   if (stg) stg.style.display = 'none';
-  document.body.classList.remove('game-clumsy');
+  document.body.classList.remove('game-skyflap');
   document.getElementById('gameOverOverlay').classList.add('show');
   document.getElementById('overScore').innerText = String(score);
   document.getElementById('overCoins').innerText = String(coins);
   document.getElementById('overBest').innerText = String(Math.max(prevBest, score));
-  const tgt = GAME_TARGETS['clumsy-bird'];
+  const tgt = GAME_TARGETS['sky-flap'];
   let stars = !tgt ? 1 : score >= tgt ? 3 : score >= tgt * 0.6 ? 2 : 1;
   if (typeof state.stars !== 'object' || state.stars === null) state.stars = {};
-  const prevStars = state.stars['clumsy-bird'] || 0;
-  if (stars > prevStars) state.stars['clumsy-bird'] = stars;
+  const prevStars = state.stars['sky-flap'] || 0;
+  if (stars > prevStars) state.stars['sky-flap'] = stars;
   const starEls = document.querySelectorAll('#overStars span');
   if (starEls.length) {
     for (let i = 0; i < 3; i++) {
@@ -1960,38 +1960,38 @@ function settleOrigClumsy() {
   if (typeof window.updateCoinDisplay === 'function') { try { window.updateCoinDisplay(); } catch (e) {} }
   setTimeout(() => toast('🪙 Earned: ' + coins), 700);
 }
-function restartOrigClumsy() {
-  if (!gameState || gameState.id !== 'clumsy-bird') return;
+function restartOrigSkyFlap() {
+  if (!gameState || gameState.id !== 'sky-flap') return;
   if (gameState.over) gameState.over = false;
-  if (_cbPoll) clearInterval(_cbPoll);
-  _cbPoll = null;
-  _cbLastBest = 0;
+  if (_sfPoll) clearInterval(_sfPoll);
+  _sfPoll = null;
+  _sfLastBest = 0;
   const gc = document.getElementById('gameCanvas');
   if (gc) gc.style.display = 'none';
-  const stg = document.getElementById('clumsyStage');
+  const stg = document.getElementById('skyflapStage');
   if (stg) stg.style.display = 'flex';
-  if (_cbFrame) {
+  if (_sfFrame) {
     try {
-      if (_cbFrame.contentWindow && _cbFrame.contentWindow.location) {
-        _cbFrame.contentWindow.location.reload();
-      } else { _cbFrame.src = 'clumsy-bird/index.html'; }
-    } catch (e) { _cbFrame.src = 'clumsy-bird/index.html'; }
+      if (_sfFrame.contentWindow && _sfFrame.contentWindow.location) {
+        _sfFrame.contentWindow.location.reload();
+      } else { _sfFrame.src = 'sky-flap/index.html'; }
+    } catch (e) { _sfFrame.src = 'sky-flap/index.html'; }
   }
-  gameState = { id: 'clumsy-bird', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  gameState = { id: 'sky-flap', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
   document.getElementById('hudScore').innerText = '0';
   document.getElementById('overScore').innerText = '0';
   document.getElementById('gameOverOverlay').classList.remove('show');
-  document.body.classList.add('game-clumsy');
-  const cEl = document.getElementById('cbCoins');
+  document.body.classList.add('game-skyflap');
+  const cEl = document.getElementById('sfCoins');
   if (cEl) cEl.innerText = '0';
-  _cbPoll = setInterval(() => {
-    if (!gameState || gameState.id !== 'clumsy-bird') return;
+  _sfPoll = setInterval(() => {
+    if (!gameState || gameState.id !== 'sky-flap') return;
     try {
-      if (_cbFrame && _cbFrame.contentWindow && _cbFrame.contentWindow.localStorage) {
-        const ls = _cbFrame.contentWindow.localStorage;
+      if (_sfFrame && _sfFrame.contentWindow && _sfFrame.contentWindow.localStorage) {
+        const ls = _sfFrame.contentWindow.localStorage;
         const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
-        if (top > _cbLastBest) {
-          _cbLastBest = top;
+        if (top > _sfLastBest) {
+          _sfLastBest = top;
           if (document.getElementById('hudScore')) document.getElementById('hudScore').innerText = String(top);
         }
       }
@@ -2005,7 +2005,7 @@ function restartGame() {
   if (!gameState.id) return;
   const id = gameState.id;
   if (id === '2048') { restartOrig2048(); return; }
-  if (id === 'clumsy-bird') { restartOrigClumsy(); return; }
+  if (id === 'sky-flap') { restartOrigSkyFlap(); return; }
   // full cleanup (same as exitToHub minus go('arcade'))
   unbindGameTouch();
   stopTilt();
@@ -2027,7 +2027,7 @@ function restartGame() {
 function reviveGame() {
   if (!gameState.id || !gameState.over) return;
   if (gameState.id === '2048') { toast('2048 has its own continue!'); return; }
-  if (gameState.id === 'clumsy-bird') { restartOrigClumsy(); return; }
+  if (gameState.id === 'sky-flap') { restartOrigSkyFlap(); return; }
   if (reviveUsed) { toast('One continue per run!'); return; }
   const COST = 150;
   if (state.coins < COST) { toast('Need ' + COST + ' coins for continue!'); if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('err'); } catch (e) {} } return; }
@@ -2089,7 +2089,7 @@ function revengeGame() {
 // ---- exit to hub ----
 function exitToHub() {
   if (gameState.id === '2048') { settleOrig2048(); }
-  if (gameState.id === 'clumsy-bird') { settleOrigClumsy(); }
+  if (gameState.id === 'sky-flap') { settleOrigSkyFlap(); }
   clearInterval(window._diffTimer);   // stop difficulty ramp timer on exit
   unbindGameTouch();
   stopTilt(); // B1 [010]: clean up tilt listener
@@ -2143,8 +2143,8 @@ function togglePause() {
     }
     return;
   }
-  // clumsy-bird iframe: same overlay-only pause (original app keeps running)
-  if (gameState.id === 'clumsy-bird') {
+  // sky-flap iframe: same overlay-only pause (original app keeps running)
+  if (gameState.id === 'sky-flap') {
     if (gameState.paused) {
       gameState.paused = false;
       document.getElementById('pauseOverlay').classList.remove('show');
