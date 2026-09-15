@@ -406,7 +406,7 @@ body.game-2048 #page-game .hud{justify-content:center}
 /* Stage = opaque dark backdrop behind the iframe */
 #orig2048Stage{display:none;position:fixed;inset:0;z-index:55;align-items:center;justify-content:center;background:#0D0D1A;overflow-y:auto}
 body.game-active #orig2048Stage{display:flex}
-#orig2048Frame{border:none;outline:none;width:min(92vw,540px);height:min(92vw,540px);max-height:calc(100vh - 120px);background:transparent}
+#orig2048Frame{border:none;outline:none;width:min(92vw,500px);height:auto;min-height:470px;max-height:calc(100vh - 110px);background:transparent}
 #orig2048Stage{overflow-y:auto;-webkit-overflow-scrolling:touch}
 /* Coin box — top overlay, right side (score/best stay original at top-left in iframe) */
 .orig2048-coins{display:none;position:fixed;top:calc(env(safe-area-inset-top) + 44px);right:12px;z-index:70;
