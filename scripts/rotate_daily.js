@@ -22,7 +22,7 @@ const SHOP_ITEMS = [
   { id: 'fx-stars', name: 'STARBURST' }, { id: 'boost-2x', name: '2X SCORE' },
   { id: 'boost-shield', name: 'SHIELD' }, { id: 'boost-slow', name: 'SLOW MOTION' }
 ];
-const CHALLENGE_POOL = ['2048'];
+const CHALLENGE_POOL = ['2048', 'clumsy-bird'];
 const BOT_COUNT = 8;
 
 function rotCur(state) {

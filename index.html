@@ -369,6 +369,21 @@ body.game-2048 .orig2048-coins{display:flex}
 .orig2048-coins .ob{display:inline-flex;flex-direction:column;align-items:center;gap:2px}
 .orig2048-coins .ob small{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.55)}
 .orig2048-coins .ob strong{font-size:15px;line-height:1}
+/* ===== ORIGINAL CLUMSY-BIRD (zip) frame — hub Dark-Neon presentation, zip untouched ===== */
+body.game-clumsy #page-game .hud .hud-stats{display:none!important}
+body.game-clumsy #page-game .hud{justify-content:center}
+#clumsyStage{display:none;position:fixed;inset:0;z-index:55;align-items:center;justify-content:center;background:#0D0D1A;overflow-y:auto}
+body.game-active #clumsyStage{display:flex}
+#clumsyFrame{border:none;outline:none;width:min(94vw,560px);height:auto;min-height:540px;max-height:calc(100vh - 90px);background:#000;border-radius:12px}
+#clumsyStage{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.cb-coins{display:none;position:fixed;top:calc(env(safe-area-inset-top) + 44px);right:12px;z-index:70;
+  background:rgba(13,13,26,.92);border:1px solid rgba(34,211,238,.4);border-radius:12px;
+  padding:8px 14px;color:#F1F0FF;font-family:Orbitron,sans-serif;font-size:13px;font-weight:700;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);gap:14px;align-items:center}
+body.game-clumsy .cb-coins{display:flex}
+.cb-coins .ob{display:inline-flex;flex-direction:column;align-items:center;gap:2px}
+.cb-coins .ob small{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.cb-coins .ob strong{font-size:15px;line-height:1}
 /* ===== PAUSE-INSIDE (v7.16): সব কন্ট্রোল pause মেনুতে; HUD-তে শুধু pause trigger; back-to-hub সরানো ===== */
 body.game-active #page-game .hud{position:absolute;top:0;left:0;right:0;z-index:60;background:linear-gradient(rgba(5,7,10,.75),transparent);border-bottom:none;padding:8px 10px;pointer-events:none}
 body.game-active #page-game .hud-btn{display:none !important}
@@ -977,6 +992,12 @@ body.cb-safe .badge{background:var(--cb-orange)}
         <span class="ob sc"><small>Score</small><strong id="orig2048Score">0</strong></span>
         <span class="ob bt"><small>Best</small><strong id="orig2048Best">0</strong></span>
         <span class="ob cn"><small>Coins</small><strong id="origLocalCoins">0</strong></span>
+      </div>
+      <div id="clumsyStage">
+        <iframe id="clumsyFrame" src="clumsy-bird/index.html" allow="fullscreen"></iframe>
+      </div>
+      <div id="clumsyStats" class="cb-coins">
+        <span class="ob cn"><small>Coins</small><strong id="cbCoins">0</strong></span>
       </div>
       <canvas id="gameCanvas" width="800" height="450"></canvas>
       <div id="tutorialToast" class="tutorial-toast"></div>

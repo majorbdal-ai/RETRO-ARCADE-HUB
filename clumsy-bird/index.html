@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <title>Clumsy Bird</title>
+        <link rel="stylesheet" type="text/css" media="screen" href="index.css">
+        <meta name="robots" content="noindex, nofollow">
+    </head>
+
+    <body>
+        <!-- Canvas placeholder -->
+        <div id="screen"></div>
+
+        <!-- game engine -->
+        <script type="text/javascript" src="js/melonJS-min.js" ></script>
+        <script type="text/javascript" src="build/clumsy-min.js" ></script>
+        <script type="text/javascript">
+            window.onReady(function onReady() {
+                game.onload();
+            });
+        </script>
+
+    </body>
+</html>

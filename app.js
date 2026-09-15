@@ -195,6 +195,7 @@ async function syncScore(gameId, score) {
 /* ==================== GAMES ==================== */
 const GAMES = [
   { id: '2048', name: '2048', icon: '🔢', color: '#EDC22E', desc: 'Swipe merge, reach 2048', featured: true, type: '2048', cat: 'Arcade', controls: 'swipe4' },
+  { id: 'clumsy-bird', name: 'Clumsy Bird', icon: '🐦', color: '#FFB800', desc: 'Tap to flap — dodge the pipes', featured: true, type: 'clumsy-bird', cat: 'Arcade', controls: 'tap' },
 ];
 
 
@@ -220,7 +221,7 @@ function liveDeal() { return (LIVE && LIVE.deal && LIVE.deal.item) ? LIVE.deal :
 // index exactly like rotate_daily.js) so offline / live_state.json-down still
 // has a real, stable daily challenge. The bonus payout in core.js reads THIS
 // same function, so banner and reward can never disagree.
-const CHALL_FALLBACK_POOL = ['2048']; // offline fallback — always a real daily challenge for the live game
+const CHALL_FALLBACK_POOL = ['2048', 'clumsy-bird'];
 function liveChallenge() {
   if (LIVE && LIVE.challenge) return LIVE.challenge;
   // deterministic: same game all day, rotates daily (rot = whole-day index)
@@ -1157,7 +1158,7 @@ function renderProfile() {
 /* ==================== COIN STORE ==================== */
 /* Per-game skin mapping — each game gets its own palette (skin-by-game).
    Map game type/category → theme id. Individual games can be overridden below. */
-const GAME_SKIN = { _default: 'neon' };
+const GAME_SKIN = { _default: 'neon', '2048': 'neon', 'clumsy-bird': 'neon' };
 /* Apply a game's skin palette while playing (skin-by-game). Falls back to global. */
 function applyGameSkin(gameId) {
   const themeId = GAME_SKIN[gameId] || GAME_SKIN._default || 'neon';

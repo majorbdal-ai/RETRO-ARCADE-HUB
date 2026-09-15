@@ -9,7 +9,8 @@
 // that become globals. Map game id -> engine function name, resolve
 // lazily so script load order never matters.
 const GAME_ENGINE = {
-  '2048': 'game2048', 
+  '2048': 'game2048',
+  'clumsy-bird': 'gameClumsy', 
 };
 
 // true when the game's engine file is available (all 70 are; lazy-loaded on launch)
@@ -29,7 +30,8 @@ let pendingReviveFloor = 0;        // score floor carried into the revived run
 // 70 games — per-game star/retry/mission targets
 // 1★ = play & score something · 2★ = 60% · 3★ = beat target (realistic per-game goals)
 const GAME_TARGETS = {
-  '2048': 512, 
+  '2048': 512,
+  'clumsy-bird': 30, 
 };
 // per-game touch/pointer binding (gesture-driven engines use canvas swipes)
 let canvasSwipe = { startX: 0, startY: 0, started: false };
@@ -927,6 +929,7 @@ function launchGame(id) {
 
   // ORIGINAL 2048 (zip) — hosted 100% untouched in an iframe; hub adds the coin box.
   if (id === '2048') { launchOrig2048(); return; }
+  if (id === 'clumsy-bird') { launchOrigClumsy(); return; }
   const engine = window[GAME_ENGINE[id]];
   if (typeof engine === 'function') { bootGame(id, engine); return; }
   // engine not loaded yet — lazy load it (performance), show loading screen
@@ -1845,12 +1848,164 @@ function restartOrig2048() {
   }
 }
 
+// ---- ORIGINAL CLUMSY-BIRD (zip) iframe host — 100% original app inside ----
+// Same pattern as 2048: untouched zip app in an iframe, hub frames it and
+// awards coins on run end. Blind-box iframe: the game keeps its own score
+// internally; the hub overlays coins + a restart button.
+let _cbFrame = null;
+let _cbPoll = null;
+let _cbLastBest = 0;
+function launchOrigClumsy() {
+  const g = GAMES.find(x => x.id === 'clumsy-bird');
+  if (!g) return;
+  if (typeof window.pushGameHistory === 'function') { try { window.pushGameHistory(); } catch (e) {} }
+  if (typeof window.applyGameSkin === 'function') { try { window.applyGameSkin('clumsy-bird'); } catch (e) {} }
+  go('game');
+  if (document.fullscreenEnabled && !document.fullscreenElement) {
+    try { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+  }
+  if (typeof window.showTutorialToast === 'function') { try { window.showTutorialToast(g, 'clumsy-bird'); } catch (e) {} }
+  document.getElementById('hudGameTitle').innerText = g.name;
+  document.getElementById('hudScore').innerText = '0';
+  const hudLivesEl = document.getElementById('hudLives');
+  if (hudLivesEl) hudLivesEl.style.display = 'none';
+  const hudComboEl = document.getElementById('hudCombo');
+  if (hudComboEl) hudComboEl.style.display = 'none';
+  const hudRevengeEl = document.getElementById('hudRevenge');
+  if (hudRevengeEl) hudRevengeEl.style.display = 'none';
+  lockGameScroll(true);
+  gameState = { id: 'clumsy-bird', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  document.body.classList.add('game-clumsy');
+  const canvas = document.getElementById('gameCanvas');
+  const stage = document.getElementById('clumsyStage');
+  if (canvas) canvas.style.display = 'none';
+  if (stage) stage.style.display = 'flex';
+  _cbFrame = document.getElementById('clumsyFrame');
+  if (_cbFrame) {
+    _cbFrame.style.display = 'block';
+    _cbFrame.src = 'clumsy-bird/index.html?v=' + (window.APP_VERSION || Date.now());
+  }
+  _cbLastBest = 0;
+  const coinsEl = document.getElementById('cbCoins');
+  if (coinsEl) coinsEl.innerText = '0';
+  // poll the iframe's own localStorage score (melonJS stores topSteps)
+  if (_cbPoll) clearInterval(_cbPoll);
+  _cbPoll = setInterval(() => {
+    if (!gameState || gameState.id !== 'clumsy-bird') return;
+    try {
+      if (_cbFrame && _cbFrame.contentWindow && _cbFrame.contentWindow.localStorage) {
+        const ls = _cbFrame.contentWindow.localStorage;
+        const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
+        if (top > _cbLastBest) {
+          _cbLastBest = top;
+          if (document.getElementById('hudScore')) document.getElementById('hudScore').innerText = String(top);
+        }
+      }
+    } catch (e) {}
+  }, 800);
+}
+// settle = award hub coins from the game's own best steps (blind-box economy)
+function settleOrigClumsy() {
+  if (!gameState || gameState.id !== 'clumsy-bird' || gameState.over) return;
+  gameState.over = true;
+  gameState.running = false;
+  let score = gameState.score || 0;
+  try {
+    if (_cbFrame && _cbFrame.contentWindow && _cbFrame.contentWindow.localStorage) {
+      const ls = _cbFrame.contentWindow.localStorage;
+      const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
+      score = Math.max(score, top);
+    }
+  } catch (e) {}
+  const coins = Math.floor(score / 10);
+  gameState.score = score;
+  gameState.coinsEarned = coins;
+  const prevBest = state.best['clumsy-bird'] || 0;
+  const isNewBest = score > prevBest;
+  if (isNewBest) state.best['clumsy-bird'] = score;
+  if (coins > 0) state.coins += coins;
+  if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+  if (gameFX) { try { gameFX.deathFX(); } catch (e) {} }
+  if (_cbPoll) clearInterval(_cbPoll);
+  _cbPoll = null;
+  const gc = document.getElementById('gameCanvas');
+  const stg = document.getElementById('clumsyStage');
+  if (gc) gc.style.display = '';
+  if (stg) stg.style.display = 'none';
+  document.body.classList.remove('game-clumsy');
+  document.getElementById('gameOverOverlay').classList.add('show');
+  document.getElementById('overScore').innerText = String(score);
+  document.getElementById('overCoins').innerText = String(coins);
+  document.getElementById('overBest').innerText = String(Math.max(prevBest, score));
+  const tgt = GAME_TARGETS['clumsy-bird'];
+  let stars = !tgt ? 1 : score >= tgt ? 3 : score >= tgt * 0.6 ? 2 : 1;
+  if (typeof state.stars !== 'object' || state.stars === null) state.stars = {};
+  const prevStars = state.stars['clumsy-bird'] || 0;
+  if (stars > prevStars) state.stars['clumsy-bird'] = stars;
+  const starEls = document.querySelectorAll('#overStars span');
+  if (starEls.length) {
+    for (let i = 0; i < 3; i++) {
+      starEls[i].style.opacity = i < stars ? '1' : '0.22';
+      starEls[i].style.filter = i < stars ? 'none' : 'grayscale(1)';
+    }
+  }
+  document.getElementById('overStarProg').style.display = stars >= 1 ? 'block' : 'none';
+  const fill = document.getElementById('overStarProgFill');
+  if (fill) fill.style.width = (tgt ? Math.min(100, Math.floor((score / tgt) * 100)) : 100) + '%';
+  const label = document.getElementById('overStarProgLabel');
+  if (label) label.innerText = 'NEXT STAR: ' + (tgt && score < tgt ? tgt + ' | ' + Math.floor(score / tgt * 100) + '%' : 'MAX ★★★');
+  reviveUsed = false;
+  pendingRevenge = false;
+  if (typeof window.saveState === 'function') { try { window.saveState(); } catch (e) {} }
+  if (typeof window.updateCoinDisplay === 'function') { try { window.updateCoinDisplay(); } catch (e) {} }
+  setTimeout(() => toast('🪙 Earned: ' + coins), 700);
+}
+function restartOrigClumsy() {
+  if (!gameState || gameState.id !== 'clumsy-bird') return;
+  if (gameState.over) gameState.over = false;
+  if (_cbPoll) clearInterval(_cbPoll);
+  _cbPoll = null;
+  _cbLastBest = 0;
+  const gc = document.getElementById('gameCanvas');
+  if (gc) gc.style.display = 'none';
+  const stg = document.getElementById('clumsyStage');
+  if (stg) stg.style.display = 'flex';
+  if (_cbFrame) {
+    try {
+      if (_cbFrame.contentWindow && _cbFrame.contentWindow.location) {
+        _cbFrame.contentWindow.location.reload();
+      } else { _cbFrame.src = 'clumsy-bird/index.html'; }
+    } catch (e) { _cbFrame.src = 'clumsy-bird/index.html'; }
+  }
+  gameState = { id: 'clumsy-bird', running: true, paused: false, over: false, score: 0, coinsEarned: 0, touches: {}, keys: {} };
+  document.getElementById('hudScore').innerText = '0';
+  document.getElementById('overScore').innerText = '0';
+  document.getElementById('gameOverOverlay').classList.remove('show');
+  document.body.classList.add('game-clumsy');
+  const cEl = document.getElementById('cbCoins');
+  if (cEl) cEl.innerText = '0';
+  _cbPoll = setInterval(() => {
+    if (!gameState || gameState.id !== 'clumsy-bird') return;
+    try {
+      if (_cbFrame && _cbFrame.contentWindow && _cbFrame.contentWindow.localStorage) {
+        const ls = _cbFrame.contentWindow.localStorage;
+        const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
+        if (top > _cbLastBest) {
+          _cbLastBest = top;
+          if (document.getElementById('hudScore')) document.getElementById('hudScore').innerText = String(top);
+        }
+      }
+    } catch (e) {}
+  }, 800);
+}
+
 // ---- restart ----
 // B1 FIX [014-015]: full cleanup before restart — no stale state/timers carry over
 function restartGame() {
   if (!gameState.id) return;
   const id = gameState.id;
   if (id === '2048') { restartOrig2048(); return; }
+  if (id === 'clumsy-bird') { restartOrigClumsy(); return; }
   // full cleanup (same as exitToHub minus go('arcade'))
   unbindGameTouch();
   stopTilt();
@@ -1872,6 +2027,7 @@ function restartGame() {
 function reviveGame() {
   if (!gameState.id || !gameState.over) return;
   if (gameState.id === '2048') { toast('2048 has its own continue!'); return; }
+  if (gameState.id === 'clumsy-bird') { restartOrigClumsy(); return; }
   if (reviveUsed) { toast('One continue per run!'); return; }
   const COST = 150;
   if (state.coins < COST) { toast('Need ' + COST + ' coins for continue!'); if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('err'); } catch (e) {} } return; }
@@ -1933,6 +2089,7 @@ function revengeGame() {
 // ---- exit to hub ----
 function exitToHub() {
   if (gameState.id === '2048') { settleOrig2048(); }
+  if (gameState.id === 'clumsy-bird') { settleOrigClumsy(); }
   clearInterval(window._diffTimer);   // stop difficulty ramp timer on exit
   unbindGameTouch();
   stopTilt(); // B1 [010]: clean up tilt listener
@@ -1972,6 +2129,22 @@ function togglePause() {
   // original 2048 iframe: pausing the original app is not supported — the
   // overlay just sits above it (resume leaves the original untouched)
   if (gameState.id === '2048') {
+    if (gameState.paused) {
+      gameState.paused = false;
+      document.getElementById('pauseOverlay').classList.remove('show');
+      const tc = document.getElementById('touchControls');
+      if (tc && gameState._tcShown) { tc.classList.add('show'); }
+    } else {
+      gameState.paused = true;
+      document.getElementById('pauseOverlay').classList.add('show');
+      const tc = document.getElementById('touchControls');
+      gameState._tcShown = !!(tc && tc.classList.contains('show'));
+      if (tc) { tc.classList.remove('show'); }
+    }
+    return;
+  }
+  // clumsy-bird iframe: same overlay-only pause (original app keeps running)
+  if (gameState.id === 'clumsy-bird') {
     if (gameState.paused) {
       gameState.paused = false;
       document.getElementById('pauseOverlay').classList.remove('show');
