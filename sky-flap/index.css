@@ -27,13 +27,16 @@ body {
 }
 
 #screen canvas {
-  margin: auto;
+  margin: auto !important;
   /* Hide the gap for font descenders. */
-  display: block;
-  width: 100vw;
-  height: 100vh;
+  display: block !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
   /* fill the whole screen without distortion (no rotate); edges crop on tall screens */
-  object-fit: cover;
+  
+  image-rendering: auto !important;
 }
 
   /* disable scaling interpolation */
