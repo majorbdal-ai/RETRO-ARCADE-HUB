@@ -397,25 +397,25 @@ body.game-active #page-game .hud-btn{display:none !important}
   body.game-active #page-game .hud .hud-chip{padding:3px 7px;font-size:11px}
   body.game-active #gameCanvasWrap{position:fixed;inset:0;width:100%;height:100%;z-index:55;border-radius:0}
   body.game-active #gameCanvasWrap::after{border-radius:0}
-/* === 2048 IFRAME — MINIMAL (v7.48) ===
-   2048 has its own responsive CSS (500px desktop / 280px mobile).
-   Do NOT touch container/game-container/grid widths. */
-/* Hide hub HUD chips + top bar + bottom nav — immersive */
+/* === 2048 IFRAME — ORIGINAL DESIGN (v7.49) ===
+   2048's own design is kept 100%: its score/best boxes stay at the TOP
+   (inside the iframe) exactly like the original game.
+   Hub only adds: hide HUD chips, dark backdrop, top-right coin box. */
 body.game-2048 #page-game .hud .hud-stats{display:none!important}
 body.game-2048 #page-game .hud{justify-content:center}
-/* Stage = opaque dark backdrop, iframe centers itself */
-#orig2048Stage{display:none;position:fixed;inset:0;z-index:55;align-items:center;justify-content:center;background:#faf8ef}
+/* Stage = opaque dark backdrop behind the iframe */
+#orig2048Stage{display:none;position:fixed;inset:0;z-index:55;align-items:flex-start;justify-content:center;background:#0D0D1A}
 body.game-active #orig2048Stage{display:flex}
-#orig2048Frame{border:none;outline:none;max-width:min(94vw,500px);max-height:min(94vw,500px);aspect-ratio:1;background:#faf8ef}
-/* Coins bar — below frame, on dark bg */
-.orig2048-coins{display:none;position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:60;
+#orig2048Frame{border:none;outline:none;width:min(92vw,540px);height:min(92vw,540px);max-height:75vh;background:transparent}
+/* Coin box — top overlay, right side (score/best stay original at top-left in iframe) */
+.orig2048-coins{display:none;position:fixed;top:calc(env(safe-area-inset-top) + 44px);right:12px;z-index:70;
   background:rgba(13,13,26,.92);border:1px solid rgba(139,92,246,.4);border-radius:12px;
-  padding:8px 18px;color:#F1F0FF;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;
-  box-shadow:0 4px 20px rgba(0,0,0,.6);gap:16px;align-items:center}
+  padding:8px 14px;color:#F1F0FF;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);gap:14px;align-items:center}
 body.game-2048 .orig2048-coins{display:flex}
 .orig2048-coins .ob{display:inline-flex;flex-direction:column;align-items:center;gap:2px}
 .orig2048-coins .ob small{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.55)}
-.orig2048-coins .ob strong{font-size:16px;line-height:1}
+.orig2048-coins .ob strong{font-size:15px;line-height:1}
 .ob.sc small{color:#22D3EE}
 .ob.bt small{color:#F59E0B}
 .ob.cn small{color:#EC4899}

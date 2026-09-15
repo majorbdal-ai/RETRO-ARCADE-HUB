@@ -16,16 +16,13 @@
   <style>
     /* Minimal hub iframe overrides — NEVER touch .container/.game-container width
        or the original 2048 responsive layout (500px desktop / 280px mobile) breaks.
-       The iframe itself is sized by the hub's frame CSS; the game's own media
-       queries handle all responsive behavior perfectly. */
+       Original design kept: title + score/best + board all visible at top. */
     html,body{margin:0!important;padding:0!important;background:#faf8ef}
-    /* Hide elements the hub already provides (title, score/best, intro, how-to, restart) */
-    .heading,.above-game,.game-explanation,hr,p{display:none!important}
-    /* Tighten margins since original had huge gaps for hidden title/text */
+    /* Hide only the intro paragraph + how-to (hub provides help); keep title+score+best */
+    .above-game,.game-explanation,hr,p{display:none!important}
+    /* Tighten margins since original had huge gaps for hidden text */
     .container{padding-top:8px!important}
     .game-container{margin-top:8px!important}
-    /* hide original score/best — hub coin box provides these */
-    .scores-container{display:none!important}
   </style>
   <link rel="shortcut icon" href="favicon.ico">
   <meta name="HandheldFriendly" content="True">
