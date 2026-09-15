@@ -32,14 +32,8 @@ body {
   display: block;
   width: 100vw;
   height: 100vh;
-}
-@media (orientation: portrait) {
-  #screen canvas {
-    /* rotate the landscape game to fill a portrait phone edge-to-edge */
-    width: calc(100vh * 0.666);
-    height: 100vw;
-    transform: rotate(90deg);
-  }
+  /* fill the whole screen without distortion (no rotate); edges crop on tall screens */
+  object-fit: cover;
 }
 
   /* disable scaling interpolation */

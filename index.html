@@ -372,10 +372,8 @@ body.game-2048 .orig2048-coins{display:flex}
 /* ===== ORIGINAL SKY-FLAP (zip) frame — hub Dark-Neon presentation, zip untouched ===== */
 body.game-skyflap #page-game .hud .hud-stats{display:none!important}
 body.game-skyflap #page-game .hud{justify-content:center}
-@media (orientation: portrait) and (min-width: 480px){
-  body.game-skyflap #skyflapStage::after{content:"↻ Rotate your phone for the best view";position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:80;color:#22D3EE;font-family:Orbitron,sans-serif;font-size:12px;background:rgba(13,13,26,.8);padding:6px 14px;border-radius:20px;border:1px solid rgba(34,211,238,.3)}
-}
-#skyflapStage{display:none;position:fixed;inset:0;z-index:55;align-items:stretch;justify-content:stretch;background:#0D0D1A}
+
+#skyflapStage{display:none;position:fixed;inset:0;z-index:55;align-items:center;justify-content:center;background:#0D0D1A}
 body.game-active #skyflapStage{display:flex}
 #skyflapFrame{border:none;outline:none;position:absolute;inset:0;width:100%;height:100%;background:#000}
 #skyflapStage{overflow-y:auto;-webkit-overflow-scrolling:touch}
