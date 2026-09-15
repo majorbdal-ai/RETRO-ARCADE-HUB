@@ -35,7 +35,7 @@ t('window.liveChallenge exported for core payout', /window\.liveChallenge = live
 // 4d. Daily challenge pools must never silently empty (v7.48.0): offline fallback in
 //     app.js must keep referencing the live game set.
 const chPool = app.match(/const CHALL_FALLBACK_POOL\s*=\s*\[([^\]]*)\]/);
-t('CHALL_FALLBACK_POOL non-empty (offline challenge never dies)', !!(chPool && chPool[1].trim().length > 0));
+t('CHALL_FALLBACK_POOL empty-hub safe (no challenge when no games)', !!(chPool) && /liveChallenge[\s\S]{0,200}CHALL_FALLBACK_POOL\.length/.test(app));
 // 4b. combo payoff TDZ guard: scoreCoins must be declared before comboBonus uses it (v7.27 fix)
 const comboPay = core.slice(core.indexOf('const comboMult = getComboMultiplier'), core.indexOf('state.stats.gamesPlayed'));
 t('combo payoff: scoreCoins declared before comboBonus (no TDZ crash)', comboPay.indexOf('const scoreCoins') !== -1 && comboPay.indexOf('const scoreCoins') < comboPay.indexOf('comboBonus'));
@@ -122,7 +122,7 @@ t('SHIELD booster auto-continues', /shopBoosterOn\('shield'\)[\s\S]{0,400}runBoo
 t('SLOW MOTION delays difficulty ramp', /const rampMs = shopBoosterOn\('slow'\) \? 22000 : 15000/.test(core));
 t('runBoosters resets on fresh playGame', /function playGame[\s\S]{0,300}runBoosters = \{ x2: false/.test(core));
 t('FX effects tint particles', /effColor\(def\)/.test(core) && /fx-rainbow/.test(core));
-t('only 2048 game asset dir remains (zip game allowed)', !fs.existsSync(path.join(root, 'games/game2048.js')) && !fs.existsSync(path.join(root, 'games/snake-classic.js')) && fs.existsSync(path.join(root, '2048/index.html')));
+t('no game asset dir remains (empty hub)', !fs.existsSync(path.join(root, 'games/game2048.js')) && !fs.existsSync(path.join(root, 'games/snake-classic.js')) && !fs.existsSync(path.join(root, '2048/index.html')));
 // 21. REVENGE MODE (v7.36): near-miss buy-in — +50% next-run score, opt-in coin spend
 t('revengeGame defined + costs 50', /function revengeGame/.test(core) && /const COST = 50/.test(core));
 t('revenge deducts coins + sets flag', /revengeGame[\s\S]{0,400}state\.coins -= COST/.test(core) && /pendingRevenge = true/.test(core));
@@ -147,7 +147,7 @@ t('reroll button present in missions widget', html.includes('id="rerollMissionsB
 //     can't silently drop the mirror or the hold button.
 t('pointer branch mirrors coords into touches', /const mirrorTouches/.test(core) && /mirrorTouches\(x, y\); engine\.pointerDown/.test(core) && /gameState\.touches\.pointerDown = \{ x, y \}/.test(core));
 t('hold-action infra has no deleted-game lists', !/holdGames = \['archery/.test(core) && !/archery-master/.test(core) && !/sling-birds/.test(core));
-t('GAME_ENGINE maps only the 2048 iframe game', /'2048': 'game2048'/.test(core));
+t('GAME_ENGINE is empty (no iframe games)', /const GAME_ENGINE\s*=\s*\{\s*\}/.test(core));
 
 console.log(`\n${pass}/${pass + fail} security/input/cleanup checks passed`);
 process.exit(fail ? 1 : 0);

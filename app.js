@@ -192,9 +192,8 @@ async function syncScore(gameId, score) {
   try { await api('save_score', { username: auth.user, game: gameId, score }); refreshLeaderboard(); } catch (e) {}
 }
 
-/* ==================== 70 GAMES ==================== */
+/* ==================== GAMES ==================== */
 const GAMES = [
-  { id: '2048', name: '2048', icon: '🔢', color: '#EDC22E', desc: 'Swipe merge, reach 2048', featured: true, type: '2048', cat: 'Arcade', controls: 'swipe4' },
 ];
 
 
@@ -220,9 +219,10 @@ function liveDeal() { return (LIVE && LIVE.deal && LIVE.deal.item) ? LIVE.deal :
 // index exactly like rotate_daily.js) so offline / live_state.json-down still
 // has a real, stable daily challenge. The bonus payout in core.js reads THIS
 // same function, so banner and reward can never disagree.
-const CHALL_FALLBACK_POOL = ['2048']; // offline fallback — always a real daily challenge for the live game
+const CHALL_FALLBACK_POOL = []; // empty hub — no daily challenge until games return
 function liveChallenge() {
   if (LIVE && LIVE.challenge) return LIVE.challenge;
+  if (!CHALL_FALLBACK_POOL.length) return null; // no games — no challenge
   // deterministic: same game all day, rotates daily (rot = whole-day index)
   const dayIdx = Math.floor(Date.now() / 86400000);
   return CHALL_FALLBACK_POOL[dayIdx % CHALL_FALLBACK_POOL.length];
@@ -587,7 +587,7 @@ function renderMastery() {
   if (!wrap) return;
   const mastered = masteredCount();
   const total = totalStarsEarned();
-  const pct = Math.round(total / (GAMES.length * 3) * 100);
+  const pct = GAMES.length ? Math.round(total / (GAMES.length * 3) * 100) : 0;
   let html = '<div style="font-size:11px;font-weight:700;color:var(--yellow);letter-spacing:.5px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">' +
     '<span>⭐ MASTERY STARS</span>' +
     '<span style="color:var(--sub);font-weight:400">' + total + ' / ' + (GAMES.length * 3) + '</span></div>' +
@@ -1598,7 +1598,7 @@ function init() {
   toggleEmptyHub();
   // hero text: set immediately from GAMES.length (avoids stale SW cache "COMING SOON")
   const hg = document.getElementById('heroSubCount');
-  if (hg) hg.innerText = GAMES.length > 0 ? (GAMES.length + ' GAME' + (GAMES.length > 1 ? 'S' : '') + ' · PLAY INSTANTLY') : '70 CLASSICS · COMING SOON';
+  if (hg) hg.innerText = GAMES.length > 0 ? (GAMES.length + ' GAME' + (GAMES.length > 1 ? 'S' : '') + ' · PLAY INSTANTLY') : 'GAMES COMING SOON';
   renderShop();
   openAuth();
   navInit();
