@@ -34,7 +34,6 @@ body {
   height: 100vh !important;
   max-width: none !important;
   max-height: none !important;
-  /* fill the whole screen without distortion (no rotate); edges crop on tall screens */
   
   image-rendering: auto !important;
 }
