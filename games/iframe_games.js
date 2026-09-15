@@ -312,7 +312,7 @@ function launchOrigSkyFlap() {
   _sfBracket = 0;
   const coinsEl = document.getElementById('sfCoins');
   if (coinsEl) coinsEl.innerText = '0';
-  // poll the iframe's own localStorage score (melonJS stores topSteps)
+  // poll the iframe's own localStorage score (engine stores topSteps)
   if (_sfPoll) clearInterval(_sfPoll);
   _sfPoll = setInterval(() => {
     if (!gameState || gameState.id !== 'sky-flap') return;

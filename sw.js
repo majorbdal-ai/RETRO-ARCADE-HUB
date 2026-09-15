@@ -42,7 +42,7 @@ const STATIC_CORE = [
   './sky-flap/index.html',
   './sky-flap/index.css',
   './sky-flap/build/skyflap-min.js',
-  './sky-flap/js/melonJS-min.js',
+  './sky-flap/js/engine-min.js',
   './sky-flap/data/img/bg.png',
   './sky-flap/data/img/skyflap.png',
   './sky-flap/data/img/pipe.png',
