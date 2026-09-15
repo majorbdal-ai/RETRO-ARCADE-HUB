@@ -194,6 +194,7 @@ async function syncScore(gameId, score) {
 
 /* ==================== GAMES ==================== */
 const GAMES = [
+  { id: '2048', name: '2048', icon: '🔢', color: '#EDC22E', desc: 'Swipe merge, reach 2048', featured: true, type: '2048', cat: 'Arcade', controls: 'swipe4' },
 ];
 
 
@@ -219,10 +220,9 @@ function liveDeal() { return (LIVE && LIVE.deal && LIVE.deal.item) ? LIVE.deal :
 // index exactly like rotate_daily.js) so offline / live_state.json-down still
 // has a real, stable daily challenge. The bonus payout in core.js reads THIS
 // same function, so banner and reward can never disagree.
-const CHALL_FALLBACK_POOL = []; // empty hub — no daily challenge until games return
+const CHALL_FALLBACK_POOL = ['2048']; // offline fallback — always a real daily challenge for the live game
 function liveChallenge() {
   if (LIVE && LIVE.challenge) return LIVE.challenge;
-  if (!CHALL_FALLBACK_POOL.length) return null; // no games — no challenge
   // deterministic: same game all day, rotates daily (rot = whole-day index)
   const dayIdx = Math.floor(Date.now() / 86400000);
   return CHALL_FALLBACK_POOL[dayIdx % CHALL_FALLBACK_POOL.length];
@@ -1598,7 +1598,7 @@ function init() {
   toggleEmptyHub();
   // hero text: set immediately from GAMES.length (avoids stale SW cache "COMING SOON")
   const hg = document.getElementById('heroSubCount');
-  if (hg) hg.innerText = GAMES.length > 0 ? (GAMES.length + ' GAME' + (GAMES.length > 1 ? 'S' : '') + ' · PLAY INSTANTLY') : 'GAMES COMING SOON';
+  if (hg) hg.innerText = GAMES.length > 0 ? (GAMES.length + ' GAME' + (GAMES.length > 1 ? 'S' : '') + ' · PLAY INSTANTLY') : '70 CLASSICS · COMING SOON';
   renderShop();
   openAuth();
   navInit();

@@ -22,7 +22,7 @@ const SHOP_ITEMS = [
   { id: 'fx-stars', name: 'STARBURST' }, { id: 'boost-2x', name: '2X SCORE' },
   { id: 'boost-shield', name: 'SHIELD' }, { id: 'boost-slow', name: 'SLOW MOTION' }
 ];
-const CHALLENGE_POOL = []; // empty hub — no games, no daily challenge (null)
+const CHALLENGE_POOL = ['2048'];
 const BOT_COUNT = 8;
 
 function rotCur(state) {
@@ -41,7 +41,7 @@ function nextState(prev) {
   // deal: rotate through shop items
   const dealItem = SHOP_ITEMS[rot % SHOP_ITEMS.length];
   const deal = { item: dealItem.id, name: dealItem.name, pct: [10, 15, 20, 25, 30][rot % 5] };
-  // challenge: pick by rot (stable within the day slot); null when pool empty
+  // challenge: pick by rot (stable within the day slot)
   const challenge = CHALLENGE_POOL.length ? CHALLENGE_POOL[rot % CHALLENGE_POOL.length] : null;
   // bots: small deterministic drift (never huge; keeps leaderboard lively)
   const botBoost = [];

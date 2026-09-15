@@ -7,7 +7,7 @@
     "name": "NEON PHANTOM",
     "pct": 15
   },
-  "challenge": null,
+  "challenge": "2048",
   "botBoost": [
     1.27,
     1.4,
