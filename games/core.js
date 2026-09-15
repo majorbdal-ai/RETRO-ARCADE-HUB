@@ -1688,6 +1688,9 @@ function launchOrig2048() {
           if (st && typeof st.score === 'number') {
             _2048started = true;
             if (st.score !== gameState.score) {
+              // v7.51.1: haptic merge-tick (~40ms) on every score change,
+              // like the Nokia-era buzzer — the zip itself stays untouched.
+              if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('tap'); } catch (e) {} }
               gameState.score = st.score;
               document.getElementById('hudScore').innerText = String(st.score);
               const hb = document.getElementById('orig2048Score');
@@ -1700,6 +1703,8 @@ function launchOrig2048() {
         const best = parseInt(ls.getItem('bestScore') || '0', 10) || 0;
         if (best > _2048lastBest) {
           _2048lastBest = best;
+          // v7.51.1: new-best buzz — 3-pulse win pattern.
+          if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('win'); } catch (e) {} }
           const hb = document.getElementById('orig2048Best');
           if (hb) hb.innerText = String(Math.max(best, state.best['2048'] || 0));
         }
@@ -1758,6 +1763,9 @@ function settleOrig2048() {
   }
   if (Math.floor(score / 10) > 0) state.coins += Math.floor(score / 10);
   if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+  // v7.51.1: haptic game-over rattle [60,40,120] so the phone buzzes even when
+  // the 2048 iframe is showing the "Game over" message (zip untouched).
+  if (typeof window.hapticVibe === 'function') { try { window.hapticVibe('over'); } catch (e) {} }
   if (gameFX) { try { gameFX.deathFX(); } catch(e) {} }
   const gc = document.getElementById('gameCanvas');
   const frameEl = document.getElementById('orig2048Frame');
