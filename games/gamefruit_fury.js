@@ -1,379 +1,269 @@
-/* Fruit Fury — original canvas arcade game (hub-native engine, v7.66.0)
- * Mechanic: slice flying fruits by swiping, avoid bombs, chain combos.
- * Neon-styled to match RETRO ARCADE HUB. Self-contained; no external deps.
- * Engine contract: window.gameFruitFury = function(canvas, ctx, W, H, input, state)
+/**
+ * Fruit Fury — swipe-to-slice fruit arcade
+ * Contract: window.gameFruitFury(canvas, ctx, W, H, input, state)
+ *   state = { onScore(s), onGameOver(s), onCoins(n) }
+ *   return { start, destroy, pause, resume, setInput, setDifficulty, getScore, end, resize }
  */
-(function () {
-  'use strict';
-
+;(function () {
   function gameFruitFury(canvas, ctx, W, H, input, state) {
-    const onScore = state && state.onScore ? state.onScore : function () {};
-    const onGameOver = state && state.onGameOver ? state.onGameOver : function () {};
-    const onCoins = state && state.onCoins ? state.onCoins : function () {};
+    // === CONFIG ===
+    var FRUITS = ['apple','orange','grape','lemon','kiwi','melon'];
+    var COLORS = { apple:'#FF4D6D', orange:'#FF9F1C', grape:'#B563FF', lemon:'#FFD93D', kiwi:'#7BD88F', melon:'#3DD68C' };
+    var LABELS  = { apple:'Apple', orange:'Orng', grape:'Grape', lemon:'Lmn', kiwi:'Kiwi', melon:'Melon' };
+    var THROW_INTERVAL = 1300;
+    var GRAVITY = 1300;
+    var BOMB_PCT = 0.15;
 
-    // ---- tuning ----
-    const FRUITS = ['apple', 'lemon', 'orange', 'grape', 'kiwi', 'watermelon'];
-    const FRUIT_COLORS = {
-      apple: '#FF4D6D', lemon: '#FFD93D', orange: '#FF9F1C',
-      grape: '#B563FF', kiwi: '#7BD88F', watermelon: '#3DD68C'
-    };
-    const BASE_THROW_MS = 1500;      // start: 1 fruit / 1.5s
-    const MIN_THROW_MS = 420;        // max difficulty
-    const GRAVITY = 1300;            // px/s^2
-    const SWIPE_MIN = 26;            // min swipe length (px) to count as slice
-    const BOMB_P = 0.18;             // bomb spawn chance
-    const COMBO_WINDOW = 900;        // ms between slices to chain combo
-    const MAX_FRUITS = 24;
+    // === STATE ===
+    var raf = null, alive = false, isOver = false;
+    var lastTs = 0, score = 0, diff = 0, spawnAcc = 0, overTime = 0;
+    var fruits = [], trails = [];
 
-    let fps = null, raf = null;
-    let last = 0, acc = 0;
-    let score = 0, combo = 0, comboT = 0;
-    let gameOver = false, overT = 0;
-    let throws = [];
-    let slices = [];
-    let pointerDown = false, moved = false;
-    let lastSliceT = 0;
-    let shake = 0;
-    let HUD_T = 0;
+    // === TIMING (robust — never negative dt) ===
+    function now() { return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); }
 
-    // controls hint
-    let hint = 'Swipe to slice';
-
-    function throwFruit() {
-      const isBomb = Math.random() < bombP;
-      const x0 = Math.random() < 0.5 ? -30 : W + 30;
-      const y0 = H + 20;
-      const vx = (W / 2 - x0) * (0.55 + Math.random() * 0.45);
-      const vy = -(620 + Math.random() * 260);
-      const rot = Math.random() * 6.28;
-      const rotV = (Math.random() - 0.5) * 8;
-      const f = FRUITS[(Math.random() * FRUITS.length) | 0];
-      throws.push({
-        x: x0, y: y0, vx: vx, vy: vy, rot: rot, rotV: rotV,
-        kind: isBomb ? 'bomb' : f, size: isBomb ? 34 : 30 + Math.random() * 10,
-        sliced: false, t: 0
-      });
-      if (throws.length > MAX_FRUITS) throws.shift();
-    }
-
-    function sliceFruit(f, sx, sy, ex, ey) {
-      // line-circle intersect
-      const dx = ex - sx, dy = ey - sy;
-      const len2 = dx * dx + dy * dy;
-      if (len2 === 0) return false;
-      const t = ((f.x - sx) * dx + (f.y - sy) * dy) / len2;
-      const cx = sx + t * dx, cy = sy + t * dy;
-      const d2 = (f.x - cx) * (f.x - cx) + (f.y - cy) * (f.y - cy);
-      return d2 <= f.size * f.size;
-    }
-
-    function doSwipe(sx, sy, ex, ey) {
-      // ripple slice trail
-      const dx = ex - sx, dy = ey - sy;
-      const dist = Math.hypot(dx, dy);
-      if (dist < SWIPE_MIN) return;
-      slices.push({ sx: sx, sy: sy, ex: ex, ey: ey, t: 0, life: 240 });
-      // check fruits
-      let hit = 0, bombHit = false;
-      for (const f of throws) {
-        if (f.sliced) continue;
-        if (sliceFruit(f, sx, sy, ex, ey)) {
-          f.sliced = true;
-          if (f.kind === 'bomb') bombHit = true;
-          else hit++;
-        }
-      }
-      // combo
-      const now = performance.now();
-      if (hit > 0) {
-        if (now - lastSliceT < COMBO_WINDOW) combo++; else combo = 1;
-        lastSliceT = now;
-        const gain = hit * 10 * combo;
-        score += gain;
-        onScore(score);
-        if (typeof window.playSfx === 'function') { try { window.playSfx('slice' in { slice: 1 } ? 'slice' : 'pop'); } catch (e) {} }
-        if (window.gameFX) { try { window.gameFX.burst(sx, sy, '#22D3EE', 6); } catch (e) {} }
+    // === FRUIT SPAWN ===
+    function spawn(early) {
+      var bomb = Math.random() < BOMB_PCT;
+      var kind = FRUITS[(Math.random() * FRUITS.length) | 0];
+      var r = 22 + Math.random() * 14;
+      var x, y, vx, vy;
+      if (early) {
+        x = W * (0.12 + Math.random() * 0.76);
+        y = H * (0.15 + Math.random() * 0.55);
+        vx = (Math.random() - 0.5) * 250;
+        vy = -(80 + Math.random() * 180);
       } else {
-        combo = 0;
+        x = r + Math.random() * (W - 2 * r);
+        y = H + r + 10;
+        vx = (Math.random() - 0.5) * 160;
+        vy = -(500 + Math.random() * 280 + diff * 35);
       }
-      if (bombHit) {
-        endGame();
-        return;
-      }
-      // shake on multi-slice
-      if (hit >= 3) shake = Math.min(shake + 4, 10);
+      fruits.push({ x:x, y:y, vx:vx, vy:vy, r:r, rot:Math.random()*6.28, rv:(Math.random()-0.5)*10, kind:kind, bomb:bomb, alive:true, age:0 });
     }
 
-    function endGame() {
-      if (gameOver) return;
-      gameOver = true;
-      overT = 0;
-      onGameOver(score);
-      onCoins(Math.max(1, Math.floor(score / 15)));
-      // NOTE: hub's endGame (onGameOver → core.endGame) plays 'over' — no second sfx here
-      if (window.gameFX) { try { window.gameFX.deathFX(); } catch (e) {} }
-      setTimeout(function () { if (typeof window.endGame === 'function') { try { window.endGame(); } catch (e) {} } }, 900);
-    }
-
+    // === UPDATE ===
     function update(dt) {
-      if (gameOver) {
-        overT += dt;
-        if (overT > 1.5 && typeof window.endGame === 'function') {
-          try { window.endGame(); } catch (e) {}
+      if (isOver) {
+        overTime += dt;
+        if (overTime > 1.0) {
+          try { state.onGameOver(score); } catch (e) {}
+          try { state.onCoins(Math.max(1, Math.floor(score / 10))); } catch (e) {}
+          isOver = false;
         }
         return;
       }
-      // spawn
-      HUD_T -= dt;
-      const ms = Math.max(MIN_THROW_MS, baseThrowMs - score * 4);
-      acc += dt;
-      if (acc >= ms / 1000) {
-        acc = 0;
-        throwFruit();
-      }
-      // update fruits
-      for (let i = throws.length - 1; i >= 0; i--) {
-        const f = throws[i];
-        f.t += dt;
+      spawnAcc += dt * 1000;
+      var iv = Math.max(380, THROW_INTERVAL - diff * 120);
+      while (spawnAcc >= iv) { spawnAcc -= iv; spawn(false); }
+      for (var i = fruits.length - 1; i >= 0; i--) {
+        var f = fruits[i];
+        f.age += dt;
         f.vy += GRAVITY * dt;
         f.x += f.vx * dt;
         f.y += f.vy * dt;
-        f.rot += f.rotV * dt;
-        if (f.y > H + 60 || f.x < -80 || f.x > W + 80 || (f.sliced && f.t > 0.6)) {
-          throws.splice(i, 1);
+        f.rot += f.rv * dt;
+        if (f.y > H + 80 || f.x < -80 || f.x > W + 80 || (!f.alive && f.age > 0.5)) {
+          fruits.splice(i, 1);
         }
-        // miss a fruit on the floor = nothing (no penalty, casual)
       }
-      // updates swipe trails
-      for (let i = slices.length - 1; i >= 0; i--) {
-        slices[i].t += dt * 1000;
-        if (slices[i].t > slices[i].life) slices.splice(i, 1);
+      for (var j = trails.length - 1; j >= 0; j--) {
+        trails[j].life -= dt * 1000;
+        if (trails[j].life <= 0) trails.splice(j, 1);
       }
-      if (shake > 0) shake = Math.max(0, shake - dt * 18);
     }
 
+    // === DRAW (every call wrapped in try/catch) ===
     function draw() {
-      ctx.clearRect(0, 0, W, H);
-      // background — neon gradient
-      const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, '#0D0D1A');
-      g.addColorStop(1, '#1A1030');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
-      // subtle grid
-      ctx.strokeStyle = 'rgba(139,92,246,0.10)';
-      ctx.lineWidth = 1;
-      for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-      for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-
-      // fruits
-      for (const f of throws) {
-        if (f.sliced) continue;
-        ctx.save();
-        ctx.translate(f.x, f.y);
-        ctx.rotate(f.rot);
-        if (f.kind === 'bomb') {
-          // bomb — dark sphere with fuse
-          ctx.fillStyle = '#22222E';
-          ctx.beginPath(); ctx.arc(0, 0, f.size, 0, 6.29); ctx.fill();
-          ctx.fillStyle = '#5A5A6E';
-          ctx.beginPath(); ctx.arc(0, 0, f.size * 0.6, 0, 6.29); ctx.fill();
-          ctx.strokeStyle = '#EC4899';
-          ctx.lineWidth = 3;
-          ctx.beginPath(); ctx.moveTo(6, -6); ctx.lineTo(14, -16); ctx.stroke();
-          // spark
-          ctx.fillStyle = '#FFD93D';
-          ctx.beginPath(); ctx.arc(15, -17, 4, 0, 6.29); ctx.fill();
-        } else {
-          // fruit — gradient circle with highlight
-          const col = FRUIT_COLORS[f.kind];
-          const g2 = ctx.createRadialGradient(-f.size*0.3, -f.size*0.4, 2, 0, 0, f.size*0.9);
-          g2.addColorStop(0, lighten(col, 70));
-          g2.addColorStop(1, col);
-          ctx.fillStyle = g2;
-          ctx.beginPath(); ctx.arc(0, 0, f.size, 0, 6.29); ctx.fill();
-          // leaf
-          ctx.fillStyle = '#3DD68C';
-          ctx.beginPath();
-          ctx.moveTo(-4, -f.size*0.7);
-          ctx.quadraticCurveTo(4, -f.size*1.1, 10, -f.size*0.7);
-          ctx.quadraticCurveTo(4, -f.size*0.4, -4, -f.size*0.7);
-          ctx.fill();
-        }
-        ctx.restore();
-      }
-      // sliced halves (fading flies)
-      for (const f of throws) {
-        if (!f.sliced) continue;
-        const a = Math.max(0, 1 - f.t * 2.2);
-        ctx.save();
-        ctx.translate(f.x, f.y);
-        ctx.rotate(f.rot);
-        ctx.globalAlpha = a;
-        ctx.fillStyle = f.kind === 'bomb' ? '#444' : FRUIT_COLORS[f.kind];
-        ctx.beginPath(); ctx.arc(-f.size/2, 0, f.size*0.55, 0, 6.29); ctx.fill();
-        ctx.beginPath(); ctx.arc(f.size/2, 0, f.size*0.55, 0, 6.29); ctx.fill();
-        ctx.restore();
-      }
-      // swipe trail
-      for (const s of slices) {
-        const a = Math.max(0, 1 - s.t / s.life);
-        ctx.strokeStyle = 'rgba(34,211,238,' + (a * 0.9) + ')';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(s.sx, s.sy); ctx.lineTo(s.ex, s.ey); ctx.stroke();
-        ctx.strokeStyle = 'rgba(236,72,153,' + (a * 0.5) + ')';
-        ctx.lineWidth = 8;
-        ctx.beginPath(); ctx.moveTo(s.sx, s.sy); ctx.lineTo(s.ex, s.ey); ctx.stroke();
-      }
-
-      // score (float)
-      ctx.font = 'bold ' + Math.min(46, W / 8) + 'px Orbitron, monospace';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = '#22D3EE'; ctx.shadowBlur = 18;
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillText(score, W / 2, 54);
-      ctx.shadowBlur = 0;
-      if (combo >= 3) {
-        ctx.font = 'bold 20px Orbitron, monospace';
-        ctx.fillStyle = '#EC4899';
-        ctx.fillText('COMBO x' + combo, W / 2, 86);
-      }
-      if (gameOver) {
-        ctx.fillStyle = 'rgba(13,13,26,0.55)';
+      try {
+        ctx.clearRect(0, 0, W, H);
+        // background gradient (NOT plain black — visible on all screens)
+        var bg = ctx.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, '#0f0c29');
+        bg.addColorStop(0.5, '#1a1040');
+        bg.addColorStop(1, '#0a0a18');
+        ctx.fillStyle = bg;
         ctx.fillRect(0, 0, W, H);
-        ctx.font = 'bold 40px Orbitron, monospace';
-        ctx.shadowColor = '#EC4899'; ctx.shadowBlur = 24;
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText('SLICED!', W / 2, H / 2 - 20);
-        ctx.shadowBlur = 0;
-        ctx.font = '18px Orbitron, monospace';
-        ctx.fillStyle = '#9CA3AF';
-        ctx.fillText('Score ' + score, W / 2, H / 2 + 20);
+
+        // subtle grid
+        ctx.strokeStyle = 'rgba(100,80,200,0.08)';
+        ctx.lineWidth = 1;
+        for (var gx = 0; gx < W; gx += 60) {
+          ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+        }
+        for (var gy = 0; gy < H; gy += 60) {
+          ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+        }
+
+        // swipe trails
+        for (var t = 0; t < trails.length; t++) {
+          var tr = trails[t];
+          var a = tr.life / tr.maxLife;
+          ctx.strokeStyle = 'rgba(0,255,255,' + (a * 0.6) + ')';
+          ctx.lineWidth = 3 * a;
+          ctx.beginPath();
+          var pts = tr.pts;
+          if (pts.length > 0) {
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (var p = 1; p < pts.length; p++) ctx.lineTo(pts[p].x, pts[p].y);
+          }
+          ctx.stroke();
+        }
+
+        // fruits
+        for (var i = 0; i < fruits.length; i++) {
+          var f = fruits[i];
+          if (!f.alive) continue;
+          ctx.save();
+          ctx.translate(f.x, f.y);
+          ctx.rotate(f.rot);
+          if (f.bomb) {
+            // bomb
+            ctx.fillStyle = '#1e1e30';
+            ctx.beginPath(); ctx.arc(0, 0, f.r, 0, 6.28); ctx.fill();
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(0, 0, f.r, 0, 6.28); ctx.stroke();
+            // fuse
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, -f.r); ctx.lineTo(3, -f.r - 10); ctx.stroke();
+            // spark
+            ctx.fillStyle = '#FF6B00';
+            ctx.beginPath(); ctx.arc(3, -f.r - 12, 4, 0, 6.28); ctx.fill();
+            // X mark
+            ctx.strokeStyle = '#FF3333';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(-8,-8); ctx.lineTo(8,8); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(8,-8); ctx.lineTo(-8,8); ctx.stroke();
+          } else {
+            // fruit circle
+            ctx.fillStyle = COLORS[f.kind] || '#fff';
+            ctx.beginPath(); ctx.arc(0, 0, f.r, 0, 6.28); ctx.fill();
+            // highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            ctx.beginPath(); ctx.arc(-f.r * 0.2, -f.r * 0.25, f.r * 0.45, 0, 6.28); ctx.fill();
+            // label
+            ctx.fillStyle = '#000';
+            var fs = Math.max(8, (f.r * 0.55) | 0);
+            ctx.font = 'bold ' + fs + 'px Arial,sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            var lbl = LABELS[f.kind] || '';
+            ctx.fillText(lbl, 0, 1);
+          }
+          ctx.restore();
+        }
+
+        // HUD — score
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 26px Arial,sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText('SCORE ' + score, 14, 10);
+      } catch (e) {
+        // draw error — log once, don't crash loop
+        if (!draw._logged) { draw._logged = true; try { console.error('FruitFury draw error:', e); } catch (_) {} }
       }
-      // hint
-      if (!gameOver && HUD_T <= 0) {
-        ctx.font = '14px Poppins, monospace';
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.fillText(hint, W / 2, H - 20);
-      }
     }
 
-    function lighten(hex, amt) {
-      const n = parseInt(hex.slice(1), 16);
-      let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
-      r = Math.min(255, r + amt); g = Math.min(255, g + amt); b = Math.min(255, b + amt);
-      return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
-    }
-
-        function setDiff(level) {
-      baseThrowMs = Math.max(MIN_THROW_MS, BASE_THROW_MS - level * 160);
-      bombP = Math.min(0.32, BOMB_P + level * 0.02);
-    }
-    let baseThrowMs = BASE_THROW_MS, bombP = BOMB_P;
-
+    // === LOOP ===
     function loop(ts) {
-      const dt = Math.min(0.05, (ts - (last || ts)) / 1000 || 0);
-      last = ts;
-      update(dt);
-      draw();
+      if (!alive) return;
+      // robust dt — always positive, capped
+      var nowTs = typeof ts === 'number' ? ts : now();
+      var raw = (nowTs - lastTs) / 1000;
+      var dt = (raw > 0 && raw < 0.15) ? raw : 0.016; // fallback to 60fps if weird
+      lastTs = nowTs;
+      try { update(dt); draw(); } catch (e) {
+        if (!loop._logged) { loop._logged = true; try { console.error('FruitFury loop error:', e); } catch (_) {} }
+      }
       raf = requestAnimationFrame(loop);
     }
 
-    // ---- input (touch/pointer via hub) ----
-    const onDown = function (x, y) {
-      pointerDown = true; moved = false;
-    };
-    const onMove = function (x, y, px, py) {
-      if (!pointerDown) return;
-      moved = true;
-      doSwipe(px, py, x, y);
-    };
-    const onUp = function () { pointerDown = false; };
+    // === INPUT ===
+    var _ptr = null, _pts = [];
+    function canvasXY(e) {
+      var r = canvas.getBoundingClientRect();
+      if (!r.width || !r.height) return null;
+      return { x: (e.clientX - r.left) * (W / r.width), y: (e.clientY - r.top) * (H / r.height) };
+    }
+    function pDown(e) {
+      if (isOver || alive !== true) return;
+      e.preventDefault();
+      _ptr = e.pointerId;
+      var p = canvasXY(e);
+      if (p) { _pts = [p]; checkSlice(p); }
+    }
+    function pMove(e) {
+      if (e.pointerId !== _ptr || isOver) return;
+      e.preventDefault();
+      var p = canvasXY(e);
+      if (p) { _pts.push(p); if (_pts.length > 20) _pts.shift(); checkSlice(p); }
+    }
+    function pUp(e) { if (e.pointerId === _ptr) { _ptr = null; _pts = []; } }
 
-    // hub native engines expose input.touches? — here we bind directly to canvas
-    // for pointer events (hub's touch sync also mirrors into gameState).
-    function bind() {
-      canvas.addEventListener('pointerdown', onPointerDown);
-      canvas.addEventListener('pointermove', onPointerMove);
-      canvas.addEventListener('pointerup', onPointerUp);
-      canvas.addEventListener('pointercancel', onPointerUp);
-      // keyboard fallback (space = slice at random fruit)
-      window.addEventListener('keydown', onKey);
-    }
-    function onPointerDown(e) {
-      const r = canvas.getBoundingClientRect();
-      const x = (e.clientX - r.left) * (canvas.width / r.width);
-      const y = (e.clientY - r.top) * (canvas.height / r.height);
-      onDown(x, y);
-    }
-    function onPointerMove(e) {
-      const r = canvas.getBoundingClientRect();
-      const x = (e.clientX - r.left) * (canvas.width / r.width);
-      const y = (e.clientY - r.top) * (canvas.height / r.height);
-      if (pointerDown && lastPt) onMove(x, y, lastPt.x, lastPt.y);
-      lastPt = { x: x, y: y };
-    }
-    function onPointerUp() { onUp(); }
-    let lastPt = null;
-    function onKey(e) {
-      if (e.code === 'Space' || e.key === ' ') {
-        e.preventDefault();
-        // slice every fruit (keyboard cheat-mode slice)
-        for (const f of throws) if (!f.sliced && f.kind !== 'bomb') f.sliced = true;
-        score += 10; onScore(score);
+    function checkSlice(p) {
+      for (var i = 0; i < fruits.length; i++) {
+        var f = fruits[i];
+        if (!f.alive) continue;
+        var dx = p.x - f.x, dy = p.y - f.y;
+        if (dx * dx + dy * dy < (f.r + 20) * (f.r + 20)) {
+          f.alive = false;
+          if (f.bomb) {
+            isOver = true; overTime = 0;
+            try { if (window.playSfx) window.playSfx('hit'); } catch (_) {}
+          } else {
+            score++;
+            try { state.onScore(score); } catch (_) {}
+            try { if (window.playSfx) window.playSfx('slice'); } catch (_) {}
+            // add trail effect
+            var copy = _pts.slice(-8);
+            if (copy.length > 1) trails.push({ pts: copy, life: 300, maxLife: 300 });
+          }
+          return;
+        }
       }
     }
 
-    function unbind() {
-      canvas.removeEventListener('pointerdown', onPointerDown);
-      canvas.removeEventListener('pointermove', onPointerMove);
-      canvas.removeEventListener('pointerup', onPointerUp);
-      canvas.removeEventListener('pointercancel', onPointerUp);
-      window.removeEventListener('keydown', onKey);
-    }
-
-    bind();
-    // spawn 3 fruits immediately at visible positions — no empty black start
-    for (let i = 0; i < 3; i++) {
-      const isBomb = Math.random() < bombP * 0.4;
-      const f = FRUITS[(Math.random() * FRUITS.length) | 0];
-      throws.push({
-        x: W * (0.2 + Math.random() * 0.6),
-        y: H * (0.25 + Math.random() * 0.35),
-        vx: (Math.random() - 0.5) * 260,
-        vy: -(150 + Math.random() * 160),
-        rot: Math.random() * 6.28,
-        rotV: (Math.random() - 0.5) * 8,
-        kind: isBomb ? 'bomb' : f,
-        size: isBomb ? 34 : 30 + Math.random() * 10,
-        sliced: false, t: 0
+    function bind() {
+      canvas.addEventListener('pointerdown', pDown);
+      canvas.addEventListener('pointermove', pMove);
+      canvas.addEventListener('pointerup', pUp);
+      canvas.addEventListener('pointercancel', pUp);
+      window.addEventListener('keydown', function onKey(e) {
+        if (!alive || isOver) return;
+        if (e.code === 'Space') { e.preventDefault(); checkSlice({ x: W / 2 + (Math.random() - 0.5) * 300, y: H / 2 + (Math.random() - 0.5) * 200 }); }
       });
     }
-    raf = requestAnimationFrame(loop);
+    function unbind() {
+      canvas.removeEventListener('pointerdown', pDown);
+      canvas.removeEventListener('pointermove', pMove);
+      canvas.removeEventListener('pointerup', pUp);
+      canvas.removeEventListener('pointercancel', pUp);
+    }
 
+    // === PUBLIC API ===
     return {
       start: function () {
-        // hub calls start() after boot — resume loop if paused, else ensure running
-        if (raf === null && !gameOver) raf = requestAnimationFrame(loop);
+        alive = true; isOver = false;
+        score = 0; diff = 0; spawnAcc = 0; overTime = 0;
+        lastTs = now();
+        fruits = []; trails = [];
+        // spawn 3 initial fruits (visible from frame 1)
+        for (var i = 0; i < 3; i++) spawn(true);
+        try { state.onScore(0); } catch (_) {}
+        raf = requestAnimationFrame(loop);
       },
-      setInput: function (touches, keys) { /* hub legacy input — we bind our own touch */ },
-      setDifficulty: function (level) { setDiff(level); },
-      destroy: function () {
-        if (raf) cancelAnimationFrame(raf);
-        raf = null;
-        unbind();
-        throws = []; slices = [];
-      },
-      resize: function (w, h) {
-        // canvas W/H handled by hub DPR; nothing extra needed
-      },
-      pause: function () { if (raf) cancelAnimationFrame(raf); raf = null; },
-      resume: function () { if (!raf) raf = requestAnimationFrame(loop); },
+      destroy: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; unbind(); fruits = []; trails = []; },
+      pause: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; },
+      resume: function () { if (!alive && !isOver) { alive = true; lastTs = now(); raf = requestAnimationFrame(loop); } },
+      setInput: function () {},
+      setDifficulty: function (l) { diff = l; },
       getScore: function () { return score; },
-      end: function () { endGame(); }
+      end: function () { isOver = true; overTime = 0; },
+      resize: function () {}
     };
   }
-
   window.gameFruitFury = gameFruitFury;
 })();
