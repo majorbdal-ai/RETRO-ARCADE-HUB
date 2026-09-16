@@ -320,6 +320,11 @@ function launchOrigNeonFlap() {
       if (_nfFrame && _nfFrame.contentWindow && _nfFrame.contentWindow.localStorage) {
         const ls = _nfFrame.contentWindow.localStorage;
         const top = parseInt(ls.getItem('topSteps') || '0', 10) || 0;
+        const live = parseInt(ls.getItem('liveSteps') || '0', 10) || 0;
+        if (document.getElementById('nfScore')) document.getElementById('nfScore').innerText = String(live);
+        if (document.getElementById('nfBest')) document.getElementById('nfBest').innerText = String(Math.max(top, live));
+        if (document.getElementById('hudScore')) document.getElementById('hudScore').innerText = String(live);
+        if (document.getElementById('sfCoins')) document.getElementById('sfCoins').innerText = String(Math.floor(Math.max(top, live) / 10));
         if (top > _sfLastBest) {
           // milestone brackets: every 10 steps above a previous all-time high
           // (the poll only sees topSteps cross a NEW best) → short tick. Distinct
@@ -331,7 +336,6 @@ function launchOrigNeonFlap() {
             // 10/20/30… = light tick; every 50 (50/100/150) = win pulse
             try { navigator.vibrate(br % 5 === 0 ? [20, 30, 20, 30, 60] : 15); } catch (e) {}
           }
-          if (document.getElementById('hudScore')) document.getElementById('hudScore').innerText = String(top);
         }
       }
     } catch (e) {}
@@ -420,6 +424,10 @@ function restartOrigNeonFlap() {
   document.body.classList.add('game-neonflap');
   const cEl = document.getElementById('sfCoins');
   if (cEl) cEl.innerText = '0';
+  const scEl = document.getElementById('nfScore');
+  if (scEl) scEl.innerText = '0';
+  const bEl = document.getElementById('nfBest');
+  if (bEl) bEl.innerText = String(state.best['neon-flap'] || 0);
   _sfPoll = setInterval(() => {
     if (!gameState || gameState.id !== 'neon-flap') return;
     try {
