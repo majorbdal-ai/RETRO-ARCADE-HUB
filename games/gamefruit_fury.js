@@ -40,7 +40,7 @@
     let hint = 'Swipe to slice';
 
     function throwFruit() {
-      const isBomb = Math.random() < BOMB_P;
+      const isBomb = Math.random() < bombP;
       const x0 = Math.random() < 0.5 ? -30 : W + 30;
       const y0 = H + 20;
       const vx = (W / 2 - x0) * (0.55 + Math.random() * 0.45);
@@ -125,7 +125,7 @@
       }
       // spawn
       HUD_T -= dt;
-      const ms = Math.max(MIN_THROW_MS, BASE_THROW_MS - score * 4);
+      const ms = Math.max(MIN_THROW_MS, baseThrowMs - score * 4);
       acc += dt;
       if (acc >= ms / 1000) {
         acc = 0;
@@ -266,6 +266,12 @@
       return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
     }
 
+        function setDiff(level) {
+      baseThrowMs = Math.max(MIN_THROW_MS, BASE_THROW_MS - level * 160);
+      bombP = Math.min(0.32, BOMB_P + level * 0.02);
+    }
+    let baseThrowMs = BASE_THROW_MS, bombP = BOMB_P;
+
     function loop(ts) {
       const dt = Math.min(0.05, (ts - (last || ts)) / 1000 || 0);
       last = ts;
@@ -331,6 +337,12 @@
     raf = requestAnimationFrame(loop);
 
     return {
+      start: function () {
+        // hub calls start() after boot — resume loop if paused, else ensure running
+        if (raf === null && !gameOver) raf = requestAnimationFrame(loop);
+      },
+      setInput: function (touches, keys) { /* hub legacy input — we bind our own touch */ },
+      setDifficulty: function (level) { setDiff(level); },
       destroy: function () {
         if (raf) cancelAnimationFrame(raf);
         raf = null;
