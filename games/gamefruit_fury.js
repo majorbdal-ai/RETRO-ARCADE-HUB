@@ -15,7 +15,7 @@
       { id: 'kiwi',     color: '#7BD88F', hi: '#A8E6B3', lo: '#449955', leaf: '#5CD85C' },
       { id: 'watermelon', color: '#3DD68C', hi: '#6DE8B8', lo: '#22AA55', leaf: '#5CD85C' }
     ];
-    var THROW_IV = 1100, GRAVITY = 1300, BOMB_PCT = 0.15;
+    var THROW_IV = 1000, GRAVITY = 1050, BOMB_PCT = 0.15;
 
     // === STATE ===
     var raf = null, alive = false, isOver = false;
@@ -34,13 +34,16 @@
       if (early) {
         x = W * (0.12 + Math.random() * 0.76);
         y = H * (0.2 + Math.random() * 0.4);
-        vx = (Math.random() - 0.5) * 200;
+        vx = (Math.random() - 0.5) * 220;
         vy = -(80 + Math.random() * 160);
       } else {
         x = r + Math.random() * (W - 2 * r);
         y = H + r + 10;
-        vx = (Math.random() - 0.5) * 160;
-        vy = -(480 + Math.random() * 260 + diff * 30);
+        vx = (Math.random() - 0.5) * 320;
+        // STRONG upward velocity: fruit arcs high above the screen.
+        // Flight height = vy²/(2·GRAVITY). With GRAVITY 1150:
+        //   vy -620 → ~167px, vy -960 → ~400px of the 450px height.
+        vy = -(620 + Math.random() * 340 + diff * 20);
       }
       fruits.push({
         x: x, y: y, vx: vx, vy: vy, r: r,
@@ -388,34 +391,21 @@
     }
 
     // === INPUT ===
+    // core.js bindGameTouch() calls pointerDown/pointerMove/pointerUp
+    // with LOGICAL 800×450 coords (canvasXY). These are our only input path.
     var _ptr = null, _pts = [];
-    function canvasXY(e) {
-      var r = canvas.getBoundingClientRect();
-      if (!r.width || !r.height) return null;
-      return { x: (e.clientX - r.left) * (W / r.width), y: (e.clientY - r.top) * (H / r.height) };
+    function pDown(x, y) {
+      if (isOver || !alive) return;
+      _ptr = 1;
+      _pts = [{ x: x, y: y }];
     }
-    function pDown(e) {
-      if (isOver || alive !== true) return;
-      e.preventDefault();
-      _ptr = e.pointerId;
-      var p = canvasXY(e);
-      if (p) { _pts = [p]; checkSlice(p); }
+    function pMove(x, y) {
+      if (_ptr === null || isOver || !alive) return;
+      _pts.push({ x: x, y: y });
+      if (_pts.length > 24) _pts.shift();
+      if (_pts.length >= 2) checkSliceSegment(_pts[_pts.length - 2], _pts[_pts.length - 1]);
     }
-    function pMove(e) {
-      if (e.pointerId !== _ptr || isOver) return;
-      e.preventDefault();
-      var p = canvasXY(e);
-      if (p) {
-        _pts.push(p);
-        if (_pts.length > 24) _pts.shift();
-        // check slice along the line segment
-        if (_pts.length >= 2) {
-          var prev = _pts[_pts.length - 2];
-          checkSliceSegment(prev, p);
-        }
-      }
-    }
-    function pUp(e) { if (e.pointerId === _ptr) { _ptr = null; _pts = []; } }
+    function pUp() { _ptr = null; _pts = []; }
 
     function checkSliceSegment(a, b) {
       for (var i = 0; i < fruits.length; i++) {
@@ -467,28 +457,6 @@
 
     function checkSlice(p) { checkSliceSegment({ x: p.x - 10, y: p.y - 10 }, p); }
 
-    function bind() {
-      canvas.addEventListener('pointerdown', pDown);
-      canvas.addEventListener('pointermove', pMove);
-      canvas.addEventListener('pointerup', pUp);
-      canvas.addEventListener('pointercancel', pUp);
-      window.addEventListener('keydown', function (e) {
-        if (!alive || isOver) return;
-        if (e.code === 'Space') {
-          e.preventDefault();
-          var rx = W * (0.2 + Math.random() * 0.6);
-          var ry = H * (0.2 + Math.random() * 0.4);
-          checkSliceSegment({ x: rx - 40, y: ry }, { x: rx + 40, y: ry });
-        }
-      });
-    }
-    function unbind() {
-      canvas.removeEventListener('pointerdown', pDown);
-      canvas.removeEventListener('pointermove', pMove);
-      canvas.removeEventListener('pointerup', pUp);
-      canvas.removeEventListener('pointercancel', pUp);
-    }
-
     // === PUBLIC API ===
     return {
       start: function () {
@@ -501,14 +469,17 @@
         try { state.onScore(0); } catch (_) {}
         raf = requestAnimationFrame(loop);
       },
-      destroy: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; unbind(); fruits = []; halves = []; particles = []; popups = []; trails = []; },
+      destroy: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; fruits = []; halves = []; particles = []; popups = []; trails = []; },
       pause: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; },
       resume: function () { if (!alive && !isOver) { alive = true; lastTs = now(); raf = requestAnimationFrame(loop); } },
       setInput: function () {},
       setDifficulty: function (l) { diff = l; },
       getScore: function () { return score; },
       end: function () { isOver = true; overTime = 0; },
-      resize: function () {}
+      resize: function () {},
+      pointerDown: pDown,
+      pointerMove: pMove,
+      pointerUp: pUp
     };
   }
   window.gameFruitFury = gameFruitFury;
