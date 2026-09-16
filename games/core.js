@@ -1127,6 +1127,13 @@ function bootGame(id, engine) {
   window.__dprResize = () => { setupDPR(); };
   window.addEventListener('resize', window.__dprResize);
 
+  // BOOT-NEW-FRAMEWORK: bootGame-তে iframe stage hide — যাতে যেকোনো native canvas game
+  // (Fruit Fury বা ভবিষ্যৎ native) চালু হলে অন্য iframe stage/Stats overlay দেখায় না।
+  ['orig2048Stage','orig2048Stats','neonflapStage','neonflapStats'].forEach(el => {
+    const x = document.getElementById(el);
+    if (x) x.style.display = 'none';
+  });
+
   // create engine instance
   currentEngine = engine;
   let reviveFloor = pendingReviveFloor; pendingReviveFloor = 0;   // consumed once
