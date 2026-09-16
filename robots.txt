@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://majorbdal-ai.github.io/RETRO-ARCADE-HUB/sitemap.xml
