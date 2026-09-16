@@ -133,16 +133,12 @@ function canvasScale() {
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return { sx: 1, sy: 1 };
   const r = canvas.getBoundingClientRect();
-  // DPR-aware: canvas buffer is W*DPR wide, but engines use logical W (800).
-  // So the input→logical scale is (LOGICAL W) / r.width, NOT canvas.width / r.width.
-  // We read the logical size from the same const the engines use (800×450),
-  // but fall back to attribute/ratio generically if we can't derive it.
-  let lw = 800, lh = 450;
-  // If an engine ever switches to dynamic logical size, respect the attribute:
-  const logicalMult = (canvas.width && canvas.height) ? (canvas.width / lw) : 1;
-  if (logicalMult > 0 && Math.abs(logicalMult - 1) > 0.01) {
-    lw = canvas.width; lh = canvas.height;   // attribute already logical (no DPR scaling applied)
-  }
+  // DPR-aware: canvas buffer is W*DPR wide, but ALL native engines draw in
+  // logical 800×450 (setupDPR pre-scales ctx by DPR). Input must map to the
+  // SAME logical space the engine draws in — hardcode lw=800/lh=450 like the
+  // engines do. NEVER derive from canvas.width (that is 800*DPR, which would
+  // double/triple the scale on high-DPI phones → touches land off-target).
+  const lw = 800, lh = 450;
   return {
     sx: (lw && r.width) ? (lw / r.width) : 1,
     sy: (lh && r.height) ? (lh / r.height) : 1
