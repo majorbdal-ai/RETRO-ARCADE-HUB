@@ -1,5 +1,5 @@
 /**
- * Neon Snake — classic snake arcade with neon glow
+ * Neon Snake v2 — classic snake with neon particles, shake, difficulty HUD, speed lines
  * Contract: window.gameSnake(canvas, ctx, W, H, input, state)
  *   state = { onScore(s), onGameOver(s), onCoins(n) }
  *   return { start, destroy, pause, resume, setInput, setDifficulty, getScore, end, resize }
@@ -20,6 +20,8 @@
       { color: '#EC4899', glow: '#EC4899', points: 5, label: '♥' },   // pink heart (rare)
     ];
     var FOOD_WEIGHTS = [0.7, 0.22, 0.08]; // probabilities
+    var MAX_PARTICLES = 80;
+    var MAX_SPEED_LINES = 12;
 
     // === STATE ===
     var raf = null, alive = false, isOver = false;
@@ -28,11 +30,119 @@
     var foodFlash = 0; // food pulse timer
     var dirQueue = []; // queue up to 2 direction changes to prevent 180° turns on fast input
 
+    // === NEW: FX state ===
+    var particles = [];
+    var shake = 0;        // screen shake magnitude (decays)
+    var hintAlpha = 1;    // control hint fade (1→0 on first input)
+    var hintUsed = false;  // true after first swipe/arrow
+    var speedLines = [];   // ambient speed lines
+    var speedLineAcc = 0;  // accumulator for spawning speed lines
+
     function now() { return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); }
 
     // === GRID HELPERS ===
     function cellCenter(cx, cy) {
       return { x: cx * CELL + CELL / 2, y: cy * CELL + CELL / 2 };
+    }
+
+    // === PARTICLES ===
+    function emitEatParticles(x, y, color, count) {
+      for (var i = 0; i < count; i++) {
+        var a = Math.random() * 6.28;
+        var sp = 60 + Math.random() * 180;
+        particles.push({
+          x: x, y: y,
+          vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+          life: 300 + Math.random() * 250, maxLife: 550,
+          color: color, r: 1.5 + Math.random() * 3
+        });
+      }
+      // cap
+      if (particles.length > MAX_PARTICLES) particles.splice(0, particles.length - MAX_PARTICLES);
+    }
+
+    function emitDeathParticles(x, y) {
+      // burst from the head in all directions
+      for (var i = 0; i < 30; i++) {
+        var a = Math.random() * 6.28;
+        var sp = 80 + Math.random() * 250;
+        particles.push({
+          x: x, y: y,
+          vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+          life: 400 + Math.random() * 400, maxLife: 800,
+          color: i % 3 === 0 ? '#EC4899' : (i % 3 === 1 ? '#22D3EE' : '#A855F7'),
+          r: 2 + Math.random() * 4
+        });
+      }
+      if (particles.length > MAX_PARTICLES) particles.splice(0, particles.length - MAX_PARTICLES);
+    }
+
+    function updateParticles(dt) {
+      for (var i = particles.length - 1; i >= 0; i--) {
+        var p = particles[i];
+        p.life -= dt * 1000;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 200 * dt; // gravity
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+    }
+
+    function drawParticles() {
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+        var a = Math.max(0, p.life / p.maxLife);
+        ctx.globalAlpha = a;
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 6 * a;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * a, 0, 6.28);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+    }
+
+    // === SPEED LINES ===
+    function spawnSpeedLine() {
+      speedLines.push({
+        x: W + 5, y: Math.random() * H,
+        len: 30 + Math.random() * 60,
+        speed: 200 + Math.random() * 300,
+        alpha: 0.05 + Math.random() * 0.1,
+        life: 1500
+      });
+      if (speedLines.length > MAX_SPEED_LINES) speedLines.shift();
+    }
+
+    function updateSpeedLines(dt) {
+      speedLineAcc += dt * 1000;
+      // spawn rate increases with difficulty
+      var spawnIv = Math.max(100, 600 - diff * 80);
+      while (speedLineAcc >= spawnIv) {
+        speedLineAcc -= spawnIv;
+        spawnSpeedLine();
+      }
+      for (var i = speedLines.length - 1; i >= 0; i--) {
+        var sl = speedLines[i];
+        sl.x -= sl.speed * dt;
+        sl.life -= dt * 1000;
+        if (sl.x < -100 || sl.life <= 0) speedLines.splice(i, 1);
+      }
+    }
+
+    function drawSpeedLines() {
+      for (var i = 0; i < speedLines.length; i++) {
+        var sl = speedLines[i];
+        var fadeA = Math.min(sl.alpha, sl.alpha * (sl.life / 500));
+        ctx.strokeStyle = 'rgba(34,211,238,' + fadeA + ')';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sl.x, sl.y);
+        ctx.lineTo(sl.x - sl.len, sl.y);
+        ctx.stroke();
+      }
     }
 
     function spawnFood() {
@@ -73,6 +183,8 @@
       if ((d === 'up' && last === 'down') || (d === 'down' && last === 'up') ||
           (d === 'left' && last === 'right') || (d === 'right' && last === 'left')) return;
       if (d !== last) dirQueue.push(d);
+      // fade hint on first real input
+      if (!hintUsed) { hintUsed = true; }
     }
 
     function applyNextDir() {
@@ -90,6 +202,7 @@
     function update(dt) {
       if (isOver) {
         overTime += dt;
+        updateParticles(dt);
         if (overTime > 0.8) {
           try { state.onGameOver(score); } catch (e) {}
           try { state.onCoins(Math.max(1, Math.floor(score / 5))); } catch (e) {}
@@ -97,6 +210,17 @@
         }
         return;
       }
+
+      // fade hint
+      if (hintUsed && hintAlpha > 0) {
+        hintAlpha = Math.max(0, hintAlpha - dt * 2.5);
+      }
+
+      // update shake
+      if (shake > 0) shake = Math.max(0, shake - dt * 8);
+
+      updateParticles(dt);
+      updateSpeedLines(dt);
 
       foodFlash += dt;
       moveAcc += dt;
@@ -134,7 +258,15 @@
           score += pts;
           try { state.onScore(score); } catch (e) {}
           try { if (window.playSfx) window.playSfx('coin'); } catch (_) {}
-          if (navigator.vibrate) { try { navigator.vibrate([30, 20, 60]); } catch (_) {} }
+          // haptic: rare food gets stronger pattern
+          if (navigator.vibrate) {
+            try {
+              navigator.vibrate(pts >= 5 ? [20, 10, 40, 10, 80] : [30, 20, 60]);
+            } catch (_) {}
+          }
+          // eat particles
+          var fp = cellCenter(food.x, food.y);
+          emitEatParticles(fp.x, fp.y, food.type.color, pts >= 5 ? 12 : 6);
           // grow: don't pop tail
           spawnFood();
         } else {
@@ -146,14 +278,26 @@
     function die() {
       isOver = true;
       overTime = 0;
+      shake = 4;
       try { if (window.playSfx) window.playSfx('error'); } catch (_) {}
-      if (navigator.vibrate) { try { navigator.vibrate([80, 30, 120]); } catch (_) {} }
+      if (navigator.vibrate) {
+        try { navigator.vibrate([80, 30, 120]); } catch (_) {}
+      }
+      // death particles from the head
+      var hp = cellCenter(snake[0].x, snake[0].y);
+      emitDeathParticles(hp.x, hp.y);
     }
 
     // === DRAW ===
     function draw() {
       try {
         ctx.clearRect(0, 0, W, H);
+
+        // screen shake
+        ctx.save();
+        if (shake > 0) {
+          ctx.translate((Math.random() - 0.5) * shake * 4, (Math.random() - 0.5) * shake * 4);
+        }
 
         // background
         var bg = ctx.createLinearGradient(0, 0, 0, H);
@@ -173,6 +317,9 @@
           ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
         }
 
+        // speed lines (behind everything)
+        drawSpeedLines();
+
         // === FOOD ===
         if (food) {
           var fp = cellCenter(food.x, food.y);
@@ -182,15 +329,12 @@
           ctx.shadowColor = food.type.glow;
           ctx.shadowBlur = 12 * pulse;
           ctx.fillStyle = food.type.color;
-          ctx.beginPath();
-          ctx.arc(fp.x, fp.y, CELL * 0.4 * pulse, 0, 6.28);
+          ctx.beginPath(); ctx.arc(fp.x, fp.y, CELL * 0.4 * pulse, 0, 6.28);
           ctx.fill();
           ctx.shadowBlur = 0;
           // inner bright dot
           ctx.fillStyle = 'rgba(255,255,255,0.5)';
-          ctx.beginPath();
-          ctx.arc(fp.x - 2, fp.y - 2, 3, 0, 6.28);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(fp.x - 2, fp.y - 2, 3, 0, 6.28); ctx.fill();
           // rare food label
           if (food.type.points > 1) {
             ctx.fillStyle = '#fff';
@@ -259,6 +403,9 @@
           }
         }
 
+        // === PARTICLES (on top of snake) ===
+        drawParticles();
+
         // === SCORE HUD ===
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 22px Arial,sans-serif';
@@ -270,6 +417,44 @@
         ctx.fillStyle = 'rgba(255,255,255,0.4)';
         ctx.font = '14px Arial,sans-serif';
         ctx.fillText('LEN ' + snake.length, 14, 36);
+
+        // === DIFFICULTY HUD (top-right) ===
+        var lvl = Math.min(5, Math.max(0, Math.round(diff)));
+        var lvlColors = ['#22D3EE', '#A855F7', '#EC4899', '#FF6B6B', '#FF4444', '#FF0000'];
+        ctx.textAlign = 'right';
+        ctx.fillStyle = lvlColors[lvl] || '#fff';
+        ctx.font = 'bold 16px Arial,sans-serif';
+        ctx.fillText('LVL ' + lvl, W - 14, 10);
+        // speed bar
+        var barW = 60, barH = 5;
+        var barX = W - 14 - barW, barY = 30;
+        var fillRatio = 1 - (speed() - MIN_SPEED) / (BASE_SPEED - MIN_SPEED);
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillRect(barX, barY, barW, barH);
+        ctx.fillStyle = lvlColors[lvl] || '#fff';
+        ctx.fillRect(barX, barY, barW * fillRatio, barH);
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.font = '10px Arial,sans-serif';
+        ctx.fillText('SPEED', W - 14, barY + barH + 10);
+
+        // === CONTROL HINT (center, fades on first input) ===
+        if (hintAlpha > 0.01 && !isOver) {
+          ctx.globalAlpha = hintAlpha;
+          ctx.fillStyle = '#22D3EE';
+          ctx.font = 'bold 18px Arial,sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.shadowColor = '#22D3EE';
+          ctx.shadowBlur = 10;
+          ctx.fillText('SWIPE TO MOVE', W / 2, H - 40);
+          ctx.shadowBlur = 0;
+          // arrow icons
+          var arrY = H - 18;
+          ctx.font = '14px Arial,sans-serif';
+          ctx.fillStyle = 'rgba(255,255,255,0.5)';
+          ctx.fillText('←  ↑  →  ↓', W / 2, arrY);
+          ctx.globalAlpha = 1;
+        }
 
         // === DEATH FLASH ===
         if (isOver && overTime < 0.3) {
@@ -294,6 +479,7 @@
           ctx.fillText('SCORE: ' + score, W / 2, H / 2 + 14);
         }
 
+        ctx.restore();
       } catch (e) {
         if (!draw._logged) { draw._logged = true; try { console.error('Snake draw error:', e); } catch (_) {} }
       }
@@ -358,14 +544,14 @@
       canvas.addEventListener('pointermove', pMove);
       canvas.addEventListener('pointerup', pUp);
       canvas.addEventListener('pointercancel', pUp);
-      window.addEventListener('keydown', onKeyDown);
+      if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('keydown', onKeyDown);
     }
     function unbind() {
       canvas.removeEventListener('pointerdown', pDown);
       canvas.removeEventListener('pointermove', pMove);
       canvas.removeEventListener('pointerup', pUp);
       canvas.removeEventListener('pointercancel', pUp);
-      window.removeEventListener('keydown', onKeyDown);
+      if (typeof window !== 'undefined' && window.removeEventListener) window.removeEventListener('keydown', onKeyDown);
     }
 
     // === PUBLIC API ===
@@ -375,6 +561,8 @@
         score = 0; diff = 0; moveAcc = 0; overTime = 0; foodFlash = 0;
         lastTs = now();
         dir = 'right'; nextDir = 'right'; dirQueue = [];
+        particles = []; shake = 0; hintAlpha = 1; hintUsed = false;
+        speedLines = []; speedLineAcc = 0;
         // snake starts in the middle-left
         var startX = Math.floor(COLS * 0.25);
         var startY = Math.floor(ROWS / 2);
@@ -384,7 +572,7 @@
         try { state.onScore(0); } catch (_) {}
         raf = requestAnimationFrame(loop);
       },
-      destroy: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; unbind(); snake = []; food = null; },
+      destroy: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; unbind(); snake = []; food = null; particles = []; speedLines = []; },
       pause: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; },
       resume: function () { if (!alive && !isOver) { alive = true; lastTs = now(); raf = requestAnimationFrame(loop); } },
       setInput: function () {},

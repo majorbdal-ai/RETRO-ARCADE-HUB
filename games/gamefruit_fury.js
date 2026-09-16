@@ -1,5 +1,5 @@
 /**
- * Fruit Fury v3 — full polish: sliced halves, juice particles, combo, neon theme
+ * Fruit Fury v4 — polished: haptic feedback, bomb ring, combo glow, control hint, milestone celebration
  * Contract: window.gameFruitFury(canvas, ctx, W, H, input, state)
  */
 ;(function () {
@@ -16,6 +16,8 @@
       { id: 'watermelon', color: '#3DD68C', hi: '#6DE8B8', lo: '#22AA55', leaf: '#5CD85C' }
     ];
     var THROW_IV = 1000, GRAVITY = 1050, BOMB_PCT = 0.15;
+    // MISS RULE (Fruit Ninja style): 3 fruits that hit the ground = game over
+    var MAX_MISS = 3, missCount = 0;
 
     // === STATE ===
     var raf = null, alive = false, isOver = false;
@@ -23,6 +25,16 @@
     var diff = 0, spawnAcc = 0, overTime = 0;
     var fruits = [], halves = [], particles = [], popups = [], trails = [];
     var screenShake = 0;
+
+    // === NEW: UX FX state ===
+    var hintAlpha = 1;      // swipe hint fades on first input
+    var hintUsed = false;
+    var bombRings = [];      // explosion ring effects
+    var comboGlow = 0;       // screen glow intensity (peaks at combo >= 5)
+    var milestoneTimer = 0;  // celebration timer for score milestones (every 10)
+    var milestoneText = '';   // celebration text
+    var milestoneColor = '#FFE600';
+
     function now() { return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); }
 
     // === SPAWN ===
@@ -41,8 +53,6 @@
         y = H + r + 10;
         vx = (Math.random() - 0.5) * 320;
         // STRONG upward velocity: fruit arcs high above the screen.
-        // Flight height = vy²/(2·GRAVITY). With GRAVITY 1150:
-        //   vy -620 → ~167px, vy -960 → ~400px of the 450px height.
         vy = -(620 + Math.random() * 340 + diff * 20);
       }
       fruits.push({
@@ -74,20 +84,48 @@
       halves.push({ x: f.x + 4, y: f.y, vx: 80 + Math.random() * 60, vy: -200 - Math.random() * 100, r: f.r, rot: f.rot, rv: 3 + Math.random() * 3, color: c, lo: lo, life: 900, side: 1 });
     }
 
+    // === BOMB EXPLOSION RING ===
+    function emitBombRing(x, y) {
+      bombRings.push({ x: x, y: y, r: 0, maxR: 180, life: 500, maxLife: 500 });
+    }
+
+    // === HAPTIC FEEDBACK ===
+    function hapticSlice() {
+      if (!navigator.vibrate) return;
+      try { navigator.vibrate(15); } catch (_) {}
+    }
+    function hapticBomb() {
+      if (!navigator.vibrate) return;
+      try { navigator.vibrate([40, 20, 60, 20, 100]); } catch (_) {}
+    }
+
     // === UPDATE ===
     function update(dt) {
       if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 15);
       if (isOver) {
         overTime += dt;
+        // update leftover halves/particles even during game over
+        updateFx(dt);
+        updateBombRings(dt);
         if (overTime > 1.2) {
           try { state.onGameOver(score); } catch (_) {}
           try { state.onCoins(Math.max(1, Math.floor(score / 8))); } catch (_) {}
           isOver = false;
         }
-        // update leftover halves/particles even during game over
-        updateFx(dt);
         return;
       }
+
+      // fade hint
+      if (hintUsed && hintAlpha > 0) {
+        hintAlpha = Math.max(0, hintAlpha - dt * 2.5);
+      }
+
+      // combo glow decay
+      if (comboGlow > 0) comboGlow = Math.max(0, comboGlow - dt * 3);
+
+      // milestone timer
+      if (milestoneTimer > 0) milestoneTimer -= dt * 1000;
+
       // spawn
       spawnAcc += dt * 1000;
       var iv = Math.max(380, THROW_IV - diff * 100);
@@ -100,6 +138,17 @@
         f.x += f.vx * dt;
         f.y += f.vy * dt;
         f.rot += f.rv * dt;
+        // fruit that falls past the ground = MISS (Fruit Ninja rule)
+        if (f.y > H + 24 && f.alive && !f.bomb) {
+          f.alive = false;
+          missCount++;
+          emitPopup(f.x, H - 40, 'MISS', '#FF6B6B');
+          if (missCount >= MAX_MISS) {
+            isOver = true; overTime = 0;
+            screenShake = 0.6;
+            try { if (window.playSfx) window.playSfx('over'); } catch (_) {}
+          }
+        }
         if (f.y > H + 80 || f.x < -80 || f.x > W + 80 || (!f.alive && f.age > 0.45)) {
           fruits.splice(i, 1);
         }
@@ -108,6 +157,7 @@
       comboTimer -= dt * 1000;
       if (comboTimer <= 0) combo = 0;
       updateFx(dt);
+      updateBombRings(dt);
     }
 
     function updateFx(dt) {
@@ -131,6 +181,16 @@
       for (var n = trails.length - 1; n >= 0; n--) {
         trails[n].life -= dt * 1000;
         if (trails[n].life <= 0) trails.splice(n, 1);
+      }
+    }
+
+    function updateBombRings(dt) {
+      for (var i = bombRings.length - 1; i >= 0; i--) {
+        var br = bombRings[i];
+        br.life -= dt * 1000;
+        var prog = 1 - br.life / br.maxLife;
+        br.r = br.maxR * prog;
+        if (br.life <= 0) bombRings.splice(i, 1);
       }
     }
 
@@ -162,6 +222,17 @@
           ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
         }
 
+        // === COMBO SCREEN GLOW (at combo >= 5) ===
+        if (comboGlow > 0.01) {
+          var ga = comboGlow * 0.12;
+          var cg = ctx.createRadialGradient(W / 2, H / 2, 50, W / 2, H / 2, W * 0.6);
+          cg.addColorStop(0, 'rgba(139,92,246,' + ga + ')');
+          cg.addColorStop(0.5, 'rgba(236,72,153,' + (ga * 0.5) + ')');
+          cg.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = cg;
+          ctx.fillRect(0, 0, W, H);
+        }
+
         // fruit shadows on ground
         for (var si = 0; si < fruits.length; si++) {
           var sf = fruits[si];
@@ -169,9 +240,7 @@
           var shY = H - 8;
           var shScale = Math.max(0.2, 1 - (shY - sf.y) / 600);
           ctx.fillStyle = 'rgba(0,0,0,' + (0.15 * shScale) + ')';
-          ctx.beginPath();
-          ctx.ellipse(sf.x, shY, sf.r * 0.8 * shScale, 4 * shScale, 0, 0, 6.28);
-          ctx.fill();
+          ctx.beginPath(); ctx.ellipse(sf.x, shY, sf.r * 0.8 * shScale, 4 * shScale, 0, 0, 6.28); ctx.fill();
         }
 
         // swipe trails (glow)
@@ -197,9 +266,7 @@
           var pa = pp.life / pp.maxLife;
           ctx.globalAlpha = pa;
           ctx.fillStyle = pp.color;
-          ctx.beginPath();
-          ctx.arc(pp.x, pp.y, pp.r * pa, 0, 6.28);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(pp.x, pp.y, pp.r * pa, 0, 6.28); ctx.fill();
         }
         ctx.globalAlpha = 1;
 
@@ -213,23 +280,35 @@
           ctx.globalAlpha = ha;
           // half circle
           ctx.fillStyle = hh.color;
-          ctx.beginPath();
-          ctx.arc(0, 0, hh.r, hh.side < 0 ? Math.PI : 0, hh.side < 0 ? 2 * Math.PI : Math.PI);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(0, 0, hh.r, hh.side < 0 ? Math.PI : 0, hh.side < 0 ? 2 * Math.PI : Math.PI); ctx.fill();
           // inner flesh
           ctx.fillStyle = hh.lo;
-          ctx.beginPath();
-          ctx.arc(0, 0, hh.r * 0.7, hh.side < 0 ? Math.PI : 0, hh.side < 0 ? 2 * Math.PI : Math.PI);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(0, 0, hh.r * 0.7, hh.side < 0 ? Math.PI : 0, hh.side < 0 ? 2 * Math.PI : Math.PI); ctx.fill();
           // seeds (2-3 dots)
           ctx.fillStyle = '#3a2010';
           for (var si2 = 0; si2 < 3; si2++) {
             var sx2 = (si2 - 1) * hh.r * 0.3;
-            ctx.beginPath();
-            ctx.arc(sx2, hh.side * hh.r * 0.15, 1.5, 0, 6.28);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(sx2, hh.side * hh.r * 0.15, 1.5, 0, 6.28); ctx.fill();
           }
           ctx.restore();
+        }
+        ctx.globalAlpha = 1;
+
+        // === BOMB EXPLOSION RINGS ===
+        for (var ri = 0; ri < bombRings.length; ri++) {
+          var br = bombRings[ri];
+          var bra = Math.max(0, br.life / br.maxLife);
+          ctx.globalAlpha = bra * 0.7;
+          ctx.strokeStyle = '#FF4444';
+          ctx.lineWidth = 3 + 4 * bra;
+          ctx.shadowColor = '#FF4444';
+          ctx.shadowBlur = 15 * bra;
+          ctx.beginPath(); ctx.arc(br.x, br.y, br.r, 0, 6.28); ctx.stroke();
+          // inner white ring
+          ctx.strokeStyle = 'rgba(255,255,255,' + (bra * 0.4) + ')';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(br.x, br.y, br.r * 0.6, 0, 6.28); ctx.stroke();
+          ctx.shadowBlur = 0;
         }
         ctx.globalAlpha = 1;
 
@@ -264,7 +343,7 @@
         }
         ctx.globalAlpha = 1;
 
-        // HUD
+        // === HUD ===
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 22px Arial,sans-serif';
         ctx.textAlign = 'left';
@@ -274,10 +353,72 @@
         ctx.fillText('SCORE ' + score, 14, 10);
         ctx.shadowBlur = 0;
         if (combo > 1) {
-          ctx.fillStyle = '#22D3EE';
+          var comboColor = combo >= 8 ? '#FFE600' : (combo >= 5 ? '#EC4899' : '#22D3EE');
+          ctx.fillStyle = comboColor;
           ctx.font = 'bold 18px Arial,sans-serif';
+          ctx.shadowColor = comboColor;
+          ctx.shadowBlur = combo >= 5 ? 10 : 4;
           ctx.fillText('COMBO x' + combo, 14, 36);
+          ctx.shadowBlur = 0;
         }
+
+        // === DIFFICULTY HUD (top-right) ===
+        var lvl = Math.min(5, Math.max(0, Math.round(diff)));
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#A855F7';
+        ctx.font = 'bold 16px Arial,sans-serif';
+        ctx.fillText('LVL ' + lvl, W - 14, 10);
+        var barW = 60, barH = 5;
+        var barX = W - 14 - barW, barY = 30;
+        var spawnIv = Math.max(380, THROW_IV - diff * 100);
+        var fillRatio = 1 - (spawnIv - 380) / (THROW_IV - 380);
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillRect(barX, barY, barW, barH);
+        ctx.fillStyle = '#A855F7';
+        ctx.fillRect(barX, barY, barW * fillRatio, barH);
+        // MISS indicator below LVL bar (Fruit Ninja: 3 misses = game over)
+        ctx.fillStyle = missCount >= MAX_MISS ? '#FF4444' : '#FFB3B3';
+        ctx.font = 'bold 13px Arial,sans-serif';
+        ctx.fillText('MISS x' + missCount, W - 14, 40);
+
+        // === SWIPE HINT (center-bottom, fades on first input) ===
+        if (hintAlpha > 0.01 && !isOver) {
+          ctx.globalAlpha = hintAlpha;
+          ctx.fillStyle = '#00ffff';
+          ctx.font = 'bold 20px Arial,sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.shadowColor = '#00ffff';
+          ctx.shadowBlur = 12;
+          ctx.fillText('SWIPE ACROSS FRUITS', W / 2, H - 40);
+          ctx.shadowBlur = 0;
+          // swipe line icon
+          ctx.strokeStyle = 'rgba(0,255,255,0.4)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          ctx.moveTo(W / 2 - 60, H - 20);
+          ctx.lineTo(W / 2 + 60, H - 20);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.globalAlpha = 1;
+        }
+
+        // === MILESTONE CELEBRATION ===
+        if (milestoneTimer > 0) {
+          var mt = Math.min(1, milestoneTimer / 400);
+          ctx.globalAlpha = mt;
+          ctx.fillStyle = milestoneColor;
+          ctx.font = 'bold 28px Arial,sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.shadowColor = milestoneColor;
+          ctx.shadowBlur = 15;
+          ctx.fillText(milestoneText, W / 2, H / 2 - 80);
+          ctx.shadowBlur = 0;
+          ctx.globalAlpha = 1;
+        }
+
         // game over flash
         if (isOver) {
           var oa = Math.min(0.6, overTime * 2);
@@ -303,35 +444,24 @@
       var c = f.fd;
       // shadow
       ctx.fillStyle = 'rgba(0,0,0,0.2)';
-      ctx.beginPath();
-      ctx.arc(2, 3, f.r, 0, 6.28);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(2, 3, f.r, 0, 6.28); ctx.fill();
       // outer
       ctx.fillStyle = c.color;
-      ctx.beginPath();
-      ctx.arc(0, 0, f.r, 0, 6.28);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 0, f.r, 0, 6.28); ctx.fill();
       // gradient highlight
       var g = ctx.createRadialGradient(-f.r * 0.3, -f.r * 0.35, 1, 0, 0, f.r);
       g.addColorStop(0, 'rgba(255,255,255,0.45)');
       g.addColorStop(0.5, 'rgba(255,255,255,0.1)');
       g.addColorStop(1, 'rgba(0,0,0,0.15)');
       ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(0, 0, f.r, 0, 6.28);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 0, f.r, 0, 6.28); ctx.fill();
       // leaf
       ctx.fillStyle = c.leaf;
-      ctx.beginPath();
-      ctx.ellipse(f.r * 0.3, -f.r * 0.9, 5, 8, 0.4, 0, 6.28);
-      ctx.fill();
+      ctx.beginPath(); ctx.ellipse(f.r * 0.3, -f.r * 0.9, 5, 8, 0.4, 0, 6.28); ctx.fill();
       // stem
       ctx.strokeStyle = '#8B5A2B';
       ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, -f.r);
-      ctx.lineTo(1, -f.r - 6);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -f.r); ctx.lineTo(1, -f.r - 6); ctx.stroke();
     }
 
     function drawBomb(f) {
@@ -340,21 +470,15 @@
       ctx.shadowBlur = 12;
       // body
       ctx.fillStyle = '#1a1a2e';
-      ctx.beginPath();
-      ctx.arc(0, 0, f.r, 0, 6.28);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 0, f.r, 0, 6.28); ctx.fill();
       ctx.shadowBlur = 0;
       // ring
       ctx.strokeStyle = '#555';
       ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, 0, f.r, 0, 6.28);
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, f.r, 0, 6.28); ctx.stroke();
       // inner highlight
       ctx.fillStyle = 'rgba(255,255,255,0.08)';
-      ctx.beginPath();
-      ctx.arc(-f.r * 0.2, -f.r * 0.2, f.r * 0.5, 0, 6.28);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(-f.r * 0.2, -f.r * 0.2, f.r * 0.5, 0, 6.28); ctx.fill();
       // fuse
       ctx.strokeStyle = '#aaa';
       ctx.lineWidth = 2.5;
@@ -365,9 +489,7 @@
       // spark
       var spark = (Date.now() % 400 < 200);
       ctx.fillStyle = spark ? '#FF4444' : '#FFaa00';
-      ctx.beginPath();
-      ctx.arc(4, -f.r - 15, spark ? 4 : 3, 0, 6.28);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(4, -f.r - 15, spark ? 4 : 3, 0, 6.28); ctx.fill();
       // X
       ctx.strokeStyle = '#FF3333';
       ctx.lineWidth = 2.5;
@@ -398,6 +520,7 @@
       if (isOver || !alive) return;
       _ptr = 1;
       _pts = [{ x: x, y: y }];
+      if (!hintUsed) hintUsed = true;
     }
     function pMove(x, y) {
       if (_ptr === null || isOver || !alive) return;
@@ -431,7 +554,9 @@
         isOver = true; overTime = 0;
         screenShake = 1;
         emitJuice(f.x, f.y, '#FF4444', 20);
+        emitBombRing(f.x, f.y);
         emitPopup(f.x, f.y - 30, 'BOOM!', '#FF4444');
+        hapticBomb();
         try { if (window.playSfx) window.playSfx('hit'); } catch (_) {}
       } else {
         combo++;
@@ -440,6 +565,8 @@
         var gain = 1 + Math.floor(combo / 2);
         score += gain;
         try { state.onScore(score); } catch (_) {}
+        // haptic feedback
+        hapticSlice();
         // juice
         emitJuice(f.x, f.y, f.fd.color, 8 + combo * 2);
         // halves
@@ -448,10 +575,19 @@
         var txt = '+' + gain;
         if (combo > 2) txt += ' x' + combo;
         emitPopup(f.x, f.y - 20, txt, combo > 3 ? '#FFE600' : '#fff');
+        // combo glow escalation
+        if (combo >= 5) comboGlow = 1;
         // trail
         var copy = _pts.slice(-10);
         if (copy.length > 1) trails.push({ pts: copy, life: 350, maxLife: 350 });
         try { if (window.playSfx) window.playSfx('slice'); } catch (_) {}
+        // score milestone (every 10 points)
+        if (score > 0 && score % 10 < gain) {
+          milestoneTimer = 1200;
+          milestoneText = '🔥 ' + score + ' POINTS!';
+          milestoneColor = score >= 50 ? '#FFE600' : '#22D3EE';
+          screenShake = 0.5;
+        }
       }
     }
 
@@ -463,13 +599,16 @@
         alive = true; isOver = false;
         score = 0; combo = 0; comboTimer = 0; bestCombo = 0;
         diff = 0; spawnAcc = 0; overTime = 0; screenShake = 0;
+        missCount = 0;
+        hintAlpha = 1; hintUsed = false;
+        bombRings = []; comboGlow = 0; milestoneTimer = 0;
         lastTs = now();
         fruits = []; halves = []; particles = []; popups = []; trails = [];
         for (var i = 0; i < 3; i++) spawn(true);
         try { state.onScore(0); } catch (_) {}
         raf = requestAnimationFrame(loop);
       },
-      destroy: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; fruits = []; halves = []; particles = []; popups = []; trails = []; },
+      destroy: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; fruits = []; halves = []; particles = []; popups = []; trails = []; bombRings = []; },
       pause: function () { alive = false; if (raf) cancelAnimationFrame(raf); raf = null; },
       resume: function () { if (!alive && !isOver) { alive = true; lastTs = now(); raf = requestAnimationFrame(loop); } },
       setInput: function () {},

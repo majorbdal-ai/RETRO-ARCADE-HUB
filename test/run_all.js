@@ -38,7 +38,7 @@ const legacyNames = [];
 for (const [file, fn] of Object.entries(map)) {
   try {
     const code = fs.readFileSync(path.join(G, file + '.js'),'utf8');
-    const run = new Function('canvas','ctx','onScore','onGameOver','onCoins','window', code + '; return ' + fn + ';');
+    const run = new Function('canvas','ctx','onScore','onGameOver','onCoins','window', code + '; return window.' + fn + ';');
     const engineFn = run(canvas, makeCtx(), ()=>{}, ()=>{}, ()=>{}, {});
     if (legacyNames.includes(file)) {
       // old-style 6-arg engine: (canvas, ctx, W, H, input, state) — returns API directly
