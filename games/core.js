@@ -147,8 +147,18 @@ function canvasXY(clientX, clientY) {
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return { x: clientX, y: clientY };
   const r = canvas.getBoundingClientRect();
-  const { sx, sy } = canvasScale();
-  return { x: (clientX - r.left) * sx, y: (clientY - r.top) * sy };
+  // object-fit:contain letterbox — the RENDERED image is centered with
+  // pillarbox/letterbox bars; the border box is NOT the drawing area.
+  // Map touch to the actual 800×450 image region (v7.74.1 P1 touch fix).
+  const iw = 800, ih = 450;
+  const scale = Math.min(r.width / iw, r.height / ih);
+  const drawW = iw * scale, drawH = ih * scale;
+  const offX = (r.width - drawW) / 2, offY = (r.height - drawH) / 2;
+  const px = clientX - r.left - offX;
+  const py = clientY - r.top - offY;
+  // outside the rendered image (letterbox bars) → invalid touch, engine ignores
+  if (px < 0 || py < 0 || px > drawW || py > drawH) return { x: -1, y: -1 };
+  return { x: px / scale, y: py / scale };
 }
 function bindGameTouch(engine) {
   unbindGameTouch();

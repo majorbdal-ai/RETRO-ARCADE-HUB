@@ -16,8 +16,8 @@
     W = 800; H = 450;   // DPR override — draw logical, hub ctx pre-scaled
 
     // === CONFIG ===
-    var GRAVITY = 1080;              // floaty arc (ref 3g: apex = vy²/2g)
-    var THROW_IV = 1050;             // ms between throws (ramps down w/ difficulty)
+    var GRAVITY = 780;              // gentler arc — fruits stay visible 2-3s (was 1080: too fast)
+    var THROW_IV = 1250;             // slower spawn cadence — player has time to slice (was 1050)
     var MIN_IV = 360;
     var BOMB_PCT = 0.14;
     var MAX_MISS = 3;                // Fruit Ninja rule: 3 misses = game over
@@ -54,11 +54,12 @@
       var x, y, vx, vy;
       var side = Math.random() < 0.5;
       if (early) {
-        // visible batch at frame 1 — never an empty black start
+        // visible batch at frame 1 — never an empty black start.
+        // noMiss=true → these don't count as misses (player needs a beat to find the swipe zone)
         x = W * (0.15 + Math.random() * 0.7);
-        y = H * (0.35 + Math.random() * 0.4);
+        y = H * (0.3 + Math.random() * 0.3);
         vx = (Math.random() - 0.5) * 240;
-        vy = -(120 + Math.random() * 160);
+        vy = -(260 + Math.random() * 240);   // higher arc — stays on screen ~2s
       } else {
         // Fruit Ninja style: launch from below the bottom edge, arc up
         x = side ? -20 - Math.random() * 40 : W + 20 + Math.random() * 40;
@@ -69,7 +70,8 @@
       var rp = 0.9 + Math.random() * 0.25;   // random size variance
       fruits.push({
         x: x, y: y, vx: vx, vy: vy, rot: (Math.random() - 0.5) * 0.9,
-        r: r * rp, fd: fd, bomb: bomb, alive: true, age: 0, spin: (Math.random() - 0.5) * 6
+        r: r * rp, fd: fd, bomb: bomb, alive: true, age: 0, spin: (Math.random() - 0.5) * 6,
+        noMiss: !!early
       });
     }
 
@@ -146,12 +148,14 @@
         f.x += f.vx * dt;
         f.y += f.vy * dt;
         f.rot += f.spin * dt;
-        if (f.y > H + 30 && f.alive && !f.bomb) {
-          // fell off without being sliced — MISS
-          missCount++;
-          emitPopup(f.x, Math.min(H - 30, f.y), 'MISS!', '#FF5A5A');
+        if (f.y > H + 50 && f.alive && !f.bomb) {
+          // fell off without being sliced — MISS (early noMiss fruits never count)
+          if (!f.noMiss) {
+            missCount++;
+            emitPopup(f.x, Math.min(H - 30, f.y), 'MISS!', '#FF5A5A');
+            if (missCount >= MAX_MISS) triggerGameOver();
+          }
           f.alive = false;
-          if (missCount >= MAX_MISS) triggerGameOver();
         }
         if (f.alive && (f.y > H + 60 || f.x < -80 || f.x > W + 80)) fruits.splice(i, 1);
       }
@@ -617,7 +621,7 @@
         var t = Math.max(0, Math.min(1, ((f.x - a.x) * dx + (f.y - a.y) * dy) / len2));
         var px = a.x + t * dx, py = a.y + t * dy;
         var ex = f.x - px, ey = f.y - py;
-        if (ex * ex + ey * ey < (f.r + 14) * (f.r + 14)) {
+        if (ex * ex + ey * ey < (f.r + 22) * (f.r + 22)) {
           doSlice(f, (a.x + b.x) / 2, (a.y + b.y) / 2);
           return;
         }
