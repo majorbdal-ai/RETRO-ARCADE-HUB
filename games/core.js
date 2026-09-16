@@ -11,7 +11,8 @@
 const GAME_ENGINE = {
   '2048': 'game2048',
   'neon-flap': 'gameNeonFlap',
-  'fruit-fury': 'gameFruitFury', 
+  'fruit-fury': 'gameFruitFury',
+  'neon-snake': 'gameSnake',
 };
 
 // true when the game's engine file is available (all 70 are; lazy-loaded on launch)
