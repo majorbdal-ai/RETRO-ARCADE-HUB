@@ -6,6 +6,10 @@
  */
 ;(function () {
   function gameFruitFury(canvas, ctx, W, H, input, state) {
+    // OVERRIDE: hub's canvasScale() hardcodes logical 800×450 for input mapping.
+    // canvas.width/height = 800*DPR (from setupDPR), but ctx has DPR transform.
+    // We MUST draw in 800×450 logical space — ctx transform scales up.
+    W = 800; H = 450;
     // === CONFIG ===
     var FRUITS = ['apple','orange','grape','lemon','kiwi','melon'];
     var COLORS = { apple:'#FF4D6D', orange:'#FF9F1C', grape:'#B563FF', lemon:'#FFD93D', kiwi:'#7BD88F', melon:'#3DD68C' };
