@@ -10,7 +10,8 @@
 // lazily so script load order never matters.
 const GAME_ENGINE = {
   '2048': 'game2048',
-  'neon-flap': 'gameNeonFlap', 
+  'neon-flap': 'gameNeonFlap',
+  'fruit-fury': 'gameFruitFury', 
 };
 
 // true when the game's engine file is available (all 70 are; lazy-loaded on launch)
@@ -31,7 +32,8 @@ let pendingReviveFloor = 0;        // score floor carried into the revived run
 // 1★ = play & score something · 2★ = 60% · 3★ = beat target (realistic per-game goals)
 const GAME_TARGETS = {
   '2048': 512,
-  'neon-flap': 30, 
+  'neon-flap': 30,
+  'fruit-fury': 120, 
 };
 // per-game touch/pointer binding (gesture-driven engines use canvas swipes)
 let canvasSwipe = { startX: 0, startY: 0, started: false };

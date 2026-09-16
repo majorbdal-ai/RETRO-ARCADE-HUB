@@ -196,6 +196,7 @@ async function syncScore(gameId, score) {
 const GAMES = [
   { id: '2048', name: '2048', icon: '🔢', color: '#EDC22E', desc: 'Swipe merge, reach 2048', featured: true, type: '2048', cat: 'Arcade', controls: 'swipe4' },
   { id: 'neon-flap', name: 'Neon Flap', icon: '🐦', color: '#FFB800', desc: 'Tap to flap — dodge the pipes', featured: true, type: 'neon-flap', cat: 'Arcade', controls: 'tap' },
+  { id: 'fruit-fury', name: 'Fruit Fury', icon: '🍉', color: '#FF4D6D', desc: 'Swipe to slice fruit — dodge bombs', featured: true, type: 'fruit-fury', cat: 'Arcade', controls: 'swipe' },
 ];
 
 
