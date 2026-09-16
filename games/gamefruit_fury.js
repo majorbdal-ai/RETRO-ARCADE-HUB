@@ -110,7 +110,7 @@
       overT = 0;
       onGameOver(score);
       onCoins(Math.max(1, Math.floor(score / 15)));
-      if (typeof window.playSfx === 'function') { try { window.playSfx('over'); } catch (e) {} }
+      // NOTE: hub's endGame (onGameOver → core.endGame) plays 'over' — no second sfx here
       if (window.gameFX) { try { window.gameFX.deathFX(); } catch (e) {} }
       setTimeout(function () { if (typeof window.endGame === 'function') { try { window.endGame(); } catch (e) {} } }, 900);
     }
@@ -334,6 +334,22 @@
     }
 
     bind();
+    // spawn 3 fruits immediately at visible positions — no empty black start
+    for (let i = 0; i < 3; i++) {
+      const isBomb = Math.random() < bombP * 0.4;
+      const f = FRUITS[(Math.random() * FRUITS.length) | 0];
+      throws.push({
+        x: W * (0.2 + Math.random() * 0.6),
+        y: H * (0.25 + Math.random() * 0.35),
+        vx: (Math.random() - 0.5) * 260,
+        vy: -(150 + Math.random() * 160),
+        rot: Math.random() * 6.28,
+        rotV: (Math.random() - 0.5) * 8,
+        kind: isBomb ? 'bomb' : f,
+        size: isBomb ? 34 : 30 + Math.random() * 10,
+        sliced: false, t: 0
+      });
+    }
     raf = requestAnimationFrame(loop);
 
     return {

@@ -418,6 +418,7 @@ const SFX = {
   pop()    { sfxTone(520, 0.09, 'sine', 0.06, 880); },
   coin()   { sfxTone(988, 0.08, 'square', 0.045); setTimeout(() => sfxTone(1319, 0.14, 'square', 0.045), 70); },
   hit()    { sfxTone(180, 0.12, 'sawtooth', 0.05, 90); },
+  slice()  { sfxTone(720, 0.07, 'square', 0.045); setTimeout(() => sfxTone(980, 0.1, 'square', 0.035), 50); },
   over()   { sfxTone(392, 0.18, 'sawtooth', 0.05, 130); setTimeout(() => sfxTone(196, 0.28, 'sawtooth', 0.05, 60), 160); },
   launch() { sfxTone(440, 0.1, 'square', 0.045, 880); },
   win()    { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => sfxTone(f, 0.12, 'square', 0.045), i * 90)); },
