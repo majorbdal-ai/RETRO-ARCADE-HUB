@@ -668,7 +668,7 @@ function drawControls(gameId) {
   }
   // Swipe-only
   else if (type === 'swipe') {
-    html += `<div class="ctrl-spacer"></div>`;
+    html += `<div class="ctrl-swipe-zone" id="swipeZone"><i class="fa-solid fa-arrows-up-down-left-right"></i><span>SWIPE</span></div>`;
   }
   // Virtual joystick (single)
   else if (type === 'joystick') {
