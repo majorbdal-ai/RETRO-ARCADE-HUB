@@ -1,25 +1,25 @@
 {
-  "rot": 28,
-  "updated": "2026-10-28T17:33:50.652Z",
+  "rot": 29,
+  "updated": "2026-10-28T21:58:35.398Z",
   "featured": [
-    "neon-flap",
     "fruit-fury",
-    "2048"
+    "2048",
+    "neon-flap"
   ],
   "deal": {
-    "item": "veh-viper",
-    "name": "VIPER GT",
-    "pct": 25
+    "item": "veh-phantom",
+    "name": "PHANTOM CYCLE",
+    "pct": 30
   },
-  "challenge": "2048",
+  "challenge": "neon-flap",
   "botBoost": [
-    1.66,
-    1.89,
-    1.02,
-    1.25,
-    1.48,
-    1.61,
-    1.84,
-    1.07
+    1.83,
+    1.06,
+    1.29,
+    1.42,
+    1.65,
+    1.88,
+    1.01,
+    1.24
   ]
 }
