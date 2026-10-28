@@ -1,25 +1,25 @@
 {
-  "rot": 26,
-  "updated": "2026-10-28T02:54:25.882Z",
+  "rot": 27,
+  "updated": "2026-10-28T11:46:29.036Z",
   "featured": [
-    "fruit-fury",
     "2048",
-    "neon-flap"
+    "neon-flap",
+    "fruit-fury"
   ],
   "deal": {
-    "item": "skin-gold",
-    "name": "GOLD LEGEND",
-    "pct": 15
+    "item": "veh-falcon",
+    "name": "FALCON X",
+    "pct": 20
   },
-  "challenge": "2048",
+  "challenge": "neon-flap",
   "botBoost": [
-    1.22,
-    1.45,
-    1.68,
-    1.81,
-    1.04,
-    1.27,
-    1.4,
-    1.63
+    1.49,
+    1.62,
+    1.85,
+    1.08,
+    1.21,
+    1.44,
+    1.67,
+    1.8
   ]
 }
