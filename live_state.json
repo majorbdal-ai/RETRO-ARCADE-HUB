@@ -1,25 +1,25 @@
 {
-  "rot": 32,
-  "updated": "2026-10-29T17:44:05.651Z",
+  "rot": 33,
+  "updated": "2026-10-29T22:10:08.819Z",
   "featured": [
-    "fruit-fury",
     "2048",
-    "neon-flap"
+    "neon-flap",
+    "fruit-fury"
   ],
   "deal": {
-    "item": "fx-stars",
-    "name": "STARBURST",
-    "pct": 20
+    "item": "boost-2x",
+    "name": "2X SCORE",
+    "pct": 25
   },
-  "challenge": "2048",
+  "challenge": "neon-flap",
   "botBoost": [
-    1.44,
-    1.67,
-    1.8,
-    1.03,
-    1.26,
-    1.49,
-    1.62,
-    1.85
+    1.61,
+    1.84,
+    1.07,
+    1.2,
+    1.43,
+    1.66,
+    1.89,
+    1.02
   ]
 }
