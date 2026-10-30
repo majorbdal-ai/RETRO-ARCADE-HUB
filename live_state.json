@@ -1,25 +1,25 @@
 {
-  "rot": 34,
-  "updated": "2026-10-30T03:20:49.210Z",
+  "rot": 35,
+  "updated": "2026-10-30T11:48:43.962Z",
   "featured": [
-    "neon-flap",
     "fruit-fury",
-    "2048"
+    "2048",
+    "neon-flap"
   ],
   "deal": {
-    "item": "boost-shield",
-    "name": "SHIELD",
-    "pct": 30
+    "item": "boost-slow",
+    "name": "SLOW MOTION",
+    "pct": 10
   },
-  "challenge": "2048",
+  "challenge": "neon-flap",
   "botBoost": [
-    1.88,
-    1.01,
-    1.24,
-    1.47,
-    1.6,
-    1.83,
-    1.06,
-    1.29
+    1.05,
+    1.28,
+    1.41,
+    1.64,
+    1.87,
+    1,
+    1.23,
+    1.46
   ]
 }
