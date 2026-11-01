@@ -1,25 +1,25 @@
 {
-  "rot": 42,
-  "updated": "2026-11-01T02:59:38.538Z",
+  "rot": 43,
+  "updated": "2026-11-01T12:14:31.025Z",
   "featured": [
-    "2048",
     "neon-flap",
-    "fruit-fury"
+    "fruit-fury",
+    "2048"
   ],
   "deal": {
-    "item": "fx-fire",
-    "name": "FIRE TRAIL",
-    "pct": 20
+    "item": "fx-rainbow",
+    "name": "RAINBOW",
+    "pct": 25
   },
-  "challenge": "2048",
+  "challenge": "neon-flap",
   "botBoost": [
-    1.44,
-    1.67,
-    1.8,
-    1.03,
-    1.26,
-    1.49,
-    1.62,
-    1.85
+    1.61,
+    1.84,
+    1.07,
+    1.2,
+    1.43,
+    1.66,
+    1.89,
+    1.02
   ]
 }
