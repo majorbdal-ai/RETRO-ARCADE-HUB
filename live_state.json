@@ -1,25 +1,25 @@
 {
-  "rot": 59,
-  "updated": "2026-11-07T03:36:40.911Z",
+  "rot": 60,
+  "updated": "2026-11-07T12:02:05.738Z",
   "featured": [
-    "fruit-fury",
     "2048",
-    "neon-flap"
+    "neon-flap",
+    "fruit-fury"
   ],
   "deal": {
-    "item": "boost-slow",
-    "name": "SLOW MOTION",
-    "pct": 30
+    "item": "skin-dragon",
+    "name": "DRAGON SKIN",
+    "pct": 10
   },
-  "challenge": "neon-flap",
+  "challenge": "2048",
   "botBoost": [
-    1.83,
-    1.06,
-    1.29,
-    1.42,
-    1.65,
-    1.88,
-    1.01,
-    1.24
+    1,
+    1.23,
+    1.46,
+    1.69,
+    1.82,
+    1.05,
+    1.28,
+    1.41
   ]
 }
