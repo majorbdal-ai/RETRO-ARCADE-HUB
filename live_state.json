@@ -1,25 +1,25 @@
 {
-  "rot": 69,
-  "updated": "2026-11-10T22:37:48.711Z",
+  "rot": 70,
+  "updated": "2026-11-11T03:36:44.744Z",
   "featured": [
-    "2048",
     "neon-flap",
-    "fruit-fury"
+    "fruit-fury",
+    "2048"
   ],
   "deal": {
-    "item": "boost-2x",
-    "name": "2X SCORE",
-    "pct": 30
+    "item": "boost-shield",
+    "name": "SHIELD",
+    "pct": 10
   },
-  "challenge": "neon-flap",
+  "challenge": "2048",
   "botBoost": [
-    1.83,
-    1.06,
-    1.29,
-    1.42,
-    1.65,
-    1.88,
-    1.01,
-    1.24
+    1,
+    1.23,
+    1.46,
+    1.69,
+    1.82,
+    1.05,
+    1.28,
+    1.41
   ]
 }
