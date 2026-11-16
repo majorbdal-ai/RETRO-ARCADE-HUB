@@ -1,25 +1,25 @@
 {
-  "rot": 85,
-  "updated": "2026-11-16T03:37:33.658Z",
+  "rot": 86,
+  "updated": "2026-11-16T14:12:09.814Z",
   "featured": [
-    "neon-flap",
     "fruit-fury",
-    "2048"
+    "2048",
+    "neon-flap"
   ],
   "deal": {
-    "item": "skin-cyber",
-    "name": "NEON PHANTOM",
-    "pct": 10
+    "item": "skin-gold",
+    "name": "GOLD LEGEND",
+    "pct": 15
   },
-  "challenge": "neon-flap",
+  "challenge": "2048",
   "botBoost": [
-    1.05,
-    1.28,
-    1.41,
-    1.64,
-    1.87,
-    1,
-    1.23,
-    1.46
+    1.22,
+    1.45,
+    1.68,
+    1.81,
+    1.04,
+    1.27,
+    1.4,
+    1.63
   ]
 }
