@@ -1,25 +1,25 @@
 {
-  "rot": 99,
-  "updated": "2026-11-21T13:51:07.609Z",
+  "rot": 100,
+  "updated": "2026-11-21T22:33:06.169Z",
   "featured": [
-    "2048",
     "neon-flap",
-    "fruit-fury"
+    "fruit-fury",
+    "2048"
   ],
   "deal": {
-    "item": "veh-falcon",
-    "name": "FALCON X",
-    "pct": 30
+    "item": "veh-viper",
+    "name": "VIPER GT",
+    "pct": 10
   },
-  "challenge": "neon-flap",
+  "challenge": "2048",
   "botBoost": [
-    1.83,
-    1.06,
-    1.29,
-    1.42,
-    1.65,
-    1.88,
-    1.01,
-    1.24
+    1,
+    1.23,
+    1.46,
+    1.69,
+    1.82,
+    1.05,
+    1.28,
+    1.41
   ]
 }
